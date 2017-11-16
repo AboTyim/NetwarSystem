@@ -1,0 +1,9 @@
+#!/usr/bin/python
+import sys, os, re
+
+infile = open(sys.argv[1] + ".txt", 'r')
+outfile = open(sys.argv[1] + ".csv", 'w')
+for line in infile:
+    outfile.write(sys.argv[1] + "," + line)
+infile.close()
+outfile.close()

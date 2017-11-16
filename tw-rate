@@ -1,0 +1,18 @@
+#!/usr/bin/python
+#DESC: Rate limit checker.
+import tweepy
+import os
+from simpleconfigparser import simpleconfigparser
+
+config = simpleconfigparser()
+config.read(os.environ['HOME'] +'/.twitter')
+
+
+auth = tweepy.OAuthHandler(config.API.consumer_key, config.API.consumer_secret)
+auth.set_access_token(config.API.access_token_key, config.API.access_token_secret)
+api = tweepy.API(auth)
+
+rlim = api.rate_limit_status()[u'resources'][u'statuses'][u'/statuses/user_timeline'][u'remaining']
+#rlim = limit.[u'resources'][u'statuses'][u'/statuses/user_timeline'][u'remaining']
+
+print rlim

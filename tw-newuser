@@ -1,0 +1,27 @@
+#!/usr/bin/python
+#DESC: Save screen name, ID, some other stats for a screen name.
+import tweepy
+import os
+import sys
+from simpleconfigparser import simpleconfigparser
+from time import gmtime, strftime
+
+config = simpleconfigparser()
+config.read(os.environ['HOME'] +'/.twitter')
+
+
+auth = tweepy.OAuthHandler(config.API.consumer_key, config.API.consumer_secret)
+auth.set_access_token(config.API.access_token_key, config.API.access_token_secret)
+api = tweepy.API(auth)
+
+
+if True:
+    try:
+        y = api.get_user(sys.argv[1])
+        if y:
+            focnt = str(y.followers_count)
+            frcnt = str(y.friends_count)
+            statc = str(y.statuses_count)
+            print(strftime("%Y-%m-%d %H:%M:%S", gmtime()) + "," + y.screen_name + "," + y.id_str + ",\"" + y.name + "\"," +   frcnt + "," + focnt + "," + statc + "," +  str(y.created_at))
+    except (RuntimeError, TypeError, NameError):
+        pass

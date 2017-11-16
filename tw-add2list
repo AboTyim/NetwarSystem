@@ -1,0 +1,46 @@
+#!/usr/bin/python
+#DESC: print  members of <USER'S> <LIST>
+import tweepy
+import csv
+import sys
+from simpleconfigparser import simpleconfigparser
+import os
+
+config = simpleconfigparser()
+config.read(os.environ['HOME'] +'/.twitter')
+
+
+auth = tweepy.OAuthHandler(config.API.consumer_key, config.API.consumer_secret)
+auth.set_access_token(config.API.access_token_key, config.API.access_token_secret)
+api = tweepy.API(auth)
+
+y = api.verify_credentials()
+
+api.add_list_member(sys.argv[1], sys.argv[2])
+#'add_member'
+#'created_at'
+#'description'
+#'destroy'
+#'following'
+#'full_name'
+#'id'
+#'id_str'
+#'is_member'
+#'is_subscribed'
+#'member_count'
+#'members'
+#'mode'
+#'name'
+#'parse'
+#'parse_list'
+#'remove_member'
+#'slug'
+#'subscribe'
+#'subscriber_count'
+#'subscribers'
+#'timeline'
+#'unsubscribe'
+#'update'
+#'uri'
+#'user'
+

@@ -1,0 +1,12 @@
+#!/bin/bash
+DERP=`date +%Y-%m-%d-%H-%M`
+
+ALIVE=`/usr/local/bin/tw-alive $1 | awk -F " " {'print $2'}`
+echo $1 " is " $ALIVE
+if [ "$ALIVE" == "accessible" ] 
+    then
+    echo "awakening account: $1"
+    ls $1* | awk -F "idle-" {'print "mv " $0 " " $2'} > movethem
+    sh movethem
+#    rm movethem
+fi

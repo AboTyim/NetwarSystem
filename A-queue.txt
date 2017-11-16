@@ -1,0 +1,52 @@
+#!/bin/bash
+TEXTDATE=`date`
+#mind your OS version, check this manually.
+START=`date +%s`
+APISTART=`/usr/local/bin/tw-rate`
+LISTRATE=`/usr/local/bin/tw-listrate`
+export HOMEDIR=`/usr/local/bin/tw-home`
+export FULLPATH="$HOME/$HOMEDIR/"
+QUEUE=`ps ux | grep "A-queue" | grep -v "grep" | wc | awk -F " " {'print $1'}`
+
+# just in case this doesn't exist
+mkdir -p ~/lists
+
+if [ "$APISTART" -gt "10" ] && [  "$QUEUE" -lt "4" ]
+    then
+#stochastic load smoothing
+/usr/local/bin/tw-randwait
+
+# find new lists, create directories, sense missing files, create 1970 empties
+# need to check for protected accounts before placing them in rotation
+#
+if [ "$LISTRATE" -gt "90" ]
+	then
+		(cd $FULLPATH ; /usr/local/bin/tw-trmv2)
+                #output gets sorted in A-packtweets, because directory context
+                #this is not right, but it runs
+fi
+
+(cd $FULLPATH ; find . | grep "\-consolidated" |  grep -v "idle-" | awk -F "consolidated-" {'print $2 " " $1'} | sort | head -1 | awk -F " " {'print $2'} | awk '{sub(/-/,"/" s)};1' | awk -F "/" {'print "(cd $FULLPATH/" $2 "; /usr/local/bin/A-packtweets " $3 ")"'} > "$FULLPATH/next")
+
+# log what we're doing
+cat $FULLPATH/next >> $FULLPATH/perflog.txt
+# actually collect tweets for the target account.
+chmod 755 $FULLPATH/next
+$FULLPATH/next
+
+END=`date +%s`
+APIEND=`/usr/local/bin/tw-rate`
+TIMEUSE=$((END - START))
+APIUSE=$((APISTART - APIEND))
+echo $TEXTDATE secs: $TIMEUSE API calls: $APIUSE API start: $APISTART API end: $APIEND >> $FULLPATH/perflog.txt 
+echo '' >> $FULLPATH/perflog.txt
+
+else
+# otherwise we've been invoked before the prior instance of A-queue
+# has completed. This used to be a file lock, that proved to be horrible
+# in practice when things went wrong.
+TEND=`date`
+echo "skipping at $TEND" >> $FULLPATH/perflog.txt
+echo '' >> $FULLPATH/perflog.txt
+fi
+

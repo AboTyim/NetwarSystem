@@ -1,0 +1,4 @@
+#!/bin/bash
+ls $1* | awk {'print "mv " $0 " idle-" $0'} > movethem
+sh movethem
+rm movethem

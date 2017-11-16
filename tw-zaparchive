@@ -1,0 +1,33 @@
+#!/usr/bin/python
+#DESC: If you want to get rid of ALL tweets for an account
+#DESC: you order the archive and feed it to this script
+#DESC: eats API, will stall out mysteriously, put this in 
+#DESC: screen and batch up 200 instances with a sleep 60
+#DESC: between them, check back periodically 
+import tweepy, os, sys, urllib3, time
+from simpleconfigparser import simpleconfigparser
+
+config = simpleconfigparser()
+config.read(os.environ['HOME'] +'/.twitter')
+
+auth = tweepy.OAuthHandler(config.API.consumer_key, config.API.consumer_secret)
+auth.set_access_token(config.API.access_token_key, config.API.access_token_secret)
+api = tweepy.API(auth)
+
+y = api.verify_credentials()
+tweets = open(sys.argv[1], 'r')
+
+i = 0
+print "restart"
+for tweet in tweets:
+    try:
+        #urllib3.urlopen("http://twitter.com/" + y.screen_name + "/status/" + tweet.rstrip())
+        #time.sleep(6)
+        print "http://twitter.com/" + y.screen_name + "/status/" + tweet
+        api.destroy_status(tweet.rstrip())
+        i = i + 1
+        print i
+    except:
+        print "Whoops"
+#    except urllib3.URLError:
+#        print "Missing: " + "http://twitter.com/" + y.screen_name + "/status/" + tweet

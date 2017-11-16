@@ -1,0 +1,40 @@
+queue:
+
+	•	check read & list API tokens
+	•	collect start date
+	•	get homedir via ~/.twitter
+	•	random wait load smoothing
+	•	if list rate > 90
+	⁃	trmlist to get lists/list members to record
+	•	search consolidated files, find oldest, write ‘next’ script
+	•	run next script, which contains packtweets invocation
+	•	collect end date
+	•	write performance data to perflog.txt
+	•	ELSE not enough tokens OR prior job still running
+	⁃	write skip data to perflog.txt
+
+packtweets:
+
+	•	check account with tw-alive, announce if it’s accessible
+	•	ELSE
+	⁃	move accounts files to idle-name
+	•	sense LASTTWEET from consolidated file
+	•	log LASTTWEET to perflog.txt
+	•	invoke tw-devld /w LASTTWEET
+	•	add $1-consolidated to $1-packtweet
+	•	rm $1-consolidated
+	•	add $1 (new file) to $1-packtweet
+	•	remove 999 tweet ID, numeric sort, save to $1-consolidated-date
+
+devld:
+
+	•	look for 999 if no specified tweet
+	•	get followers, friends, tweet count
+	•	pull 20 tweets
+	•	check for last tweet, complex logic to continue processing
+	•	open -raw, -mentions, -devtype for append
+	•	open $1 (account name) for create
+	•	scrub raw content
+	•	drop all RTs
+	•	
+

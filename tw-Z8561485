@@ -1,0 +1,36 @@
+#!/usr/bin/env python
+#DESC: print .twitter config file
+import tweepy
+import os
+
+#http://dev.twitter.com
+#make an app, read only is fine
+CONSUMER_KEY = 'X9ODDdcItASxNVdVjQhNvoJ0L'
+CONSUMER_SECRET = 'MBZm0hVFrw1i5GcpoXE7Cpe9o2coM29Sf0hSrwuE61pj0KClxj'
+
+auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
+auth_url = auth.get_authorization_url()
+print 'Please authorize: ' + auth_url
+verifier = raw_input('PIN: ').strip()
+auth.get_access_token(verifier)
+
+print "[API]"
+print "consumer_key = %s" % CONSUMER_KEY
+print "consumer_secret = %s" % CONSUMER_SECRET
+print "access_token_key = %s" % auth.access_token
+print "access_token_secret = %s" % auth.access_token_secret
+
+auth.set_access_token(auth.access_token, auth.access_token_secret)
+api = tweepy.API(auth)
+y = api.verify_credentials()
+print "account = %s" % y.screen_name
+print "homedir = lists"
+
+tw = open(os.environ['HOME'] +'/.twitter','w')
+tw.write("[API]" +"\n")
+tw.write("consumer_key = %s" % CONSUMER_KEY +"\n")
+tw.write("consumer_secret = %s" % CONSUMER_SECRET +"\n")
+tw.write("access_token_key = %s" % auth.access_token +"\n")
+tw.write("access_token_secret = %s" % auth.access_token_secret +"\n")
+tw.write("account = %s" % y.screen_name +"\n")
+tw.write("homedir = lists" +"\n")

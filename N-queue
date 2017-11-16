@@ -1,0 +1,74 @@
+#!/bin/bash
+TEXTDATE=`date`
+#mind your OS version, check this manually.
+START=`date +%s`
+APISTART=`/usr/local/bin/tw-rate`
+LISTRATE=`/usr/local/bin/tw-listrate`
+export HOMEDIR=`/usr/local/bin/tw-home`
+export FULLPATH="$HOME/$HOMEDIR/"
+QUEUE=`ps ux | grep "A-queue" | grep -v "grep" | wc | awk -F " " {'print $1'}`
+
+# just in case this doesn't exist
+mkdir -p ~/lists
+
+if [ "$APISTART" -gt "10" ] && [  "$QUEUE" -lt "4" ]
+    then
+#stochastic load smoothing
+/usr/local/bin/tw-randwait
+
+# find new lists, create directories, sense missing files, create 1970 empties
+# need to check for protected accounts before placing them in rotation
+#
+if [ "$LISTRATE" -gt "90" ]
+	then
+		(cd $FULLPATH ; /usr/local/bin/tw-trmv3)
+                #output gets sorted in N-packtweets, because directory context
+                #this is not right, but it runs
+fi
+
+(cd $FULLPATH ; find . | grep "\-consolidated" |  grep -v "idle-" | awk -F "consolidated-" {'print $2 " " $1'} | sort | head -1 | awk -F " " {'print $2'} | awk '{sub(/-/,"/" s)};1' | awk -F "/" {'print "(cd $FULLPATH/" $2 " ; /usr/local/bin/N-packtweets " $3 " )"'} > "$FULLPATH/next")
+#(cd $FULLPATH ; find . | grep "\-consolidated" |  grep -v "idle-" | awk -F "consolidated-" {'print $2 " " $1'} | sort | head -1 | awk -F " " {'print $2'} | awk '{sub(/-/,"/" s)};1' 
+#| awk -F "/" {'print "(cd $FULLPATH/" $2 " ; /usr/local/bin/N-packtweets " $3 " )"'} 
+#> "$FULLPATH/next")
+#should put $2 and $3 into USER and LIST, then avoid these next two disk accesses. But late/tired.
+
+
+#find username from next
+USER=`cat ~/lists/next | awk -F " " {'print $5'}`
+LIST=`cat ~/lists/next | awk -F " " {'print $2'} | awk -F "/" {'print $2'}`
+
+# removed 8/17/2016 NRR - now sensing this stuff and pushing it into log in one line for Splunk's sake
+chmod 755 $FULLPATH/next
+$FULLPATH/next
+
+#date/time in secs for runtime math later
+END=`date +%s`
+APIEND=`/usr/local/bin/tw-rate`
+TIMEUSE=$((END - START))
+APIUSE=$((APISTART - APIEND))
+SHELL=`whoami | awk -F "trm-" {'print $2'}`
+#API tokens recharged during run start: 145 end 167
+if [ "$APIUSE" -lt "0" ]
+	then
+		#recharge
+		FIRST=$((180 - APISTART))
+                LAST=$((180 - APIEND))
+                APIUSE=$((FIRST + LAST))
+fi
+#echo start: $APISTART end $APIEND >> $FULLPATH/perflog.txt
+echo $TEXTDATE,$SHELL,$LIST,$USER,$TIMEUSE,$APIUSE >> $FULLPATH/perflog.txt 
+echo '' >> $FULLPATH/perflog.txt
+
+else
+# otherwise we've been invoked before the prior instance of A-queue
+# has completed. This used to be a file lock, that proved to be horrible
+# in practice when things went wrong.
+TEND=`date`
+echo "$TEND skipping due to existing A-queue" >> $FULLPATH/perflog.txt
+echo '' >> $FULLPATH/perflog.txt
+
+#and for Splunk
+echo "$TEND skipping due to existing A-queue" >> $FULLPATH/splunklog.txt
+
+fi
+

@@ -1,0 +1,4 @@
+#!/bin/bash
+#DESC: make XLS files for all consolidated account files in a directory.
+ls *consol* | awk {'print "tw-heat " $1'} > heatit
+sh heatit

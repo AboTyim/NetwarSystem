@@ -1,0 +1,3 @@
+#!/bin/bash
+#DESC: searching for consol is shorthand for counting total accounts being monitored.
+find . | grep "consol" | grep -v "idle-" | wc

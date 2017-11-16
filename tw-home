@@ -1,0 +1,7 @@
+#!/usr/bin/python
+import urllib2,sys,tweepy,os
+from simpleconfigparser import simpleconfigparser
+
+config = simpleconfigparser()
+config.read(os.environ['HOME'] +'/.twitter')
+print(config.API.homedir)

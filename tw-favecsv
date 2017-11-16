@@ -1,0 +1,30 @@
+#!/usr/bin/python
+#DESC: print a csv file of favorites using same format as tweet log.
+import tweepy, csv, sys, os
+from simpleconfigparser import simpleconfigparser
+
+config = simpleconfigparser()
+config.read(os.environ['HOME'] +'/.twitter')
+
+auth = tweepy.OAuthHandler(config.API.consumer_key, config.API.consumer_secret)
+auth.set_access_token(config.API.access_token_key, config.API.access_token_secret)
+api = tweepy.API(auth)
+
+name = config.API.account
+last = ""
+
+if len(sys.argv) > 1:
+   name = sys.argv[1]
+   y = api.get_user(sys.argv[1])
+   name = y.screen_name
+# second parm is the most recent favorite
+if len(sys.argv) > 2:
+   last = sys.argv[2]
+
+
+faves  = api.favorites(name)
+for fave in faves:
+    if fave.id_str == last:
+        sys.exit()
+#s = tweet.text.encode('utf-8')
+    print str(fave.id) + " " + str(fave.created_at) + " UTC <" + fave.user.screen_name + "> " + fave.text.encode('utf-8') + "\n"

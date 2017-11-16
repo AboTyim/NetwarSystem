@@ -1,0 +1,6 @@
+#!/bin/bash
+#DESC: sleep for 0 - 30 seconds, used for load spreading.
+#DESC: in cron jobs
+n=$RANDOM
+echo "waiting: " $(( n %= 30 ))
+sleep $(( n %= 30))

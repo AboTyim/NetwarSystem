@@ -1,0 +1,56 @@
+#!/usr/bin/python
+#DESC: Print lists for a given account.
+import tweepy
+import csv
+import sys
+from simpleconfigparser import simpleconfigparser
+import os
+import re
+
+config = simpleconfigparser()
+config.read(os.environ['HOME'] +'/.twitter')
+
+
+auth = tweepy.OAuthHandler(config.API.consumer_key, config.API.consumer_secret)
+auth.set_access_token(config.API.access_token_key, config.API.access_token_secret)
+api = tweepy.API(auth)
+
+y = api.verify_credentials()
+name = y.screen_name
+
+if len(sys.argv) == 2:
+   name = sys.argv[1]
+
+lists = api.lists_all(name)
+for list in lists:
+#   print dir(list)
+#   print list.id
+#   print list.id_str
+   print list.slug + "," + list.id_str + "," + list.description
+
+#'add_member'
+#'created_at'
+#'description'
+#'destroy'
+#'following'
+#'full_name'
+#'id'
+#'id_str'
+#'is_member'
+#'is_subscribed'
+#'member_count'
+#'members'
+#'mode'
+#'name'
+#'parse'
+#'parse_list'
+#'remove_member'
+#'slug'
+#'subscribe'
+#'subscriber_count'
+#'subscribers'
+#'timeline'
+#'unsubscribe'
+#'update'
+#'uri'
+#'user'
