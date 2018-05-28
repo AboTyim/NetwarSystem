@@ -66,11 +66,6 @@ rm $1-followers-*csv
 cat $1-fotemp.csv | sort -n | uniq > $1-followers-$DERP.csv
 rm $1-fotemp.csv
 
-#bidrectional
-rm $1-bidir-*csv
-egrep -f $1-friends-$DERP.csv $1-followers-$DERP.csv > $1-bidir-$DERP.csv
-
-
 #mentions get used for large scale social network graphing using Gephi.
 #there is some sort of race condition that affects derivative files
 #yeah, the derivative files that are almost never used
