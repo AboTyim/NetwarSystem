@@ -1,2 +1,0 @@
-#!/bin/bash
-echo "select * from accts where id=$2;" | sqlite3 $1
