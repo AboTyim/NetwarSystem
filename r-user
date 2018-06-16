@@ -1,0 +1,39 @@
+#!/usr/bin/python
+import tweepy, redis
+import os, sys, json
+from time import gmtime, strftime
+from simpleconfigparser import simpleconfigparser
+
+r = redis.StrictRedis(host='localhost', port=6379, db=0)
+
+if True:
+	try:
+		y = r.get(sys.argv[1])
+		if y:
+			# given an ID number
+			if(len(y)) > 19:
+				print(y)
+			else:
+			# given a text name, dig deeper
+				print(r.get(y))
+			sys.exit()
+	except (RuntimeError, TypeError, NameError):
+	        pass
+
+config = simpleconfigparser()
+config.read(os.environ['HOME'] +'/.twitter')
+auth = tweepy.OAuthHandler(config.API.consumer_key, config.API.consumer_secret)
+auth.set_access_token(config.API.access_token_key, config.API.access_token_secret)
+api = tweepy.API(auth)
+
+if True:
+    try:
+        z = api.get_user(sys.argv[1])
+        if z:
+		# save name, number pair
+                r.set(sys.argv[1],z.id_str)
+		# save number, full json
+		r.set(z.id_str,json.dumps(z._json))
+		print(json.dumps(z._json))
+    except (RuntimeError, TypeError, NameError):
+        pass
