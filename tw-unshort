@@ -1,5 +1,0 @@
-#!/usr/bin/python
-import unshortenit, sys
-
-status = unshortenit.unshorten(sys.argv[1])
-print(status[0])
