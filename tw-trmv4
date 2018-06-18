@@ -1,0 +1,49 @@
+#!/usr/bin/python
+import tweepy, redis, json, csv, sys, os, re
+from simpleconfigparser import simpleconfigparser
+
+config = simpleconfigparser()
+config.read(os.environ['HOME'] +'/.twitter')
+
+auth = tweepy.OAuthHandler(config.API.consumer_key, config.API.consumer_secret)
+auth.set_access_token(config.API.access_token_key, config.API.access_token_secret)
+api = tweepy.API(auth)
+
+r = redis.StrictRedis(host='localhost', port=6379, db=0)
+
+y = api.verify_credentials()
+
+name = y.screen_name
+
+lists = api.lists_all(name)
+for list in lists:
+   # check re for ^trm
+   print list.slug
+   if re.match("trm-", list.slug):
+
+      #make directory if its brand new list
+      dirname = list.slug[4:]
+      dirname = dirname.replace('-', '') 
+      if not os.path.isdir(dirname):
+         os.makedirs(dirname)
+
+      for member in tweepy.Cursor(api.list_members,name,list.slug).items():
+          if not os.path.isfile( "./" + dirname + "/" + member.screen_name):
+              new = open("./" + dirname + "/" + member.screen_name + "-consolidated-1970-01-01-00-00.txt", 'w') 
+              new.write("999999999999999999")
+              new.close()
+              #sense prior activity with time stamp free file in account's name
+              new = open("./" + dirname + "/" + member.screen_name, 'w')
+              new.close()
+          try:
+              # see if its in cache
+              y = r.get(member.screen_name)
+              if not y:
+                  z = api.get_user(member.screen_name)
+                  if z:
+                         print(z.screen_name + " " + z.id_str)
+                         r.set(z.screen_name,z.id_str)
+                         print(z.id_str + " " + json.dumps(z._json))
+                         r.set(z.id_str,json.dumps(z._json))
+          except (RuntimeError, TypeError, NameError):
+              pass

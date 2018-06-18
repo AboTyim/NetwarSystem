@@ -34,7 +34,7 @@ for member in tweepy.Cursor(api.list_members, name, targlist).items():
                 else:
                 # given a text name, dig deeper
                     print(r.get(y))
-                sys.exit()
+#                sys.exit()
         except (RuntimeError, TypeError, NameError):
                 pass
 

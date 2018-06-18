@@ -16,7 +16,7 @@ api = tweepy.API(auth)
 
 y = api.verify_credentials()
 
-api.add_list_member(sys.argv[1], sys.argv[2])
+api.add_list_member(y.screen_name, sys.argv[1], sys.argv[2])
 #'add_member'
 #'created_at'
 #'description'

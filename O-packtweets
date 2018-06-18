@@ -1,0 +1,83 @@
+#!/bin/bash
+#DESC: new generation tweet downloader/packer
+#DATE: 12/25/2015
+TEXTDATE=`date`
+export DERP=`date +%Y-%m-%d-%H-%M`
+echo "Run date $DERP"
+
+if ! [ -n "$1" ]; then
+    echo "N-packtweets requires a target account"
+    exit
+fi
+
+ALIVE=`/usr/local/bin/tw-alive $1 | awk -F " " {'print $2'}`
+if [ "$ALIVE" == "accessible" ] 
+    then
+	echo "twitter account $1 is accessible"
+elif [ "$ALIVE" == "exhausted" ]
+    then
+        echo "exhausted checking $1"
+        echo "$TEXTDATE exhausted checking $1" >> ../perflog.txt
+        echo "$TEXTDATE exhausted checking $1" >> ../splunklog.txt
+        exit 1
+else
+    echo "$1 $ALIVE :idling account" 
+    echo "$TEXTDATE $1 $ALIVE :idling account" >> ../perflog.txt
+    echo "$TEXTDATE $1 $ALIVE :idling account" >> ../splunklog.txt
+    ls $1* | awk {'print "mv " $0 " idle-" $0'} > $1-freeze
+    sh $1-freeze
+    exit 1
+fi
+
+#tw-trmv2 reads lists and writes firsttime.csv, adds to memberlog.csv
+#this happens in A-queue, but cleanup of individual directories happens here
+cat memberlog.csv | sort -r | uniq -w 16 > memberlog.tmp
+mv memberlog.tmp memberlog.csv
+
+#sense ID of last tweet in account's consolidated file
+export LASTTWEET=`tail -1 $1-consolidated* | awk -F " " {'print $1'}`
+
+# disabled, so the log event is one single line
+#perflog is a catch all for whatever debugging is happening
+#echo $LASTTWEET >> ../perflog.txt
+
+#download tweets, stop when we see a tweet ID we already have
+/usr/local/bin/tw-ldv2 $1 $LASTTWEET
+
+# at this point $1 is what we want to add to Splunk, single line submission will do it
+
+cat $1-consolidated* > $1-packtemp.txt
+rm $1-consolidated*
+cat $1 >> $1-packtemp.txt
+cat $1-packtemp.txt | grep -v "^999999999999999999" | grep "^[0-9][0-9][0-9]" |  sort -n | uniq > $1-consolidated-$DERP.txt
+rm $1-packtemp.txt
+
+#capture friends
+/usr/local/bin/tw-friends $1 > $1-frtemp.csv
+cat $1-friends-*.csv >> $1-frtemp.csv
+rm $1-friends-*csv
+cat $1-frtemp.csv | sort -n | uniq > $1-friends-$DERP.csv
+rm $1-frtemp.csv
+
+#capture followers
+/usr/local/bin/tw-followers $1 > $1-fotemp.csv
+cat $1-followers-*.csv >> $1-fotemp.csv
+rm $1-followers-*csv
+cat $1-fotemp.csv | sort -n | uniq > $1-followers-$DERP.csv
+rm $1-fotemp.csv
+
+#mentions get used for large scale social network graphing using Gephi.
+#there is some sort of race condition that affects derivative files
+#yeah, the derivative files that are almost never used
+cat $1-mentions-2* > mentions-$DERP.csv
+cat $1-mentions >> mentions-$DERP.csv
+
+rm $1-mentions-2*
+rm $1-mentions
+
+mv mentions-$DERP.csv $1-mentions-$DERP.csv
+
+#cat $1-mentions-$DERP.csv | sort | uniq -c | awk -F " " {'print $1 "," $2'} | sort  > $1-mentsumm-$DERP.csv
+#tail -25 $1-mentsumm-$DERP.csv > $1-topment-$DERP.csv
+
+exit $LASTTWEET

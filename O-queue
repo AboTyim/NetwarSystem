@@ -6,7 +6,7 @@ APISTART=`/usr/local/bin/tw-rate`
 LISTRATE=`/usr/local/bin/tw-listrate`
 export HOMEDIR=`/usr/local/bin/tw-home`
 export FULLPATH="$HOME/$HOMEDIR/"
-QUEUE=`ps ux | grep "N-queue" | grep -v "grep" | wc | awk -F " " {'print $1'}`
+QUEUE=`ps ux | grep "O-queue" | grep -v "grep" | wc | awk -F " " {'print $1'}`
 
 # just in case this doesn't exist
 mkdir -p ~/lists
@@ -21,8 +21,8 @@ if [ "$APISTART" -gt "10" ] && [  "$QUEUE" -lt "4" ]
 #
 if [ "$LISTRATE" -gt "90" ]
 	then
-		(cd $FULLPATH ; /usr/local/bin/tw-trmv3)
-                #output gets sorted in N-packtweets, because directory context
+		(cd $FULLPATH ; /usr/local/bin/tw-trmv4)
+                #output gets sorted in O-packtweets, because directory context
                 #this is not right, but it runs
 fi
 
@@ -60,15 +60,15 @@ echo $TEXTDATE,$SHELL,$LIST,$USER,$TIMEUSE,$APIUSE >> $FULLPATH/perflog.txt
 echo '' >> $FULLPATH/perflog.txt
 
 else
-# otherwise we've been invoked before the prior instance of A-queue
+# otherwise we've been invoked before the prior instance of O-queue
 # has completed. This used to be a file lock, that proved to be horrible
 # in practice when things went wrong.
 TEND=`date`
-echo "$TEND skipping due to existing A-queue" >> $FULLPATH/perflog.txt
+echo "$TEND skipping due to existing O-queue" >> $FULLPATH/perflog.txt
 echo '' >> $FULLPATH/perflog.txt
 
 #and for Splunk
-echo "$TEND skipping due to existing A-queue" >> $FULLPATH/splunklog.txt
+echo "$TEND skipping due to existing O-queue" >> $FULLPATH/splunklog.txt
 
 fi
 
