@@ -27,4 +27,4 @@ for fave in faves:
     if fave.id_str == last:
         sys.exit()
 #s = tweet.text.encode('utf-8')
-    print str(fave.id) + " " + str(fave.created_at) + " UTC <" + fave.user.screen_name + "> " + fave.text.encode('utf-8') + "\n"
+    print str(fave.id) + " " + str(fave.created_at) + " UTC <" + fave.user.screen_name.encode('utf-8') + "> " + fave.text.encode('utf-8') + "\n"
