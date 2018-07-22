@@ -21,19 +21,11 @@ api = tweepy.API(auth)
 
 #rlim = api.rate_limit_status()[u'resources'][u'statuses'][u'/statuses/user_timeline'][u'remaining']
 
-for thing in api.rate_limit_status()[u'resources'][u'favorites']:
-	print(thing)
+#for thing in api.rate_limit_status()[u'resources'][u'favorites']:
+for thing1 in api.rate_limit_status()[u'resources']:
+	#print(thing1)
+        for thing2 in api.rate_limit_status()[u'resources'][thing1]:
+		print(thing2)
+                print(api.rate_limit_status()[u'resources'][thing1][thing2][u'limit'])
+                print(api.rate_limit_status()[u'resources'][thing1][thing2][u'remaining'])
 
-left = api.rate_limit_status()[u'resources'][u'favorites'][u'/favorites/list'][u'remaining']
-print(left)
-
-#print "lists/subscribers/show " + str(api.rate_limit_status()[u'resources'][u'lists'][u'/lists/subscribers/show'][u'remaining'])
-#print "lists/subscriptions " + str(api.rate_limit_status()[u'resources'][u'lists'][u'/lists/subscriptions'][u'remaining'])
-#print "lists/statuses " + str(api.rate_limit_status()[u'resources'][u'lists'][u'/lists/statuses'][u'remaining'])
-#print "lists/members/show " + str(api.rate_limit_status()[u'resources'][u'lists'][u'/lists/members/show'][u'remaining'])
-#print "lists/subscribers " + str(api.rate_limit_status()[u'resources'][u'lists'][u'/lists/subscribers'][u'remaining'])
-#print "lists/lists " + str(api.rate_limit_status()[u'resources'][u'lists'][u'/lists/list'][u'remaining'])
-#print "lists/show " + str(api.rate_limit_status()[u'resources'][u'lists'][u'/lists/show'][u'remaining'])
-#print "lists/memberships " + str(api.rate_limit_status()[u'resources'][u'lists'][u'/lists/memberships'][u'remaining'])
-#print "lists/members " + str(api.rate_limit_status()[u'resources'][u'lists'][u'/lists/members'][u'remaining'])
-#print "lists/ownerships " + str(api.rate_limit_status()[u'resources'][u'lists'][u'/lists/ownerships']['remaining'])

@@ -27,11 +27,6 @@ if [ "$LISTRATE" -gt "90" ]
 fi
 
 (cd $FULLPATH ; find . | grep "\-consolidated" |  grep -v "idle-" | awk -F "consolidated-" {'print $2 " " $1'} | sort | head -1 | awk -F " " {'print $2'} | awk '{sub(/-/,"/" s)};1' | awk -F "/" {'print "(cd $FULLPATH/" $2 " ; /usr/local/bin/N-packtweets " $3 " )"'} > "$FULLPATH/next")
-#(cd $FULLPATH ; find . | grep "\-consolidated" |  grep -v "idle-" | awk -F "consolidated-" {'print $2 " " $1'} | sort | head -1 | awk -F " " {'print $2'} | awk '{sub(/-/,"/" s)};1' 
-#| awk -F "/" {'print "(cd $FULLPATH/" $2 " ; /usr/local/bin/N-packtweets " $3 " )"'} 
-#> "$FULLPATH/next")
-#should put $2 and $3 into USER and LIST, then avoid these next two disk accesses. But late/tired.
-
 
 #find username from next
 USER=`cat ~/lists/next | awk -F " " {'print $5'}`
@@ -66,9 +61,6 @@ else
 TEND=`date`
 echo "$TEND skipping due to existing O-queue" >> $FULLPATH/perflog.txt
 echo '' >> $FULLPATH/perflog.txt
-
-#and for Splunk
-echo "$TEND skipping due to existing O-queue" >> $FULLPATH/splunklog.txt
 
 fi
 

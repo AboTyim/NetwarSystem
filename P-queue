@@ -1,0 +1,12 @@
+
+1. check to see if earlier process still running, exit
+
+2. check to see if list API is enough, process lists
+
+3. check to see if we have enough API to run, grab tweets
+
+Store user name => number in Redis
+
+How to store last tweet accessed? How to regen that?
+
+
