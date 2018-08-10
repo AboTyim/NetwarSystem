@@ -1,12 +1,57 @@
+#!/usr/bin/python
+import psutil,getpass, setproctitle, random, sys, time
+import logging, logging.handlers
+from simpleconfigparser import simpleconfigparser
 
-1. check to see if earlier process still running, exit
+ml = logging.getLogger('MyLogger')
+ml.setLevel(logging.DEBUG)
+handler = logging.handlers.SysLogHandler(address=('127.0.0.1', 555), facility=logging.handlers.SysLogHandler.LOG_DAEMON)
+ml.addHandler(handler)
 
-2. check to see if list API is enough, process lists
+# make sure prior instance has exited
+for p in psutil.process_iter(attrs=['name', 'username']):
+        if (p.info['username'] == getpass.getuser()) and (p.info['name'] == "trmqueue"):
+                ml.info("already running")
+		sys.exit()
 
-3. check to see if we have enough API to run, grab tweets
+setproctitle.setproctitle("trmqueue")
 
-Store user name => number in Redis
+# leave 25% of processor AND memory free
+# random wait 0 - 20 seconds, then try
+# to enter for next 30
+time.sleep(random.random() * 20)
 
-How to store last tweet accessed? How to regen that?
+i = 0
+while (i < 30):
+	zcpu = psutil.cpu_percent(interval=None, percpu=False)
+	zmem = psutil.virtual_memory()[2]
+	if (zcpu < 75) and (zmem < 75):
+		i = 60
+	i = i + 2
+	time.sleep(2)
+
+#i = 60, have resources, otherwise we're done
+if (i  < 60):
+	ml.info("zcpu " + str(zcpu) + " zmem " + str(zmem))
+	ml.info("not running due to resource limits")
+	sys.exit()
 
 
+config = simpleconfigparser()
+config.read(os.environ['HOME'] +'/.twitter')
+
+auth = tweepy.OAuthHandler(config.API.consumer_key, config.API.consumer_secret)
+auth.set_access_token(config.API.access_token_key, config.API.access_token_secret)
+api = tweepy.API(auth)
+
+
+# max 900
+listlim = api.rate_limit_status()[u'resources'][u'lists'][u'/lists/members'][u'remaining']
+
+# max 900? Did this change? Used to be 180?
+tweetlim = api.rate_limit_status()[u'resources'][u'statuses'][u'/statuses/user_timeline'][u'remaining']
+
+#Store user name => number in Redis
+#
+#How to store last tweet accessed? How to regen that?
+#
