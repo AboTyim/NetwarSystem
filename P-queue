@@ -1,8 +1,55 @@
 #!/usr/bin/python
-import psutil,getpass, setproctitle, random, sys, time
+import csv, os, random, re, sys, time
+import urllib2,tweepy
+import psutil, getpass, setproctitle
 import logging, logging.handlers
 from simpleconfigparser import simpleconfigparser
+from bs4 import BeautifulSoup
+from time import gmtime, strftime
 
+def twalive(acctname):
+	name = re.sub("idle-", "",acctname)
+
+	#Account does not exist, or account has self-suspended, no way to tell w/o
+	#trying to rename another account into the name in question
+	try:
+		urllib2.urlopen("http://twitter.com/" + name)
+	except urllib2.URLError:
+		return(name + " renamed")
+
+	#Account has been suspended by Twitter - this misses some jihadi accounts maybe UTF-8 again?
+	soup = BeautifulSoup(urllib2.urlopen("http://twitter.com/" + name), "html5lib")
+	for thing in soup("title"):
+		if(thing.text == "Twitter / Account Suspended"):
+			return(name + " suspended")
+	
+	#This is the account lookup that gets overloaded, leading to spurious idling
+	lookups = api.rate_limit_status()[u'resources'][u'users'][u'/users/show/:id'][u'remaining']
+	if (lookups < 10):
+		return("API exhausted")
+	
+	#Account is protected, friendship checks in tweepy just don't work
+	#so try to get one tweet to see if we are following the target
+	y = api.get_user(name)
+	if y.protected:
+		try:
+			cnt = len(api.user_timeline(screen_name = name,count=1))
+		except tweepy.TweepError:
+			return(name + " protected")
+	cnt = len(api.user_timeline(screen_name = name,count=1))
+	if(cnt == 0):
+	   return(name + " empty")
+
+	return(name + " accessible")
+# twalive
+
+# main begin
+
+# load config
+config = simpleconfigparser()
+config.read(os.environ['HOME'] +'/.twitter')
+
+# logging
 ml = logging.getLogger('MyLogger')
 ml.setLevel(logging.DEBUG)
 handler = logging.handlers.SysLogHandler(address=('127.0.0.1', 555), facility=logging.handlers.SysLogHandler.LOG_DAEMON)
@@ -19,7 +66,7 @@ setproctitle.setproctitle("trmqueue")
 # leave 25% of processor AND memory free
 # random wait 0 - 20 seconds, then try
 # to enter for next 30
-time.sleep(random.random() * 20)
+#time.sleep(random.random() * 20)
 
 i = 0
 while (i < 30):
@@ -36,22 +83,20 @@ if (i  < 60):
 	ml.info("not running due to resource limits")
 	sys.exit()
 
-
-config = simpleconfigparser()
-config.read(os.environ['HOME'] +'/.twitter')
+# Entering Twitter
 
 auth = tweepy.OAuthHandler(config.API.consumer_key, config.API.consumer_secret)
 auth.set_access_token(config.API.access_token_key, config.API.access_token_secret)
 api = tweepy.API(auth)
-
 
 # max 900
 listlim = api.rate_limit_status()[u'resources'][u'lists'][u'/lists/members'][u'remaining']
 
 # max 900? Did this change? Used to be 180?
 tweetlim = api.rate_limit_status()[u'resources'][u'statuses'][u'/statuses/user_timeline'][u'remaining']
+#import urllib2,sys,tweepy,os,re
+#from simpleconfigparser import simpleconfigparser
+#from bs4 import BeautifulSoup
 
-#Store user name => number in Redis
-#
-#How to store last tweet accessed? How to regen that?
-#
+print(twalive(sys.argv[1]))
+
