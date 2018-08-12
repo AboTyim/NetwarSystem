@@ -16,6 +16,7 @@ def load_lists():
 	lists = api.lists_all(name)
 	for list in lists:
 		# check re for ^trm
+		print(list.slug)
 		if re.match("trm-", list.slug):
 			for member in tweepy.Cursor(api.list_members,name,list.slug).items():
 				try:
@@ -24,24 +25,29 @@ def load_lists():
 					if not y:
 						z = api.get_user(member.screen_name)
 						if z:
-							#print(z.screen_name + " " + z.id_str)
 							red.set(z.screen_name,z.id_str)
-							#print(z.id_str + " " + json.dumps(z._json))
 							red.set(z.id_str,json.dumps(z._json))
 				except (RuntimeError, TypeError, NameError):
 					pass
 # load_lists
 
 def get_all_tweets(screen_name):
-	new_tweets = api.user_timeline(screen_name = screen_name,count=200)
-
-	for tweet in new_tweets:
-		bod = "{ \"index\" : { \"_index\" : \"test\", \"_type\" : \"tweets\" }\n"
-		bod = bod + json.dumps(tweet._json) + "}\n"
-		try:
-			client.bulk(index="test",doc_type="tweets",body=bod)
-		except (RuntimeError, TypeError, NameError):
-			pass
+	new_tweets = api.user_timeline(screen_name = screen_name,count=20)
+	while(len(new_tweets) > 0):
+		for tweet in new_tweets:
+			bod = "{ \"index\" : { \"_index\" : \"test\", \"_type\" : \"tweets\" } }\n"
+			bod = bod + json.dumps(tweet._json) + "\n"
+			try:
+				client.bulk(index="test",doc_type="tweets",body=bod)
+			except (RuntimeError, TypeError, NameError):
+				pass
+		print(tweet.id)
+		oldest = new_tweets[-1].id - 1
+		#wasting 200 calls? How do this efficiently? Count tweets processed?
+		new_tweets = api.user_timeline(screen_name = screen_name,count=200, max_id=tweet.id)
+		if(oldest == new_tweets[-1].id - 1):
+			new_tweets = []
+	print(tweet.id)
 
 # get_all_tweets
 	
@@ -84,7 +90,7 @@ def check_resources():
 	# make sure prior instance has exited
 	for p in psutil.process_iter(attrs=['name', 'username']):
         	if (p.info['username'] == getpass.getuser()) and (p.info['name'] == "trmqueue"):
-                	ml.info("already running")
+                	print("\nalready running")
 			sys.exit()
 
 	setproctitle.setproctitle("trmqueue")
@@ -101,8 +107,8 @@ def check_resources():
 
 	#i < 60, don't have resources
 	if (i  < 60):
-		ml.info("zcpu " + str(zcpu) + " zmem " + str(zmem))
-		ml.info("not running due to resource limits")
+		print("\nzcpu " + str(zcpu) + " zmem " + str(zmem))
+		print("\nnot running due to resource limits")
 		sys.exit()
 
 # check_resources
@@ -117,32 +123,33 @@ ml = logging.getLogger('MyLogger')
 ml.setLevel(logging.DEBUG)
 handler = logging.handlers.SysLogHandler(address=('127.0.0.1', 555), facility=logging.handlers.SysLogHandler.LOG_DAEMON)
 ml.addHandler(handler)
-ml.info("logging started")
+print("\nlogging started")
 
 #ensure prior instance has finished, and CPU/MEM usage < 75%
 check_resources()
-ml.info("resources good")
+print("\nresources good")
 
 auth = tweepy.OAuthHandler(config.API.consumer_key, config.API.consumer_secret)
 auth.set_access_token(config.API.access_token_key, config.API.access_token_secret)
 api = tweepy.API(auth)
-ml.info("API auth")
+print("\nAPI auth")
 
 red = redis.StrictRedis(host='localhost', port=6379, db=0)
-ml.info("redis connected")
+print("\nredis connected")
 
 load_lists()
-ml.info("lists loaded")
+print("\nlists loaded")
 
 # check twitter API
 listlim = api.rate_limit_status()[u'resources'][u'lists'][u'/lists/members'][u'remaining']
 tweetlim = api.rate_limit_status()[u'resources'][u'statuses'][u'/statuses/user_timeline'][u'remaining']
 
-ml.info("listlim " + str(listlim) + " tweetlim " + str(tweetlim))
+print("\nlistlim " + str(listlim) + " tweetlim " + str(tweetlim))
 
 # list semantics go here
 
 if (twalive(sys.argv[1]) == "accessible"):
 	# don't bug Elastic till we're sure we've got data to load
 	client = Elasticsearch()
+	print("\n" + sys.argv[1])
 	get_all_tweets(sys.argv[1])
