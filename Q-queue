@@ -6,23 +6,30 @@ from elasticsearch_dsl import Search
 from walrus import *
 
 def load_lists(myname):
+	print("loading lists for " + myname)
 	lists = api.lists_all(myname)
 	if(len(work) == 0 ):
 		seen.clear()
+		print("seen cleared")
 	for list in lists:
 		if re.match("r-", list.slug):
-			for member in tweepy.Cursor(api.list_members,name,list.slug).items():
-				if(member not in seen):
-					seen.add(member)
-					adds.add(member)
+			for member in tweepy.Cursor(api.list_members,myname,list.slug).items():
+				if(member.screen_name not in seen):
+					print("adding " + member.screen_name)
+					seen.add(member.screen_name)
+					adds.add(member.screen_name)
 
 def get_all_tweets(screen_name):
 	new_tweets = api.user_timeline(screen_name = screen_name,count=20)
 	while(len(new_tweets) > 0):
 		for tweet in new_tweets:
+			print(tweet.id)
+#			bod = "{ \"index\" : { \"_index\" : \"tw-" + my.screen_name, \"_type\" : \"tweets\" } }\n"
 			bod = "{ \"index\" : { \"_index\" : \"test\", \"_type\" : \"tweets\" } }\n"
 			bod = bod + json.dumps(tweet._json) + "\n"
+#			print(bod)
 			try:
+#				client.bulk(index="tw-" + my.screen_name,doc_type="tweets",body=bod)
 				client.bulk(index="test",doc_type="tweets",body=bod)
 			except (RuntimeError, TypeError, NameError):
 				pass
@@ -51,15 +58,15 @@ work = wal.Set(my.screen_name + "work")
 seen = wal.Set(my.screen_name + "seen")
 
 
-
+print("starting process for " + my.screen_name)
 load_lists(my.screen_name)
 
 nextid = adds.pop()
-
 if(nextid):
 	work.add(nextid)
 else:
 	nextid = work.pop()
+print("nextid is " + nextid)
 
 if(nextid):
 	get_all_tweets(nextid)
