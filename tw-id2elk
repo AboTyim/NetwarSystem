@@ -1,0 +1,77 @@
+#!/usr/bin/python
+# one shot bulk Twitter account recorder
+import csv, json, os, random, re, sys, time
+import urllib2, redis, tweepy
+import psutil, getpass, setproctitle
+import logging, logging.handlers
+from simpleconfigparser import simpleconfigparser
+from bs4 import BeautifulSoup
+from time import gmtime, strftime
+from elasticsearch import Elasticsearch
+from elasticsearch_dsl import Search
+from walrus import *
+
+def get_all_tweets(screen_name):
+	new_tweets = api.user_timeline(screen_name = screen_name,count=20)
+	while(len(new_tweets) > 0):
+		for tweet in new_tweets:
+			print(tweet.id)
+			bod = "{ \"index\" : { \"_index\" : \"tweets" + getpass.getuser() + "\", \"_type\" : \"tweets\" } }\n"
+			bod = bod + json.dumps(tweet._json) + "\n"
+			try:
+				client.bulk(index="tweets" + getpass.getuser(),doc_type="tweets",body=bod)
+			except (RuntimeError, TypeError, NameError):
+				pass
+		oldest = new_tweets[-1].id - 1
+		#wasting 200 calls? How do this efficiently? Count tweets processed?
+		new_tweets = api.user_timeline(screen_name = screen_name,count=200, max_id=tweet.id)
+		if(oldest == new_tweets[-1].id - 1):
+			new_tweets = []
+
+# get_all_tweets
+def check_resources():
+	# make sure prior instance has exited
+	for p in psutil.process_iter(attrs=['name', 'username']):
+        	if (p.info['username'] == getpass.getuser()) and (p.info['name'] == "work" +getpass.getuser()):
+                	print("already running")
+			sys.exit()
+
+	setproctitle.setproctitle("work" + getpass.getuser())
+	#time.sleep(random.random() * 20)
+
+	i = 0
+	while (i < 30):
+		zcpu = psutil.cpu_percent(interval=None, percpu=False)
+		zmem = psutil.virtual_memory()[2]
+		if (zcpu < 75) and (zmem < 75):
+			i = 60
+		i = i + 2
+		time.sleep(2)
+
+	#i < 60, don't have resources
+	if (i  < 60):
+		print("zcpu " + str(zcpu) + " zmem " + str(zmem))
+		print("not running due to resource limits")
+		sys.exit()
+
+# check_resources
+
+# main begin
+config = simpleconfigparser()
+config.read(os.environ['HOME'] +'/.twitter')
+
+#ensure prior instance has finished, and CPU/MEM usage < 75%
+check_resources()
+print("resources good")
+
+
+auth = tweepy.OAuthHandler(config.API.consumer_key, config.API.consumer_secret)
+auth.set_access_token(config.API.access_token_key, config.API.access_token_secret)
+api = tweepy.API(auth)
+my = api.verify_credentials()
+
+client = Elasticsearch()
+
+wal = Walrus(host='localhost', port=6379, db=0)
+work = wal.Set(my.screen_name + "work")
+get_all_tweets(work,pop())
