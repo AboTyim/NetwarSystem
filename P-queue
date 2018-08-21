@@ -8,21 +8,21 @@ from bs4 import BeautifulSoup
 from time import gmtime, strftime
 from elasticsearch import Elasticsearch
 from elasticsearch_dsl import Search
+from walrus import *
 
 def load_lists():
 	y = api.verify_credentials()
-	name = y.screen_name
 
-	lists = api.lists_all(name)
+	lists = api.lists_all(y.screen_name)
 	for list in lists:
-		# check re for ^trm
 		print(list.slug)
-		if re.match("trm-", list.slug):
+		if re.match("r-", list.slug):
 			for member in tweepy.Cursor(api.list_members,name,list.slug).items():
 				try:
 					# see if its in cache
 					y = red.get(member.screen_name)
 					if not y:
+						#never seen before
 						z = api.get_user(member.screen_name)
 						if z:
 							red.set(z.screen_name,z.id_str)
@@ -90,7 +90,7 @@ def check_resources():
 	# make sure prior instance has exited
 	for p in psutil.process_iter(attrs=['name', 'username']):
         	if (p.info['username'] == getpass.getuser()) and (p.info['name'] == "trmqueue"):
-                	print("\nalready running")
+                	print("already running")
 			sys.exit()
 
 	setproctitle.setproctitle("trmqueue")
@@ -107,8 +107,8 @@ def check_resources():
 
 	#i < 60, don't have resources
 	if (i  < 60):
-		print("\nzcpu " + str(zcpu) + " zmem " + str(zmem))
-		print("\nnot running due to resource limits")
+		print("zcpu " + str(zcpu) + " zmem " + str(zmem))
+		print("not running due to resource limits")
 		sys.exit()
 
 # check_resources
@@ -123,33 +123,34 @@ ml = logging.getLogger('MyLogger')
 ml.setLevel(logging.DEBUG)
 handler = logging.handlers.SysLogHandler(address=('127.0.0.1', 555), facility=logging.handlers.SysLogHandler.LOG_DAEMON)
 ml.addHandler(handler)
-print("\nlogging started")
+print("logging started")
 
 #ensure prior instance has finished, and CPU/MEM usage < 75%
 check_resources()
-print("\nresources good")
+print("resources good")
 
 auth = tweepy.OAuthHandler(config.API.consumer_key, config.API.consumer_secret)
 auth.set_access_token(config.API.access_token_key, config.API.access_token_secret)
 api = tweepy.API(auth)
-print("\nAPI auth")
+print("API auth")
 
-red = redis.StrictRedis(host='localhost', port=6379, db=0)
-print("\nredis connected")
+#red = redis.StrictRedis(host='localhost', port=6379, db=0)
+red = Walrus(host='localhost', port=6379, db=0)
+print("Walrus connected")
 
 load_lists()
-print("\nlists loaded")
+print("lists loaded")
 
 # check twitter API
 listlim = api.rate_limit_status()[u'resources'][u'lists'][u'/lists/members'][u'remaining']
 tweetlim = api.rate_limit_status()[u'resources'][u'statuses'][u'/statuses/user_timeline'][u'remaining']
 
-print("\nlistlim " + str(listlim) + " tweetlim " + str(tweetlim))
+print("listlim " + str(listlim) + " tweetlim " + str(tweetlim))
 
 # list semantics go here
 
 if (twalive(sys.argv[1]) == "accessible"):
 	# don't bug Elastic till we're sure we've got data to load
 	client = Elasticsearch()
-	print("\n" + sys.argv[1])
+	print(sys.argv[1])
 	get_all_tweets(sys.argv[1])

@@ -24,13 +24,10 @@ def get_all_tweets(screen_name):
 	while(len(new_tweets) > 0):
 		for tweet in new_tweets:
 			print(tweet.id)
-#			bod = "{ \"index\" : { \"_index\" : \"tw-" + my.screen_name, \"_type\" : \"tweets\" } }\n"
-			bod = "{ \"index\" : { \"_index\" : \"test\", \"_type\" : \"tweets\" } }\n"
+			bod = "{ \"index\" : { \"_index\" : \"tw" + my.screen_name.lower() + "\", \"_type\" : \"tweets\" } }\n"
 			bod = bod + json.dumps(tweet._json) + "\n"
-#			print(bod)
 			try:
-#				client.bulk(index="tw-" + my.screen_name,doc_type="tweets",body=bod)
-				client.bulk(index="test",doc_type="tweets",body=bod)
+				client.bulk(index="tw" + my.screen_name.lower(),doc_type="tweets",body=bod)
 			except (RuntimeError, TypeError, NameError):
 				pass
 		oldest = new_tweets[-1].id - 1
@@ -61,12 +58,11 @@ seen = wal.Set(my.screen_name + "seen")
 print("starting process for " + my.screen_name)
 load_lists(my.screen_name)
 
-nextid = adds.pop()
-if(nextid):
+if(len(adds) > 0):
+	nextid = adds.pop()
 	work.add(nextid)
 else:
 	nextid = work.pop()
-print("nextid is " + nextid)
 
-if(nextid):
-	get_all_tweets(nextid)
+print("nextid is " + nextid)
+get_all_tweets(nextid)
