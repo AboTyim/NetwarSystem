@@ -11,20 +11,10 @@ QUEUE=`ps ux | grep "O-queue" | grep -v "grep" | wc | awk -F " " {'print $1'}`
 # just in case this doesn't exist
 mkdir -p ~/lists
 
-if [ "$APISTART" -gt "10" ] && [  "$QUEUE" -lt "4" ]
-    then
-#stochastic load smoothing
-/usr/local/bin/tw-randwait
-
-# find new lists, create directories, sense missing files, create 1970 empties
-# need to check for protected accounts before placing them in rotation
-#
-if [ "$LISTRATE" -gt "90" ]
-	then
+# check if preceding process is still running
+# check condition of API for lists
+# check condition of API for tweets
 		(cd $FULLPATH ; /usr/local/bin/tw-trmv4)
-                #output gets sorted in O-packtweets, because directory context
-                #this is not right, but it runs
-fi
 
 (cd $FULLPATH ; find . | grep "\-consolidated" |  grep -v "idle-" | awk -F "consolidated-" {'print $2 " " $1'} | sort | head -1 | awk -F " " {'print $2'} | awk '{sub(/-/,"/" s)};1' | awk -F "/" {'print "(cd $FULLPATH/" $2 " ; /usr/local/bin/N-packtweets " $3 " )"'} > "$FULLPATH/next")
 
