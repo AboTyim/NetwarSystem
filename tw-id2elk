@@ -12,26 +12,29 @@ from elasticsearch_dsl import Search
 from walrus import *
 
 def elog(acct, mesg):
-	mydate = str(datetime.datetime.utcnow())
-	bod = "{ \"index\" : { \"_index\" : \"perflog\", \"_type\" : \"perfdata\"} }\n"
-	bod = bod + "{\"name\" : \"" + acct + "\", \"event\" : \"" + mesg + "\" , \"date\" : \"" + mydate + "\"}\n"
-	try:
-		client.bulk(body=bod)
-	except(RuntimeError, TypeError, NameError):
-		pass
+        mydate = str(datetime.datetime.utcnow())
+        bod = "{ \"index\" : { \"_index\" : \"perflog\", \"_type\" : \"perfdata\"} }\n"
+        bod = bod + "{\"name\" : \"" + acct + "\", \"event\" : \"" + mesg + "\" , \"date\" : \"" + mydate + "\"}\n"
+        try:
+                client.bulk(body=bod)
+        except(RuntimeError, TypeError, NameError):
+                pass
 
 def get_all_tweets(screen_name):
+	bod = ""
 	new_tweets = api.user_timeline(screen_name = screen_name,count=20)
 	while(len(new_tweets) > 0):
 		for tweet in new_tweets:
-			bod = "{ \"index\" : { \"_index\" : \"tweets" + getpass.getuser() + "\", \"_type\" : \"tweets\" } }\n"
+			#print(tweet.id)
+			bod = bod + "{ \"index\" : { \"_index\" : \"tweets" + getpass.getuser() + "\", \"_type\" : \"tweets\" } }\n"
 			bod = bod + json.dumps(tweet._json) + "\n"
-			try:
-				client.bulk(index="tweets" + getpass.getuser(),doc_type="tweets",body=bod)
-				elog(getpass.getuser(), "successful bulk add " + str(len(bod)))
-			except (RuntimeError, TypeError, NameError):
-				elog(getpass.getuser(), "failed bulk add " + str(len(bod)))
-				pass
+		try:
+			client.bulk(index="tweets" + getpass.getuser(),doc_type="tweets",body=bod)
+			elog(getpass.getuser(), "successful bulk add " + str(len(bod)))
+		except (RuntimeError, TypeError, NameError):
+			elog(getpass.getuser(), "failed bulk add " + str(len(bod)))
+			pass
+		bod = ""
 		oldest = new_tweets[-1].id - 1
 		#wasting 200 calls? How do this efficiently? Count tweets processed?
 		new_tweets = api.user_timeline(screen_name = screen_name,count=200, max_id=tweet.id)
@@ -43,7 +46,7 @@ def check_resources():
 	# make sure prior instance has exited
 	for p in psutil.process_iter(attrs=['name', 'username']):
         	if (p.info['username'] == getpass.getuser()) and (p.info['name'] == "work" +getpass.getuser()):
-			elog(getpass.getuser(), "already running")
+                	elog(getpass.getuser(), "already running")
 			sys.exit()
 
 	setproctitle.setproctitle("work" + getpass.getuser())
@@ -59,18 +62,23 @@ def check_resources():
 		time.sleep(2)
 
 	#i < 60, don't have resources
-	if (i  < 60):
-		print()
-		elog(getpass.getuser(),"zcpu " + str(zcpu) + " zmem " + str(zmem))
-		sys.exit()
-	else:
-		elog(getpass.getuser(),"sufficient resources to run")
+        if (i  < 60):
+                print()
+                elog(getpass.getuser(),"zcpu " + str(zcpu) + " zmem " + str(zmem))
+                sys.exit()
+        else:
+                elog(getpass.getuser(),"sufficient resources to run")
 
 # check_resources
 
 # main begin
 config = simpleconfigparser()
 config.read(os.environ['HOME'] +'/.twitter')
+
+try:
+	client = Elasticsearch()
+except:
+	sys.exit()
 
 #ensure prior instance has finished, and CPU/MEM usage < 75%
 check_resources()
@@ -81,8 +89,8 @@ auth.set_access_token(config.API.access_token_key, config.API.access_token_secre
 api = tweepy.API(auth)
 my = api.verify_credentials()
 
-client = Elasticsearch()
 
 wal = Walrus(host='localhost', port=6379, db=0)
 work = wal.Set(getpass.getuser() + "work")
 get_all_tweets(work.pop())
+
