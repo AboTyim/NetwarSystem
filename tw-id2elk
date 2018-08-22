@@ -92,5 +92,7 @@ my = api.verify_credentials()
 
 wal = Walrus(host='localhost', port=6379, db=0)
 work = wal.Set(getpass.getuser() + "work")
-get_all_tweets(work.pop())
+nextacct = work.pop()
+elog(getpass.getuser(), "starting on " + nextacct)
+get_all_tweets(nextacct)
 
