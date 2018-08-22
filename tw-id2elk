@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # one shot bulk Twitter account recorder
-import csv, json, os, random, re, sys, time
+import csv, json, os, random, re, sys, time, datetime
 import urllib2, redis, tweepy
 import psutil, getpass, setproctitle
 import logging, logging.handlers
@@ -11,16 +11,27 @@ from elasticsearch import Elasticsearch
 from elasticsearch_dsl import Search
 from walrus import *
 
+def elog(acct, mesg):
+	mydate = str(datetime.datetime.utcnow())
+	print(str(mydate))
+	bod = "{ \"index\" : { \"_index\" : \"perflog\", \"_type\" : \"perfdata\"} }\n"
+	bod = bod + "{\"name\" : \"" + acct + "\", \"event\" : \"" + mesg + "\" , \"date\" : \"" + mydate + "\"}\n"
+	try:
+		client.bulk(body=bod)
+	except(RuntimeError, TypeError, NameError):
+		pass
+
 def get_all_tweets(screen_name):
 	new_tweets = api.user_timeline(screen_name = screen_name,count=20)
 	while(len(new_tweets) > 0):
 		for tweet in new_tweets:
-			print(tweet.id)
 			bod = "{ \"index\" : { \"_index\" : \"tweets" + getpass.getuser() + "\", \"_type\" : \"tweets\" } }\n"
 			bod = bod + json.dumps(tweet._json) + "\n"
 			try:
 				client.bulk(index="tweets" + getpass.getuser(),doc_type="tweets",body=bod)
+				elog(getpass.getuser(), "successful bulk add " + str(len(bod)))
 			except (RuntimeError, TypeError, NameError):
+				elog(getpass.getuser(), "failed bulk add " + str(len(bod)))
 				pass
 		oldest = new_tweets[-1].id - 1
 		#wasting 200 calls? How do this efficiently? Count tweets processed?
@@ -33,11 +44,11 @@ def check_resources():
 	# make sure prior instance has exited
 	for p in psutil.process_iter(attrs=['name', 'username']):
         	if (p.info['username'] == getpass.getuser()) and (p.info['name'] == "work" +getpass.getuser()):
-                	print("already running")
+			elog(getpass.getuser(), "already running")
 			sys.exit()
 
 	setproctitle.setproctitle("work" + getpass.getuser())
-	#time.sleep(random.random() * 20)
+	time.sleep(random.random() * 20)
 
 	i = 0
 	while (i < 30):
@@ -50,9 +61,11 @@ def check_resources():
 
 	#i < 60, don't have resources
 	if (i  < 60):
-		print("zcpu " + str(zcpu) + " zmem " + str(zmem))
-		print("not running due to resource limits")
+		print()
+		elog(getpass.getuser(),"zcpu " + str(zcpu) + " zmem " + str(zmem))
 		sys.exit()
+	else:
+		elog(getpass.getuser(),"sufficient resources to run")
 
 # check_resources
 
@@ -62,7 +75,6 @@ config.read(os.environ['HOME'] +'/.twitter')
 
 #ensure prior instance has finished, and CPU/MEM usage < 75%
 check_resources()
-print("resources good")
 
 
 auth = tweepy.OAuthHandler(config.API.consumer_key, config.API.consumer_secret)
@@ -73,5 +85,5 @@ my = api.verify_credentials()
 client = Elasticsearch()
 
 wal = Walrus(host='localhost', port=6379, db=0)
-work = wal.Set(my.screen_name + "work")
-get_all_tweets(work,pop())
+work = wal.Set(getpass.getuser() + "work")
+get_all_tweets(work.pop())
