@@ -13,7 +13,6 @@ from walrus import *
 
 def elog(acct, mesg):
 	mydate = str(datetime.datetime.utcnow())
-	print(str(mydate))
 	bod = "{ \"index\" : { \"_index\" : \"perflog\", \"_type\" : \"perfdata\"} }\n"
 	bod = bod + "{\"name\" : \"" + acct + "\", \"event\" : \"" + mesg + "\" , \"date\" : \"" + mydate + "\"}\n"
 	try:
