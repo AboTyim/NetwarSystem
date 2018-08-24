@@ -1,0 +1,36 @@
+#!/usr/bin/python
+# example of creating a single line to bulk load data to Elastic
+from elasticsearch import Elasticsearch
+from elasticsearch_dsl import Search
+import sys, time, re, json
+
+client = Elasticsearch()
+
+
+f = open(sys.argv[1], 'r')
+order = "{ \"index\" : { \"_index\" : \"tracisis\", \"_type\" : \"tweets\" }\n"
+bod = ""
+count = 0
+for line in f:
+	k = re.split(" ", line)
+	data = {}
+	data['id'] = k[0]
+	data['datetime'] = k[1] + " " + k[2]
+	data['source'] = k[-1][8:-1]
+	data['screen_name'] = k[4][1:-2]
+	zoot = ""
+	for derp in k[5:-1]:
+		zoot = zoot + derp + " " 
+	data['text'] = zoot
+
+	bod = bod + order
+	bod = bod + json.dumps(data)
+	count = count + 1
+	if(count > 200):
+		try:
+			client.bulk(index="tracisis",doc_type="tweets",body=bod)
+		except (RuntimeError, TypeError, NameError):
+			pass
+		bod = ""
+		count = 0
+
