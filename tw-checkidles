@@ -1,4 +1,0 @@
-#!/bin/bash
-rm idles.txt
-ls idle-*consol* | awk -F "-" {'print "tw-alive " $1 "-" $2 "| tee -a idles.txt"'} > checkidles
-sh checkidles
