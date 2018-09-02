@@ -27,15 +27,15 @@ if True:
 			bod = ""
 			for derp in page:
 				cnt = cnt + 1
-				print(cnt)
 				time.sleep(1)
 				z = api.get_user(id=derp)
 				bod = bod + "{ \"index\" : { \"_index\" : \"twusers\", \"_type\" : \"twuser\" } }\n"
 				bod = bod + json.dumps(z._json) + "\n"
+				print(str(cnt) + " " + z.screen_name)
 				if(cnt > 59):
 					cnt = 0
-					print(bod)
 					k = client.bulk(index="twusers",doc_type="twuser",body=bod)
+					bod = ""
 			k = client.bulk(index="twusers",doc_type="twuser",body=bod)
 	except (RuntimeError, TypeError, NameError):
 		pass
