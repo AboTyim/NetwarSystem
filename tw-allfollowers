@@ -32,6 +32,7 @@ if True:
 				z = api.get_user(id=derp)
 				bod = "{ \"index\" : { \"_index\" : \"twusers\", \"_type\" : \"twuser\" } }\n"
 				bod = bod + json.dumps(z._json) + "\n"
-		k = client.bulk(index="twusers",doc_type="twuser",body=bod)
+			print(bod)
+			k = client.bulk(index="twusers",doc_type="twuser",body=bod)
 	except (RuntimeError, TypeError, NameError):
 		pass
