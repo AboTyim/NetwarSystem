@@ -93,7 +93,7 @@ api = tweepy.API(auth)
 my = api.verify_credentials()
 listlim = api.rate_limit_status()[u'resources'][u'lists'][u'/lists/members'][u'remaining']
 tweetlim = api.rate_limit_status()[u'resources'][u'statuses'][u'/statuses/user_timeline'][u'remaining']
-elog(getpass.getuser(), "twitter " my.screen_name + " tweetlim " + str(tweetlim) + " listlim " + str(listlim))
+elog(getpass.getuser(), "twitter "  + my.screen_name + " tweetlim " + str(tweetlim) + " listlim " + str(listlim))
 
 wal = Walrus(host='localhost', port=6379, db=0)
 work = wal.Set(getpass.getuser() + "work")
