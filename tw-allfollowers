@@ -32,7 +32,7 @@ if True:
 				z = api.get_user(id=derp)
 				bod = bod + "{ \"index\" : { \"_index\" : \"twusers\", \"_type\" : \"twuser\" } }\n"
 				bod = bod + json.dumps(z._json) + "\n"
-				if(cnt > 299):
+				if(cnt > 59):
 					cnt = 0
 					print(bod)
 					k = client.bulk(index="twusers",doc_type="twuser",body=bod)
