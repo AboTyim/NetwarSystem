@@ -1,9 +1,8 @@
 #!/usr/bin/python
 #DESC: Save screen name, ID, some other stats for a screen name.
 import tweepy
-import os, sys, json
+import os, sys, json, time
 from simpleconfigparser import simpleconfigparser
-from time import gmtime, strftime
 from elasticsearch import Elasticsearch
 
 config = simpleconfigparser()
@@ -21,18 +20,22 @@ except:
 	print("no client")
 	sys.exit()
 
-cnt = 1
+cnt = 0
 if True:
 	try:
 		for page in tweepy.Cursor(api.followers_ids, screen_name=sys.argv[1]).pages():
 			bod = ""
 			for derp in page:
-				print(cnt)
 				cnt = cnt + 1
+				print(cnt)
+				time.sleep(1)
 				z = api.get_user(id=derp)
-				bod = "{ \"index\" : { \"_index\" : \"twusers\", \"_type\" : \"twuser\" } }\n"
+				bod = bod + "{ \"index\" : { \"_index\" : \"twusers\", \"_type\" : \"twuser\" } }\n"
 				bod = bod + json.dumps(z._json) + "\n"
-			print(bod)
+				if(cnt > 299):
+					cnt = 0
+					print(bod)
+					k = client.bulk(index="twusers",doc_type="twuser",body=bod)
 			k = client.bulk(index="twusers",doc_type="twuser",body=bod)
 	except (RuntimeError, TypeError, NameError):
 		pass
