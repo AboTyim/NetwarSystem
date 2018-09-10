@@ -34,11 +34,11 @@ def get_all_tweets(screen_name):
 			else:
 				cnt = cnt + 1
 				print(tweet.id)
-				bod = bod + "{ \"index\" : { \"_index\" : \"tweets" + getpass.getuser() + "\", \"_type\" : \"tweets\" } }\n"
+				bod = bod + "{ \"index\" : { \"_index\" : \"val2018\", \"_type\" : \"tweets\" } }\n"
 				bod = bod + json.dumps(tweet._json) + "\n"
 			try:
 				if(len(bod) > 0):
-					client.bulk(index="tweets" + getpass.getuser(),doc_type="tweets",body=bod)
+					client.bulk(index="val2018",doc_type="tweets",body=bod)
 					elog(getpass.getuser(), "successful bulk add " + str(len(bod)))
 			except (RuntimeError, TypeError, NameError):
 				elog(getpass.getuser(), "failed bulk add " + str(len(bod)))
@@ -96,9 +96,12 @@ listlim = api.rate_limit_status()[u'resources'][u'lists'][u'/lists/members'][u'r
 tweetlim = api.rate_limit_status()[u'resources'][u'statuses'][u'/statuses/user_timeline'][u'remaining']
 elog(getpass.getuser(), "twitter "  + my.screen_name + " tweetlim " + str(tweetlim) + " listlim " + str(listlim))
 
-wal = Walrus(host='localhost', port=6379, db=0)
-work = wal.Set(getpass.getuser() + "work")
-#nextacct = work.pop()
-nextacct = sys.argv[1]
-elog(getpass.getuser(), "starting on " + nextacct)
-get_all_tweets(nextacct)
+if(sys.argv[1]):
+	get_all_tweets(sys.argv[1])
+	elog(getpass.getuser(), "starting on " + sys.argv[1])
+else:
+	wal = Walrus(host='localhost', port=6379, db=0)
+	work = wal.Set(getpass.getuser() + "work")
+	nextacct = work.pop()
+	elog(getpass.getuser(), "starting on " + nextacct)
+	get_all_tweets(nextacct)
