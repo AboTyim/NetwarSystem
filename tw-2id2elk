@@ -1,6 +1,6 @@
 #!/usr/bin/python
 # one shot bulk Twitter account recorder
-import csv, json, os, random, re, sys, time, datetime
+import csv, json, os, random, re, sys, time, datetime, platform
 import urllib2, redis, tweepy
 import psutil, getpass, setproctitle
 import logging, logging.handlers
@@ -14,7 +14,7 @@ from walrus import *
 def elog(acct, mesg):
         mydate = str(datetime.datetime.utcnow())
         ebod = "{ \"index\" : { \"_index\" : \"perflog\", \"_type\" : \"perfdata\"} }\n"
-        ebod = ebod + "{\"name\" : \"" + acct + "\", \"event\" : \"" + mesg + "\" , \"date\" : \"" + mydate + "\"}\n"
+        ebod = ebod + "{\"host\" : \"" + platform.node() + "\", \"name\" : \"" + acct + "\", \"event\" : \"" + mesg + "\" , \"date\" : \"" + mydate + "\"}\n"
         try:
                 client.bulk(body=ebod)
         except(RuntimeError, TypeError, NameError):
@@ -54,7 +54,7 @@ def check_resources():
 			sys.exit()
 
 	setproctitle.setproctitle("work" + getpass.getuser())
-	time.sleep(random.random() * 20)
+#	time.sleep(random.random() * 20)
 
 	i = 0
 	while (i < 30):
