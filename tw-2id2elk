@@ -39,7 +39,7 @@ def get_all_tweets(screen_name):
 			try:
 				if(len(bod) > 0):
 					client.bulk(index="calmlist",doc_type="tweets",body=bod)
-					elog(getpass.getuser(), "successful bulk add " + str(len(bod)))
+					#elog(getpass.getuser(), "successful bulk add " + str(len(bod)))
 			except (RuntimeError, TypeError, NameError):
 				elog(getpass.getuser(), "failed bulk add " + str(len(bod)))
 				pass
@@ -71,7 +71,8 @@ def check_resources():
                 elog(getpass.getuser(),"zcpu " + str(zcpu) + " zmem " + str(zmem))
                 sys.exit()
         else:
-                elog(getpass.getuser(),"sufficient resources to run")
+		print("")
+                #elog(getpass.getuser(),"sufficient resources to run")
 
 # check_resources
 

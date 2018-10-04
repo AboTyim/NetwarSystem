@@ -2,7 +2,7 @@
 # one shot bulk Twitter account recorder
 import csv, json, os, random, re, sys, time, datetime
 import urllib2, redis, tweepy
-import psutil, getpass, setproctitle
+import psutil, getpass, setproctitle, platform
 import logging, logging.handlers
 from simpleconfigparser import simpleconfigparser
 from bs4 import BeautifulSoup
@@ -13,12 +13,13 @@ from walrus import *
 
 def elog(acct, mesg):
         mydate = str(datetime.datetime.utcnow())
-        bod = "{ \"index\" : { \"_index\" : \"perflog\", \"_type\" : \"perfdata\"} }\n"
-        bod = bod + "{\"name\" : \"" + acct + "\", \"event\" : \"" + mesg + "\" , \"date\" : \"" + mydate + "\"}\n"
+        ebod = "{ \"index\" : { \"_index\" : \"perflog\", \"_type\" : \"perfdata\"} }\n"
+        ebod = ebod + "{\"host\" : \"" + platform.node() + "\", \"name\" : \"" + acct + "\", \"event\" : \"" + mesg + "\" , \"date\" : \"" + mydate + "\"}\n"
         try:
-                client.bulk(body=bod)
+                client.bulk(body=ebod)
         except(RuntimeError, TypeError, NameError):
                 pass
+
 
 def get_all_tweets(screen_name):
 	cnt = 0
@@ -32,7 +33,7 @@ def get_all_tweets(screen_name):
 			bod = bod + json.dumps(tweet._json) + "\n"
 		try:
 			client.bulk(index="tweets" + getpass.getuser(),doc_type="tweets",body=bod)
-			elog(getpass.getuser(), "successful bulk add " + str(len(bod)))
+			#elog(getpass.getuser(), "successful bulk add " + str(len(bod)))
 		except (RuntimeError, TypeError, NameError):
 			elog(getpass.getuser(), "failed bulk add " + str(len(bod)))
 			pass
@@ -42,7 +43,7 @@ def get_all_tweets(screen_name):
 		new_tweets = api.user_timeline(screen_name = screen_name,count=200, max_id=tweet.id)
 		if(oldest == new_tweets[-1].id - 1):
 			new_tweets = []
-		elog(getpass.getuser(), "added " + screen_name + " " + str(cnt))
+		#elog(getpass.getuser(), "added " + screen_name + " " + str(cnt))
 
 # get_all_tweets
 def check_resources():
@@ -53,7 +54,6 @@ def check_resources():
 			sys.exit()
 
 	setproctitle.setproctitle("work" + getpass.getuser())
-	time.sleep(random.random() * 20)
 
 	i = 0
 	while (i < 30):
@@ -70,7 +70,8 @@ def check_resources():
                 elog(getpass.getuser(),"zcpu " + str(zcpu) + " zmem " + str(zmem))
                 sys.exit()
         else:
-                elog(getpass.getuser(),"sufficient resources to run")
+		print("")
+                #elog(getpass.getuser(),"sufficient resources to run")
 
 # check_resources
 
@@ -93,7 +94,7 @@ api = tweepy.API(auth)
 my = api.verify_credentials()
 listlim = api.rate_limit_status()[u'resources'][u'lists'][u'/lists/members'][u'remaining']
 tweetlim = api.rate_limit_status()[u'resources'][u'statuses'][u'/statuses/user_timeline'][u'remaining']
-elog(getpass.getuser(), "twitter "  + my.screen_name + " tweetlim " + str(tweetlim) + " listlim " + str(listlim))
+elog(getpass.getuser(), " tweetlim " + str(tweetlim) + " listlim " + str(listlim))
 
 wal = Walrus(host='localhost', port=6379, db=0)
 work = wal.Set(getpass.getuser() + "work")
