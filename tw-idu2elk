@@ -29,10 +29,10 @@ def get_all_tweets(screen_name):
 		for tweet in new_tweets:
 			cnt = cnt + 1
 			#print(tweet.id)
-			bod = bod + "{ \"index\" : { \"_index\" : \"tweets" + getpass.getuser() + "\", \"_type\" : \"tweets\" } }\n"
+			bod = bod + "{ \"index\" : { \"_index\" : \"americanirc\", \"_type\" : \"tweets\" } }\n"
 			bod = bod + json.dumps(tweet._json) + "\n"
 		try:
-			client.bulk(index="tweets" + getpass.getuser(),doc_type="tweets",body=bod)
+			client.bulk(index="americanira",doc_type="tweets",body=bod)
 			#elog(getpass.getuser(), "successful bulk add " + str(len(bod)))
 		except (RuntimeError, TypeError, NameError):
 			elog(getpass.getuser(), "failed bulk add " + str(len(bod)))
