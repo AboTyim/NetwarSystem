@@ -103,18 +103,14 @@ elog(getpass.getuser(), "starting on " + nextacct)
 get_all_tweets(nextacct)
 
 try:
+	print("trying to add user " + nextacct)
 	y = api.get_user(nextacct)
 	if y:
-#		y.followers_count
-#		y.friends_count
-#		y.statuses_count
-#		y.screen_name
-#		y.id_str
-#		y.created_at
-		twbod = "{ \"index\" : { \"_index\" : \"twusers\", \"_type\" : \"twid\" }\n"
-		bod = bod + order
-		bod = bod + json.dumps(y._json)
-		client.bulk(index="twusers",doc_type="twid",body=twbod)
+		print("got user details")
+		print(y)
+		twbod = "{ \"index\" : { \"_index\" : \"twusers2\", \"_type\" : \"twid\" }\n"
+		twbod = twbod + json.dumps(y._json)
+		client.bulk(index="twusers2",doc_type="twid",body=twbod)
 
 except (RuntimeError, TypeError, NameError):
 	pass
