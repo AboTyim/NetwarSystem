@@ -14,7 +14,9 @@ from walrus import *
 def elog(scname,mesg):
         mydate = str(datetime.datetime.utcnow())
         ebod = "{ \"index\" : { \"_index\" : \"perflog\", \"_type\" : \"perfdata\"} }\n"
-        ebod = ebod + "{\"host\" : \"" + platform.node() + "\", \"shell\" : \"" + getpass.getuser() + "\", \"screen_name\" : \"" + scname + "\" ,"\", \"event\" : \"" + mesg + "\" , \"date\" : \"" + mydate + "\"}\n"
+        ebod = ebod + "{\"host\" : \"" + platform.node() + "\", \"shell\" : \"" + getpass.getuser() + "\", \"screen_name\" : \"" 
+        ebod = ebod + scname + "\", \"event\" : \"" + mesg + "\" , \"date\" : \"" + mydate + "\"}\n"
+	#print(ebod)
         try:
                 client.bulk(body=ebod)
         except(RuntimeError, TypeError, NameError):
@@ -33,7 +35,6 @@ def get_all_tweets(screen_name):
 			bod = bod + json.dumps(tweet._json) + "\n"
 		try:
 			client.bulk(index="americanira",doc_type="tweets",body=bod)
-			#elog(getpass.getuser(), "successful bulk add " + str(len(bod)))
 		except (RuntimeError, TypeError, NameError):
 			elog(screen_name, "failed bulk add " + str(len(bod)))
 			pass
