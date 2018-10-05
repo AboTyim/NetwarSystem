@@ -1,7 +1,7 @@
 #!/usr/bin/python
 #DESC: show name of account /w credentials in ~/.twitter 
 import tweepy
-import os, sys, pdb
+import os, sys, pdb, getpass
 from simpleconfigparser import simpleconfigparser
 
 config = simpleconfigparser()
@@ -19,7 +19,7 @@ try:
     auth.set_access_token(config.API.access_token_key, config.API.access_token_secret)
     api = tweepy.API(auth)
     y = api.verify_credentials()
-    print y.screen_name
+    print(getpass.getuser() + " " +  y.screen_name)
 except tweepy.error.TweepError:
     print(sys.argv[1] + " " + config.API.account)
     exit(1)
