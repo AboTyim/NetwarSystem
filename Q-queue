@@ -1,40 +1,58 @@
 #!/usr/bin/python
-import csv, json, os, random, re, sys, time, redis, tweepy
+import csv, json, os, random, re, sys, time, redis, tweepy, getpass
 from simpleconfigparser import simpleconfigparser
 from elasticsearch import Elasticsearch
 from elasticsearch_dsl import Search
 from walrus import *
 
 def load_lists(myname):
-	print("loading lists for " + myname)
 	lists = api.lists_all(myname)
 	if(len(work) == 0 ):
 		seen.clear()
-		print("seen cleared")
+		print("now work, seen cleared")
 	for list in lists:
 		if re.match("r-", list.slug):
 			for member in tweepy.Cursor(api.list_members,myname,list.slug).items():
 				if(member.screen_name not in seen):
-					print("adding " + member.screen_name)
+					print("adding " + list.slug + " " +  member.screen_name)
 					seen.add(member.screen_name)
 					adds.add(member.screen_name)
 
 def get_all_tweets(screen_name):
-	new_tweets = api.user_timeline(screen_name = screen_name,count=20)
-	while(len(new_tweets) > 0):
+	s = Search(using=client, index="tu*").query("match", screen_name=screen_name)
+	response = s.execute()
+	if(response):
+		maxtweet = response[0].status.id
+	else:
+		maxtweet = 9999999999999999999
+	print("max: " + str(maxtweet) + "\n")
+	oldest = maxtweet
+	time.sleep(1)
+	cnt=0
+	new_tweets = api.user_timeline(screen_name = screen_name,count=20, max_id=maxtweet)
+	seen = 0
+	while(len(new_tweets) > 0 and seen == 0):
 		for tweet in new_tweets:
-			print(tweet.id)
-			bod = "{ \"index\" : { \"_index\" : \"tw" + my.screen_name.lower() + "\", \"_type\" : \"tweets\" } }\n"
+			if(tweet.id == maxtweet):
+				print("seen: " + str(tweet.id))
+				seen = 1
+			cnt = cnt + 1
+			#print(screen_name + " " + str(tweet.id) + " " + str(maxtweet) + " " + str(cnt))
+			bod = "{ \"index\" : { \"_index\" : \"tw" + getpass.getuser() + "\", \"_type\" : \"tweets\" } }\n"
 			bod = bod + json.dumps(tweet._json) + "\n"
 			try:
-				client.bulk(index="tw" + my.screen_name.lower(),doc_type="tweets",body=bod)
+				client.bulk(index="tw" + getpass.getuser(),doc_type="tweets",body=bod)
+				#print(screen_name + " " + str(tweet.id) + " " + str(cnt))
 			except (RuntimeError, TypeError, NameError):
 				pass
-		oldest = new_tweets[-1].id - 1
-		#wasting 200 calls? How do this efficiently? Count tweets processed?
-		new_tweets = api.user_timeline(screen_name = screen_name,count=200, max_id=tweet.id)
-		if(oldest == new_tweets[-1].id - 1):
-			new_tweets = []
+			oldest = tweet.id 
+		new_tweets = api.user_timeline(screen_name = screen_name,count=200, max_id=oldest)
+		# will count to infinity on final tweet w/o this
+		if(len(new_tweets) > 0):
+			print("LEN NEW TWEETS REACHED")
+			if(oldest == new_tweets[-1].id):
+				new_tweets = []
+	print(screen_name + " " + str(oldest) + " " + str(cnt))
 
 # get_all_tweets
 
@@ -50,19 +68,29 @@ my = api.verify_credentials()
 client = Elasticsearch()
 
 wal = Walrus(host='localhost', port=6379, db=0)
-adds = wal.Set(my.screen_name + "adds")
-work = wal.Set(my.screen_name + "work")
-seen = wal.Set(my.screen_name + "seen")
+adds = wal.Set(getpass.getuser() + "adds")
+work = wal.Set(getpass.getuser() + "work")
+seen = wal.Set(getpass.getuser() + "seen")
 
 
-print("starting process for " + my.screen_name)
 load_lists(my.screen_name)
 
 if(len(adds) > 0):
 	nextid = adds.pop()
 	work.add(nextid)
+	print("adds: " + nextid)
 else:
 	nextid = work.pop()
+	print("work: " + nextid)
 
-print("nextid is " + nextid)
 get_all_tweets(nextid)
+
+try:
+        y = api.get_user(nextid)
+        if y:
+                twbod = "{ \"index\" : { \"_index\" : \"tu" + getpass.getuser() + "\", \"_type\" : \"twid\", \"_id\" : \"" + y.id_str + "\" }\n"
+                twbod = twbod + json.dumps(y._json)
+                client.bulk(index="tu" + getpass.getuser(),doc_type="twid",body=twbod)
+except (RuntimeError, TypeError, NameError):
+	print("tu failed")
+        pass
