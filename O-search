@@ -1,0 +1,23 @@
+#!/usr/bin/python
+import csv, json, os, random, re, sys, time, redis, tweepy, getpass
+from simpleconfigparser import simpleconfigparser
+from elasticsearch import Elasticsearch
+from elasticsearch_dsl import Search
+
+#config = simpleconfigparser()
+#config.read(os.environ['HOME'] +'/.twitter')
+
+#auth = tweepy.OAuthHandler(config.API.consumer_key, config.API.consumer_secret)
+#auth.set_access_token(config.API.access_token_key, config.API.access_token_secret)
+#api = tweepy.API(auth)
+#my = api.verify_credentials()
+
+client = Elasticsearch()
+
+s = Search(using=client, index="twpillow").query("match", text=sys.argv[1])
+response = s.execute()
+print(dir(response[0]))
+for resp in response:
+	print(resp.user['screen_name'])
+	print(resp.text)
+#print(response[0].text)
