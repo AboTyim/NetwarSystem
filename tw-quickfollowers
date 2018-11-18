@@ -14,29 +14,10 @@ auth = tweepy.OAuthHandler(config.API.consumer_key, config.API.consumer_secret)
 auth.set_access_token(config.API.access_token_key, config.API.access_token_secret)
 api = tweepy.API(auth)
 
-
-try:
-	client = Elasticsearch(use_ssl=True, verify_certs=False, http_auth="admin:admin")
-except:
-	print("no client")
-	sys.exit()
-
-cnt = 0
 if True:
 	try:
 		for page in tweepy.Cursor(api.followers_ids, screen_name=sys.argv[1]).pages():
-			bod = ""
 			for derp in page:
-				cnt = cnt + 1
-				time.sleep(1)
-				z = api.get_user(id=derp)
-				bod = bod + "{ \"index\" : { \"_index\" : \"twusers\", \"_type\" : \"twuser\" } }\n"
-				bod = bod + json.dumps(z._json) + "\n"
-				print(str(cnt) + " " + z.screen_name)
-				if(cnt > 59):
-					cnt = 0
-					k = client.bulk(index="twusers",doc_type="twuser",body=bod)
-					bod = ""
-			k = client.bulk(index="twusers",doc_type="twuser",body=bod)
+				print(derp)
 	except (RuntimeError, TypeError, NameError):
 		pass

@@ -80,7 +80,7 @@ config = simpleconfigparser()
 config.read(os.environ['HOME'] +'/.twitter')
 
 try:
-	client = Elasticsearch()
+	client = Elasticsearch(use_ssl=True, verify_certs=False, http_auth="admin:admin")
 except:
 	sys.exit()
 

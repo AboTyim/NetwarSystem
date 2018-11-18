@@ -1,0 +1,23 @@
+#!/usr/bin/python
+
+#DESC: Save screen name, ID, some other stats for a screen name.
+import tweepy
+import os, sys, json, time
+from simpleconfigparser import simpleconfigparser
+from elasticsearch import Elasticsearch
+
+config = simpleconfigparser()
+config.read(os.environ['HOME'] +'/.twitter')
+
+
+auth = tweepy.OAuthHandler(config.API.consumer_key, config.API.consumer_secret)
+auth.set_access_token(config.API.access_token_key, config.API.access_token_secret)
+api = tweepy.API(auth)
+
+if True:
+	try:
+		for page in tweepy.Cursor(api.friends_ids, screen_name=sys.argv[1]).pages():
+			for derp in page:
+				print(derp)
+	except (RuntimeError, TypeError, NameError):
+		pass

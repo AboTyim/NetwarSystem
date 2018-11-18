@@ -13,14 +13,6 @@ q4 = wal.Set("queue4work")
 q5 = wal.Set("queue5work")
 q6 = wal.Set("queue6work")
 q7 = wal.Set("queue7work")
-q8 = wal.Set("queue8work")
-q9 = wal.Set("queue9work")
-qa = wal.Set("queueawork")
-qb = wal.Set("queuebwork")
-qc = wal.Set("queuecwork")
-qd = wal.Set("queuedwork")
-qe = wal.Set("queueework")
-qf = wal.Set("queuefwork")
 
 accts = open(sys.argv[1], 'r')
 
@@ -31,33 +23,32 @@ for acct in accts:
         if(qq == "0"):
 		q0.add(acct)
         if(qq == "1"):
-		q1.add(acct)
+		q0.add(acct)
         if(qq == "2"):
-		q2.add(acct)
+		q1.add(acct)
         if(qq == "3"):
-		q3.add(acct)
+		q1.add(acct)
         if(qq == "4"):
-		q4.add(acct)
+		q2.add(acct)
         if(qq == "5"):
-		q5.add(acct)
+		q2.add(acct)
         if(qq == "6"):
-		q6.add(acct)
+		q3.add(acct)
         if(qq == "7"):
-		q7.add(acct)
+		q3.add(acct)
         if(qq == "8"):
-		q8.add(acct)
+		q4.add(acct)
         if(qq == "9"):
-		q9.add(acct)
+		q5.add(acct)
         if(qq == "a"):
-		qa.add(acct)
+		q5.add(acct)
         if(qq == "b"):
-		qb.add(acct)
+		q5.add(acct)
         if(qq == "c"):
-		qc.add(acct)
+		q6.add(acct)
         if(qq == "d"):
-		qd.add(acct)
+		q6.add(acct)
         if(qq == "e"):
-		qe.add(acct)
+		q7.add(acct)
         if(qq == "f"):
-		qf.add(acct)
-
+		q7.add(acct)

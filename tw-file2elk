@@ -1,0 +1,39 @@
+#!/usr/bin/python
+import csv, json, os, random, re, sys, time, redis, tweepy, getpass
+from simpleconfigparser import simpleconfigparser
+from elasticsearch import Elasticsearch
+from elasticsearch_dsl import Search
+from walrus import *
+
+# main begin
+config = simpleconfigparser()
+config.read(os.environ['HOME'] +'/.twitter')
+
+auth = tweepy.OAuthHandler(config.API.consumer_key, config.API.consumer_secret)
+auth.set_access_token(config.API.access_token_key, config.API.access_token_secret)
+api = tweepy.API(auth)
+my = api.verify_credentials()
+
+client = Elasticsearch(use_ssl=True, verify_certs=False, http_auth="admin:admin")
+myind = "tu" + getpass.getuser()
+
+file = open(sys.argv[1],'r')
+for nextid in file:
+	print(nextid)
+	response = False
+	if client.indices.exists(index=myind):
+		s = Search(using=client, index=myind).query("match", screen_name=nextid)
+		response = s.execute()
+	if(response):
+		print("already have " + nextid)
+	else:
+		try:
+	        	y = api.get_user(nextid)
+	        	if y:
+				print(y.screen_name)
+				twbod = "{ \"index\" : { \"_index\" : \"tu" + getpass.getuser() + "\", \"_type\" : \"twid\", \"_id\" : \"" + y.id_str + "\" }\n"
+				twbod = twbod + json.dumps(y._json)
+				client.bulk(index="tu" + getpass.getuser(),doc_type="twid",body=twbod)
+		except (RuntimeError, TypeError, NameError, tweepy.error.TweepError):
+			print("tweepy error")
+		        pass
