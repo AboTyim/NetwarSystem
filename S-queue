@@ -57,7 +57,12 @@ auth.set_access_token(config.API.access_token_key, config.API.access_token_secre
 api = tweepy.API(auth)
 my = api.verify_credentials()
 
-client = Elasticsearch()
+
+#class elasticsearch.connection.RequestsHttpConnection(host='localhost', 
+#port=9200, http_auth=None, use_ssl=False, verify_certs=True, ca_certs=None, 
+#client_cert=None, client_key=None, headers=None, **kwargs)
+
+client = Elasticsearch(use_ssl=True, verify_certs=False, http_auth="admin:admin")
 
 wal = Walrus(host='localhost', port=6379, db=0)
 adds = wal.Set(getpass.getuser() + "adds")
