@@ -22,13 +22,15 @@ def load_lists(myname):
 		seen.clear()
 		print("now work, seen cleared")
 	for list in lists:
-		print(list.slug)
+		print("SLUG " + list.slug)
 		if re.match("trm-", list.slug):
 			for member in tweepy.Cursor(api.list_members,myname,list.slug).items():
 				if(member.screen_name not in seen):
 					print("adding " + list.slug + " " +  member.screen_name)
 					seen.add(member.screen_name)
 					adds.add(member.screen_name)
+					print("LIST " + member.screen_name + " " + list.slug[4:])
+					tlist.update(screen_name=member.screen_name, list=list.slug[4:])
 
 def get_all_tweets(screen_name):
 	if client.indices.exists(index="tu" + getpass.getuser()):
@@ -50,20 +52,24 @@ def get_all_tweets(screen_name):
 	seen = 0
 	while(len(new_tweets) > 0 and seen == 0):
 		bod = ""
-		for tweet in new_tweets:
+		for tweet in new_tweets:		
 			if(tweet.id == maxtweet):
 				print("seen: " + str(tweet.id))
 				seen = 1
 			cnt = cnt + 1
 			#print(screen_name + " " + str(tweet.id) + " " + str(maxtweet) + " " + str(cnt))
 			bod = bod + "{ \"index\" : { \"_index\" : \"tw" + getpass.getuser() + "\", \"_type\" : \"tweets\", \"_id\" : \"" + str(tweet.id) + "\"} }\n"
-			bod = bod + json.dumps(tweet._json) + "\n"
+			data = tweet._json
+			data['list'] = tlist[screen_name]
+			#print("data list thing")
+			#print(data['list'])
+			bod = bod + json.dumps(data) + "\n"
 			try:
 				client.bulk(index="tw" + getpass.getuser(),doc_type="tweets",body=bod)
 				#print(screen_name + " " + str(tweet.id) + " " + str(cnt))
 			except (RuntimeError, TypeError, NameError):
 				pass
-			oldest = tweet.id 
+			oldest = tweet.id
 		new_tweets = api.user_timeline(screen_name = screen_name,count=200, max_id=oldest)
 		# will count to infinity on final tweet w/o this
 		if(len(new_tweets) > 0):
@@ -85,11 +91,13 @@ my = api.verify_credentials()
 
 client = Elasticsearch(use_ssl=True, verify_certs=False, http_auth="admin:admin")
 
+
 wal = Walrus(host='localhost', port=6379, db=0)
 adds = wal.Set(getpass.getuser() + "adds")
 work = wal.Set(getpass.getuser() + "work")
 seen = wal.Set(getpass.getuser() + "seen")
-
+tlist = wal.Hash(getpass.getuser() + "tlist")
+#tlist.update(name='Charlie', favorite_cat='Huey')
 
 load_lists(my.screen_name)
 

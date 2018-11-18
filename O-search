@@ -12,7 +12,8 @@ from elasticsearch_dsl import Search
 #api = tweepy.API(auth)
 #my = api.verify_credentials()
 
-client = Elasticsearch()
+client = Elasticsearch(use_ssl=True, verify_certs=False, http_auth="admin:admin")
+
 
 s = Search(using=client, index="twpillow").query("match", text=sys.argv[1])
 response = s.execute()
