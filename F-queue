@@ -18,23 +18,25 @@ def load_lists(myname):
 					adds.add(member.screen_name)
 
 def get_all_tweets(acct_name):
-	s = Search(using=client, index="tu*").query("match", screen_name=acct_name)
-	response = s.execute()
-	if(response):
-		maxtweet = response[0].status.id
-	else:
-		maxtweet = 9999999999999999999
-	print("max: " + str(maxtweet) + "\n")
+	maxtweet = "9999999999999999999"
+	if client.indices.exists(index="turoot"):
+		s = Search(using=client, index="turoot").query("match", screen_name=acct_name)
+		resp = s.execute()
+		if(resp):
+			maxtweet = resp[0].status.id_str
 	bod = ""
 	cnt1 = 0
 	cnt2 = 0
 	for tweet in tweepy.Cursor(api.user_timeline, id=acct_name,tweet_mode='extended').items():
 		cnt1 = cnt1 + 1
 		cnt2 = cnt2 + 1
+		if(tweet.id_str == maxtweet):
+			print(maxtweet + " has been seen!!!")
+			break
 		print("adding " + acct_name + " " + str(tweet.id) + " " + " " + str(cnt2))
 		bod = bod + "{ \"index\" : { \"_index\" : \"tw" + getpass.getuser() + "\", \"_type\" : \"tweets\", \"_id\" : \"" + str(tweet.id) + "\"} }\n"
 		bod = bod + json.dumps(tweet._json) + "\n"
-		if(cnt1 == 200):
+		if(cnt1 == 800):
 			try:
 				client.bulk(index="tw" + getpass.getuser(),doc_type="tweets",body=bod)
 				bod = ""
