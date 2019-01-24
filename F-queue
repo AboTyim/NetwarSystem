@@ -4,6 +4,50 @@ from simpleconfigparser import simpleconfigparser
 from elasticsearch import Elasticsearch
 from elasticsearch_dsl import Search
 from walrus import *
+import psutil, getpass, setproctitle, platform
+import logging, logging.handlers
+from bs4 import BeautifulSoup
+from time import gmtime, strftime
+
+def elog(scname,mesg):
+        mydate = str(datetime.datetime.utcnow())
+        ebod = "{ \"index\" : { \"_index\" : \"perflog\", \"_type\" : \"perfdata\"} }\n"
+        ebod = ebod + "{\"host\" : \"" + platform.node() + "\", \"shell\" : \"" + getpass.getuser() + "\", \"screen_name\" : \"" 
+        ebod = ebod + scname + "\", \"event\" : \"" + mesg + "\" , \"date\" : \"" + mydate + "\"}\n"
+	#print(ebod)
+        try:
+                client.bulk(body=ebod)
+        except(RuntimeError, TypeError, NameError):
+                pass
+
+
+def check_resources():
+	# make sure prior instance has exited
+	for p in psutil.process_iter(attrs=['name', 'username']):
+        	if (p.info['username'] == getpass.getuser()) and (p.info['name'] == "work" +getpass.getuser()):
+                	elog("FAIL", "already running")
+			sys.exit()
+
+	setproctitle.setproctitle("work" + getpass.getuser())
+
+	i = 0
+	while (i < 30):
+		zcpu = psutil.cpu_percent(interval=None, percpu=False)
+		zmem = psutil.virtual_memory()[2]
+		if (zcpu < 75) and (zmem < 92):
+			i = 60
+		i = i + 2
+		time.sleep(2)
+
+	#i < 60, don't have resources
+        if (i  < 60):
+                print()
+                elog("FAIL","zcpu " + str(zcpu) + " zmem " + str(zmem))
+                sys.exit()
+        else:
+		print("")
+                #elog(getpass.getuser(),"sufficient resources to run")
+
 
 def load_lists(myname):
 	lists = api.lists_all(myname)
@@ -13,7 +57,7 @@ def load_lists(myname):
 		if re.match("trm-", list.slug):
 			for member in tweepy.Cursor(api.list_members,myname,list.slug).items():
 				if(member.screen_name not in seen):
-					print("adding " + list.slug + " " +  member.screen_name)
+					#print("adding " + list.slug + " " +  member.screen_name)
 					seen.add(member.screen_name)
 					adds.add(member.screen_name)
 
@@ -53,6 +97,9 @@ def get_all_tweets(acct_name):
 # main begin
 config = simpleconfigparser()
 config.read(os.environ['HOME'] +'/.twitter')
+
+# check_resources
+check_resources()
 
 auth = tweepy.OAuthHandler(config.API.consumer_key, config.API.consumer_secret)
 auth.set_access_token(config.API.access_token_key, config.API.access_token_secret)
