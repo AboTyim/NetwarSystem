@@ -1,5 +1,4 @@
 #!/usr/bin/python
-#DESC: print  members of <USER'S> <LIST>
 import tweepy
 import csv
 import sys
@@ -8,39 +7,16 @@ import os
 
 config = simpleconfigparser()
 config.read(os.environ['HOME'] +'/.twitter')
-
-
 auth = tweepy.OAuthHandler(config.API.consumer_key, config.API.consumer_secret)
 auth.set_access_token(config.API.access_token_key, config.API.access_token_secret)
 api = tweepy.API(auth)
 
 y = api.verify_credentials()
 
-api.add_list_member(y.screen_name, sys.argv[1], sys.argv[2])
-#'add_member'
-#'created_at'
-#'description'
-#'destroy'
-#'following'
-#'full_name'
-#'id'
-#'id_str'
-#'is_member'
-#'is_subscribed'
-#'member_count'
-#'members'
-#'mode'
-#'name'
-#'parse'
-#'parse_list'
-#'remove_member'
-#'slug'
-#'subscribe'
-#'subscriber_count'
-#'subscribers'
-#'timeline'
-#'unsubscribe'
-#'update'
-#'uri'
-#'user'
+#congresswomen,1081494257830060033,
+#add_list_member(screen_name='@user_to_add', id='id_of_list')
+#q = api.get_list(owner="ConspiracyBrkrs", id="1081494257830060033")
+#print(q)
 
+api.add_list_member(list_id=sys.argv[1],screen_name=sys.argv[2])
+#api.add_list_member(screen_name=sys.argv[2], list_slug=sys.argv[1])
