@@ -1,6 +1,6 @@
 #!/usr/bin/python
 import csv, json, os, random, re, sys, time, redis, tweepy, getpass
-from simpleconfigparser import simpleconfigparser
+import configparser
 from elasticsearch import Elasticsearch
 from elasticsearch_dsl import Search
 from walrus import *
@@ -52,11 +52,11 @@ def get_all_tweets(acct_name):
 			pass
 
 # main begin
-config = simpleconfigparser()
+config = configparser.ConfigParser()
 config.read(os.environ['HOME'] +'/.twitter')
 
-auth = tweepy.OAuthHandler(config.API.consumer_key, config.API.consumer_secret)
-auth.set_access_token(config.API.access_token_key, config.API.access_token_secret)
+auth = tweepy.OAuthHandler(config['API']['consumer_key'], config['API']['consumer_secret'])
+auth.set_access_token(config['API']['access_token_key'], config['API']['access_token_secret'])
 api = tweepy.API(auth)
 my = api.verify_credentials()
 
@@ -81,13 +81,13 @@ else:
 get_all_tweets(nextid)
 
 try:
-        y = api.get_user(nextid)
-        if y:
+	y = api.get_user(nextid)
+	if y:
 		twbod = "{ \"index\" : { \"_index\" : \"tu" + getpass.getuser() + "\", \"_type\" : \"twid\", \"_id\" : \"" + y.id_str + "\" }\n"
 		twbod = twbod + json.dumps(y._json)
 		client.bulk(index="tu" + getpass.getuser(),doc_type="twid",body=twbod)
 except (RuntimeError, TypeError, NameError):
 	print("tu failed")
-        pass
+	pass
 
 

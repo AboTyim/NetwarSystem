@@ -2,13 +2,13 @@
 # one shot bulk Twitter account recorder
 import csv, json, os, random, re, sys, time, datetime
 import urllib2, redis, tweepy
-from simpleconfigparser import simpleconfigparser
+import configparser
 from elasticsearch import Elasticsearch
 #from elasticsearch_dsl import Search
 from walrus import *
 
 # main begin
-config = simpleconfigparser()
+config = configparser()
 config.read(os.environ['HOME'] +'/.twitter')
 
 try:
@@ -17,8 +17,8 @@ except:
 	print("no client")
 	sys.exit()
 
-auth = tweepy.OAuthHandler(config.API.consumer_key, config.API.consumer_secret)
-auth.set_access_token(config.API.access_token_key, config.API.access_token_secret)
+auth = tweepy.OAuthHandler(config[API][consumer_key], config[API][consumer_secret])
+auth.set_access_token(config[API][access_token_key], config[API][access_token_secret])
 api = tweepy.API(auth)
 my = api.verify_credentials()
 

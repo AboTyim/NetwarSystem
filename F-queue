@@ -1,6 +1,7 @@
 #!/usr/bin/python
 import csv, json, os, random, re, sys, time, redis, tweepy, getpass
-from simpleconfigparser import simpleconfigparser
+#from simpleconfigparser import simpleconfigparser
+import configparser
 from elasticsearch import Elasticsearch
 from elasticsearch_dsl import Search
 from walrus import *
@@ -24,8 +25,8 @@ def elog(scname,mesg):
 def check_resources():
 	# make sure prior instance has exited
 	for p in psutil.process_iter(attrs=['name', 'username']):
-        	if (p.info['username'] == getpass.getuser()) and (p.info['name'] == "work" +getpass.getuser()):
-                	elog("FAIL", "already running")
+		if (p.info['username'] == getpass.getuser()) and (p.info['name'] == "work" +getpass.getuser()):
+			elog("FAIL", "already running")
 			sys.exit()
 
 	setproctitle.setproctitle("work" + getpass.getuser())
@@ -40,13 +41,13 @@ def check_resources():
 		time.sleep(2)
 
 	#i < 60, don't have resources
-        if (i  < 60):
-                print()
-                elog("FAIL","zcpu " + str(zcpu) + " zmem " + str(zmem))
-                sys.exit()
-        else:
+	if (i  < 60):
+		print()
+		elog("FAIL","zcpu " + str(zcpu) + " zmem " + str(zmem))
+		sys.exit()
+	else:
 		print("")
-                #elog(getpass.getuser(),"sufficient resources to run")
+		#elog(getpass.getuser(),"sufficient resources to run")
 
 
 def load_lists(myname):
@@ -54,7 +55,7 @@ def load_lists(myname):
 	if(len(work) == 0 ):
 		seen.clear()
 	for list in lists:
-		if re.match("trm-", list.slug):
+		if re.match("r-", list.slug):
 			for member in tweepy.Cursor(api.list_members,myname,list.slug).items():
 				if(member.screen_name not in seen):
 					#print("adding " + list.slug + " " +  member.screen_name)
@@ -63,8 +64,8 @@ def load_lists(myname):
 
 def get_all_tweets(acct_name):
 	maxtweet = "9999999999999999999"
-	if client.indices.exists(index="turoot"):
-		s = Search(using=client, index="turoot").query("match", screen_name=acct_name)
+	if client.indices.exists(index="tu" + getpass.getuser()):
+		s = Search(using=client, index="tu" + getpass.getuser()).query("match", screen_name=acct_name)
 		resp = s.execute()
 		if(resp):
 			maxtweet = resp[0].status.id_str
@@ -95,14 +96,14 @@ def get_all_tweets(acct_name):
 			pass
 
 # main begin
-config = simpleconfigparser()
+config = configparser.ConfigParser()
 config.read(os.environ['HOME'] +'/.twitter')
 
 # check_resources
 check_resources()
 
-auth = tweepy.OAuthHandler(config.API.consumer_key, config.API.consumer_secret)
-auth.set_access_token(config.API.access_token_key, config.API.access_token_secret)
+auth = tweepy.OAuthHandler(config['API']['consumer_key'], config['API']['consumer_secret'])
+auth.set_access_token(config['API']['access_token_key'], config['API']['access_token_secret'])
 api = tweepy.API(auth)
 my = api.verify_credentials()
 
@@ -119,19 +120,19 @@ load_lists(my.screen_name)
 if(len(adds) > 0):
 	nextid = adds.pop()
 	work.add(nextid)
-	print("adds: " + nextid)
+	print("adds: " + str(nextid))
 else:
 	nextid = work.pop()
-	print("work: " + nextid)
+	print("work: " + str(nextid))
 
 get_all_tweets(nextid)
 
 try:
-        y = api.get_user(nextid)
-        if y:
+	y = api.get_user(nextid)
+	if y:
 		twbod = "{ \"index\" : { \"_index\" : \"tu" + getpass.getuser() + "\", \"_type\" : \"twid\", \"_id\" : \"" + y.id_str + "\" }\n"
 		twbod = twbod + json.dumps(y._json)
 		client.bulk(index="tu" + getpass.getuser(),doc_type="twid",body=twbod)
 except (RuntimeError, TypeError, NameError):
 	print("tu failed")
-        pass
+	pass

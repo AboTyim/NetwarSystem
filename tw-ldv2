@@ -4,14 +4,14 @@
 #DATE: 12/25/2015
 import tweepy, csv, sys, os, re
 from time import gmtime, strftime
-from simpleconfigparser import simpleconfigparser
+import configparser
 
-config = simpleconfigparser()
+config = configparser.ConfigParser()
 config.read(os.environ['HOME'] +'/.twitter')
  
 def get_all_tweets(screen_name,thelast):
-        auth = tweepy.OAuthHandler(config.API.consumer_key, config.API.consumer_secret)
-        auth.set_access_token(config.API.access_token_key, config.API.access_token_secret)
+        auth = tweepy.OAuthHandler(config['API']['consumer_key'], config['API']['consumer_secret'])
+        auth.set_access_token(config['API']['access_token_key'], config['API']['access_token_secret'])
         api = tweepy.API(auth)
         y = api.get_user(screen_name)
         #initialize a list to hold all the tweepy Tweets

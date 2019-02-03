@@ -1,13 +1,13 @@
 #!/usr/bin/python
 #DESC: print URLs for an account's favorited tweets.
 import tweepy, csv, sys, os
-from simpleconfigparser import simpleconfigparser
+import configparser
 
-config = simpleconfigparser()
+config = configparser()
 config.read(os.environ['HOME'] +'/.twitter')
 
-auth = tweepy.OAuthHandler(config.API.consumer_key, config.API.consumer_secret)
-auth.set_access_token(config.API.access_token_key, config.API.access_token_secret)
+auth = tweepy.OAuthHandler(config[API][consumer_key], config[API][consumer_secret])
+auth.set_access_token(config[API][access_token_key], config[API][access_token_secret])
 api = tweepy.API(auth)
 
 api.destroy_friendship(sys.argv[1])

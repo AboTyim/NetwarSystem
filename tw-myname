@@ -2,9 +2,10 @@
 #DESC: show name of account /w credentials in ~/.twitter 
 import tweepy
 import os, sys, pdb, getpass
-from simpleconfigparser import simpleconfigparser
+import configparser
 
-config = simpleconfigparser()
+config = configparser.ConfigParser()
+
 if len(sys.argv) == 1:
     myconf = os.environ['HOME'] +'/.twitter'
 if len(sys.argv) == 2:
@@ -15,13 +16,13 @@ config.read(myconf)
 
 
 try:
-    auth = tweepy.OAuthHandler(config.API.consumer_key, config.API.consumer_secret)
-    auth.set_access_token(config.API.access_token_key, config.API.access_token_secret)
+    auth = tweepy.OAuthHandler(config['API']['consumer_key'], config['API']['consumer_secret'])
+    auth.set_access_token(config['API']['access_token_key'], config['API']['access_token_secret'])
     api = tweepy.API(auth)
     y = api.verify_credentials()
     print(getpass.getuser() + " " +  y.screen_name)
 except tweepy.error.TweepError:
-    print(sys.argv[1] + " " + config.API.account)
+    print(sys.argv[1] + " " + config[API].account)
     exit(1)
 
 

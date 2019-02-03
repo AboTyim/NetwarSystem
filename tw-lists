@@ -3,16 +3,16 @@
 import tweepy
 import csv
 import sys
-from simpleconfigparser import simpleconfigparser
+import configparser
 import os
 import re
 
-config = simpleconfigparser()
+config = configparser.ConfigParser()
 config.read(os.environ['HOME'] +'/.twitter')
 
 
-auth = tweepy.OAuthHandler(config.API.consumer_key, config.API.consumer_secret)
-auth.set_access_token(config.API.access_token_key, config.API.access_token_secret)
+auth = tweepy.OAuthHandler(config['API']['consumer_key'], config['API']['consumer_secret'])
+auth.set_access_token(config['API']['access_token_key'], config['API']['access_token_secret'])
 api = tweepy.API(auth)
 
 y = api.verify_credentials()
@@ -26,7 +26,7 @@ for list in lists:
 #   print dir(list)
 #   print list.id
 #   print list.id_str
-   print list.slug + "," + list.id_str + "," + list.description
+   print( list.slug + "," + list.id_str + "," + list.description)
 
 #'add_member'
 #'created_at'

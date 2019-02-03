@@ -4,7 +4,7 @@ import csv, json, os, random, re, sys, time, datetime
 import urllib2, redis, tweepy
 import psutil, getpass, setproctitle, platform
 import logging, logging.handlers
-from simpleconfigparser import simpleconfigparser
+import configparser
 from bs4 import BeautifulSoup
 from time import gmtime, strftime
 from elasticsearch import Elasticsearch
@@ -76,7 +76,7 @@ def check_resources():
 # check_resources
 
 # main begin
-config = simpleconfigparser()
+config = configparser()
 config.read(os.environ['HOME'] +'/.twitter')
 
 try:
@@ -88,8 +88,8 @@ except:
 check_resources()
 
 
-auth = tweepy.OAuthHandler(config.API.consumer_key, config.API.consumer_secret)
-auth.set_access_token(config.API.access_token_key, config.API.access_token_secret)
+auth = tweepy.OAuthHandler(config[API][consumer_key], config[API][consumer_secret])
+auth.set_access_token(config[API][access_token_key], config[API][access_token_secret])
 api = tweepy.API(auth)
 my = api.verify_credentials()
 listlim = api.rate_limit_status()[u'resources'][u'lists'][u'/lists/members'][u'remaining']
