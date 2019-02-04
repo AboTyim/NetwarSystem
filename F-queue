@@ -55,7 +55,8 @@ def load_lists(myname):
 	if(len(work) == 0 ):
 		seen.clear()
 	for list in lists:
-		if re.match("r-", list.slug):
+		print(list.slug)
+		if re.match("nsce-", list.slug):
 			for member in tweepy.Cursor(api.list_members,myname,list.slug).items():
 				if(member.screen_name not in seen):
 					#print("adding " + list.slug + " " +  member.screen_name)
@@ -118,15 +119,15 @@ seen = wal.Set(getpass.getuser() + "seen")
 load_lists(my.screen_name)
 
 if(len(adds) > 0):
-	nextid = adds.pop()
+	nextid = adds.pop().decode('utf-8')
 	work.add(nextid)
 	print("adds: " + str(nextid))
 else:
-	nextid = work.pop()
+	nextid = work.pop().decode('utf-8')
 	print("work: " + str(nextid))
 
 get_all_tweets(nextid)
-
+elog("monitoring",nextid)
 try:
 	y = api.get_user(nextid)
 	if y:
