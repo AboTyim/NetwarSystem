@@ -1,31 +1,37 @@
 #!/usr/bin/python
-import urllib2,sys,tweepy,os,re
+#import urllib2
+import sys,tweepy,os,re
 import configparser
 from bs4 import BeautifulSoup
+try:  
+    from urllib2 import urlopen
+except ImportError:  
+    from urllib.request import urlopen
 
 name = re.sub("idle-", "",sys.argv[1])
 
 #Account does not exist, or account has self-suspended, no way to tell w/o
 #trying to rename another account into the name in question
 try:
-    urllib2.urlopen("http://twitter.com/" + name)
-except urllib2.URLError:
+    urlopen("http://twitter.com/" + name)
+except urlopen.URLError:
     print(name + " renamed")
     exit(1)
 
 #Account has been suspended by Twitter - this misses some jihadi accounts maybe UTF-8 again?
-soup = BeautifulSoup(urllib2.urlopen("http://twitter.com/" + name), "html5lib")
+soup = BeautifulSoup(urlopen("http://twitter.com/" + name), "html5lib")
 for thing in soup("title"):
     if(thing.text == "Twitter / Account Suspended"):
         print(name + " suspended")
         exit(2)
 
-config = configparser()
+config = configparser.ConfigParser()
 config.read(os.environ['HOME'] +'/.twitter')
 
-auth = tweepy.OAuthHandler(config[API][consumer_key], config[API][consumer_secret])
-auth.set_access_token(config[API][access_token_key], config[API][access_token_secret])
+auth = tweepy.OAuthHandler(config['API']['consumer_key'], config['API']['consumer_secret'])
+auth.set_access_token(config['API']['access_token_key'], config['API']['access_token_secret'])
 api = tweepy.API(auth)
+my = api.verify_credentials()
 
 #This is the account lookup that gets overloaded, leading to spurious idling
 lookups = api.rate_limit_status()[u'resources'][u'users'][u'/users/show/:id'][u'remaining']
