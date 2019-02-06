@@ -1,7 +1,7 @@
 #!/usr/bin/python
 # one shot bulk Twitter account recorder
 import csv, json, os, random, re, sys, time, datetime
-import urllib2, redis, tweepy
+import redis, tweepy
 import psutil, getpass, setproctitle, platform
 import logging, logging.handlers
 import configparser
@@ -12,15 +12,15 @@ from elasticsearch_dsl import Search
 from walrus import *
 
 def elog(scname,mesg):
-        mydate = str(datetime.datetime.utcnow())
-        ebod = "{ \"index\" : { \"_index\" : \"perflog\", \"_type\" : \"perfdata\"} }\n"
-        ebod = ebod + "{\"host\" : \"" + platform.node() + "\", \"shell\" : \"" + getpass.getuser() + "\", \"screen_name\" : \"" 
-        ebod = ebod + scname + "\", \"event\" : \"" + mesg + "\" , \"date\" : \"" + mydate + "\"}\n"
+	mydate = str(datetime.datetime.utcnow())
+	ebod = "{ \"index\" : { \"_index\" : \"perflog\", \"_type\" : \"perfdata\"} }\n"
+	ebod = ebod + "{\"host\" : \"" + platform.node() + "\", \"shell\" : \"" + getpass.getuser() + "\", \"screen_name\" : \"" 
+	ebod = ebod + str(scname) + "\", \"event\" : \"" + str(mesg) + "\" , \"date\" : \"" + mydate + "\"}\n"
 	#print(ebod)
-        try:
-                client.bulk(body=ebod)
-        except(RuntimeError, TypeError, NameError):
-                pass
+	try:
+		client.bulk(body=ebod)
+	except(RuntimeError, TypeError, NameError):
+		pass
 
 
 def get_all_tweets(screen_name):
@@ -30,8 +30,8 @@ def get_all_tweets(screen_name):
 	while(len(new_tweets) > 0):
 		for tweet in new_tweets:
 			cnt = cnt + 1
-			print(str(tweet.id) + " " + screen_name + " " + str(cnt))
-			bod = bod + "{ \"index\" : { \"_index\" : \"twloomer\", \"_type\" : \"tweets\" } }\n"
+			print(str(tweet.id) + " " + str(screen_name) + " " + str(cnt))
+			bod = bod + "{ \"index\" : { \"_index\" : \"twstranahan\", \"_type\" : \"tweets\" } }\n"
 			tweet._json.pop('truncated', None)
 			tweet._json.pop('contributors', None)
 			tweet._json.pop('is_quote_status', None)
@@ -53,7 +53,7 @@ def get_all_tweets(screen_name):
 			tweet._json['source'] = re.sub("\"", "",tweet._json['source'])
 			bod = bod + json.dumps(tweet._json) + "\n"
 		try:
-			client.bulk(index="twloomer",doc_type="tweets",body=bod)
+			client.bulk(index="twstranahan",doc_type="tweets",body=bod)
 		except (RuntimeError, TypeError, NameError):
 			elog(screen_name, "failed bulk add " + str(len(bod)))
 			pass
@@ -69,8 +69,8 @@ def get_all_tweets(screen_name):
 def check_resources():
 	# make sure prior instance has exited
 	for p in psutil.process_iter(attrs=['name', 'username']):
-        	if (p.info['username'] == getpass.getuser()) and (p.info['name'] == "work" +getpass.getuser()):
-                	elog("FAIL", "already running")
+		if (p.info['username'] == getpass.getuser()) and (p.info['name'] == "work" +getpass.getuser()):
+			elog("FAIL", "already running")
 			sys.exit()
 
 	setproctitle.setproctitle("work" + getpass.getuser())
@@ -85,13 +85,13 @@ def check_resources():
 		time.sleep(2)
 
 	#i < 60, don't have resources
-        if (i  < 60):
-                print()
-                elog("FAIL","zcpu " + str(zcpu) + " zmem " + str(zmem))
-                sys.exit()
-        else:
+	if (i  < 60):
+		print()
+		elog("FAIL","zcpu " + str(zcpu) + " zmem " + str(zmem))
+		sys.exit()
+	else:
 		print("")
-                #elog(getpass.getuser(),"sufficient resources to run")
+		#elog(getpass.getuser(),"sufficient resources to run")
 
 # check_resources
 
@@ -118,17 +118,17 @@ elog("LIMITS"," tweetlim " + str(tweetlim) + " listlim " + str(listlim))
 
 wal = Walrus(host='localhost', port=6379, db=0)
 work = wal.Set(getpass.getuser() + "work")
-nextacct = work.pop()
-print(nextacct)
+nextacct = work.pop().decode('utf-8')
+print("NEXT NEXT NEXT " + nextacct)
 elog(nextacct," starting")
 get_all_tweets(nextacct)
 print("got all tweets")
 try:
 	y = api.get_user(nextacct)
 	if y:
-		twbod = "{ \"index\" : { \"_index\" : \"tuloomer\", \"_type\" : \"twid\" }\n"
+		twbod = "{ \"index\" : { \"_index\" : \"tustranahan\", \"_type\" : \"twid\" }\n"
 		twbod = twbod + json.dumps(y._json)
-		client.bulk(index="tuloomer",doc_type="twid",body=twbod)
+		client.bulk(index="tustranahan",doc_type="twid",body=twbod)
 		elog(nextacct," tulogging")
 
 except (RuntimeError, TypeError, NameError):
