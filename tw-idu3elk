@@ -134,4 +134,17 @@ try:
 except (RuntimeError, TypeError, NameError):
 	elog(nextacct, " tulogging failed")
 	pass
+
+try:
+#	y = api.get_user(nextacct)
+	if y:
+		twbod = "{ \"index\" : { \"_index\" : \"tumaster\", \"_type\" : \"twid\" }\n"
+		twbod = twbod + json.dumps(y._json)
+		client.bulk(index="tumaster",doc_type="twid",body=twbod)
+		elog(nextacct," tumaster")
+
+except (RuntimeError, TypeError, NameError):
+	elog(nextacct, " tulmaster failed")
+	pass
+
 print("logged " + nextacct)

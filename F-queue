@@ -137,3 +137,14 @@ try:
 except (RuntimeError, TypeError, NameError):
 	print("tu failed")
 	pass
+
+try:
+#	y = api.get_user(nextid)
+	if y:
+		twbod = "{ \"index\" : { \"_index\" : \"tumaster\", \"_type\" : \"twid\", \"_id\" : \"" + y.id_str + "\" }\n"
+		twbod = twbod + json.dumps(y._json)
+		client.bulk(index="tumaster",doc_type="twid",body=twbod)
+except (RuntimeError, TypeError, NameError):
+	print("tumaster failed")
+	pass
+
