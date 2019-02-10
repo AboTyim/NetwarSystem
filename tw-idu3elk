@@ -9,6 +9,8 @@ from bs4 import BeautifulSoup
 from time import gmtime, strftime
 from elasticsearch import Elasticsearch
 from elasticsearch_dsl import Search
+import ssl
+from elasticsearch.connection import create_ssl_context
 from walrus import *
 
 def elog(scname,mesg):
@@ -100,7 +102,11 @@ config = configparser.ConfigParser()
 config.read(os.environ['HOME'] +'/.twitter')
 
 try:
-	client = Elasticsearch(use_ssl=True, verify_certs=False, http_auth="admin:admin")
+	ssl_context = create_ssl_context(cafile='/home/root-ca.pem')
+	ssl_context.check_hostname = False
+	ssl_context.verify_mode = ssl.CERT_NONE
+
+	client = Elasticsearch('https://hp0.netwarsystem.com:9200', ssl_context=ssl_context, timeout=60, http_auth=("admin", "admin"))
 except:
 	sys.exit()
 
@@ -148,3 +154,4 @@ except (RuntimeError, TypeError, NameError):
 	pass
 
 print("logged " + nextacct)
+
