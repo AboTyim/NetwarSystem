@@ -6,12 +6,12 @@ import os, sys, json, time
 import configparser
 from elasticsearch import Elasticsearch
 
-config = configparser()
+config = configparser.ConfigParser()
 config.read(os.environ['HOME'] +'/.twitter')
 
 
-auth = tweepy.OAuthHandler(config[API][consumer_key], config[API][consumer_secret])
-auth.set_access_token(config[API][access_token_key], config[API][access_token_secret])
+auth = tweepy.OAuthHandler(config['API']['consumer_key'], config['API']['consumer_secret'])
+auth.set_access_token(config['API']['access_token_key'], config['API']['access_token_secret'])
 api = tweepy.API(auth)
 
 if True:
@@ -19,5 +19,9 @@ if True:
 		for page in tweepy.Cursor(api.followers_ids, screen_name=sys.argv[1]).pages():
 			for derp in page:
 				print(derp)
+			zod = api.rate_limit_status()
+			while(zod['resources']['followers']['/followers/ids']['remaining'] < 1):
+				time.sleep(60)
+				zod = api.rate_limit_status()
 	except (RuntimeError, TypeError, NameError):
 		pass
