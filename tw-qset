@@ -1,0 +1,7 @@
+#!/bin/bash
+split -n 4 $1
+tw-id2queue xaa
+tw-id12queue xab
+tw-id22queue xac
+tw-id23queue xad
+

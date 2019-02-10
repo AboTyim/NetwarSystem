@@ -33,7 +33,7 @@ def get_all_tweets(screen_name):
 		for tweet in new_tweets:
 			cnt = cnt + 1
 			print(str(tweet.id) + " " + str(screen_name) + " " + str(cnt))
-			bod = bod + "{ \"index\" : { \"_index\" : \"twstranahan\", \"_type\" : \"tweets\" } }\n"
+			bod = bod + "{ \"index\" : { \"_index\" : \"tw" + sys.argv[1] + "\", \"_type\" : \"tweets\" } }\n"
 			tweet._json.pop('truncated', None)
 			tweet._json.pop('contributors', None)
 			tweet._json.pop('is_quote_status', None)
@@ -55,7 +55,7 @@ def get_all_tweets(screen_name):
 			tweet._json['source'] = re.sub("\"", "",tweet._json['source'])
 			bod = bod + json.dumps(tweet._json) + "\n"
 		try:
-			client.bulk(index="twstranahan",doc_type="tweets",body=bod)
+			client.bulk(index="tw" + sys.argv[1],doc_type="tweets",body=bod)
 		except (RuntimeError, TypeError, NameError):
 			elog(screen_name, "failed bulk add " + str(len(bod)))
 			pass
@@ -118,9 +118,9 @@ auth = tweepy.OAuthHandler(config['API']['consumer_key'], config['API']['consume
 auth.set_access_token(config['API']['access_token_key'], config['API']['access_token_secret'])
 api = tweepy.API(auth)
 my = api.verify_credentials()
-listlim = api.rate_limit_status()[u'resources'][u'lists'][u'/lists/members'][u'remaining']
-tweetlim = api.rate_limit_status()[u'resources'][u'statuses'][u'/statuses/user_timeline'][u'remaining']
-elog("LIMITS"," tweetlim " + str(tweetlim) + " listlim " + str(listlim))
+#listlim = api.rate_limit_status()[u'resources'][u'lists'][u'/lists/members'][u'remaining']
+#tweetlim = api.rate_limit_status()[u'resources'][u'statuses'][u'/statuses/user_timeline'][u'remaining']
+#elog("LIMITS"," tweetlim " + str(tweetlim) + " listlim " + str(listlim))
 
 wal = Walrus(host='localhost', port=6379, db=0)
 work = wal.Set(getpass.getuser() + "work")
@@ -132,9 +132,9 @@ print("got all tweets")
 try:
 	y = api.get_user(nextacct)
 	if y:
-		twbod = "{ \"index\" : { \"_index\" : \"tustranahan\", \"_type\" : \"twid\" }\n"
+		twbod = "{ \"index\" : { \"_index\" : \"tu" + sys.argv[1] + "\", \"_type\" : \"twid\" }\n"
 		twbod = twbod + json.dumps(y._json)
-		client.bulk(index="tustranahan",doc_type="twid",body=twbod)
+		client.bulk(index="tu" + sys.argv[1],doc_type="twid",body=twbod)
 		elog(nextacct," tulogging")
 
 except (RuntimeError, TypeError, NameError):
@@ -154,4 +154,3 @@ except (RuntimeError, TypeError, NameError):
 	pass
 
 print("logged " + nextacct)
-

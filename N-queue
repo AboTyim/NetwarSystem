@@ -1,7 +1,6 @@
 #!/bin/bash
-export FULLPATH="~/lists"
+export FULLPATH="/root/lists"
 
-mkdir -p ~/lists
 (cd $FULLPATH ; find . | grep "\-consolidated" |  grep -v "idle-" | awk -F "consolidated-" {'print $2 " " $1'} | sort | head -1 | awk -F " " {'print $2'} | awk '{sub(/-/,"/" s)};1' | awk -F "/" {'print "(cd $FULLPATH/" $2 " ; /usr/local/bin/N-packtweets " $3 " )"'} > "$FULLPATH/next")
 chmod 755 $FULLPATH/next
 $FULLPATH/next

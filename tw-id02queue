@@ -1,0 +1,62 @@
+#!/usr/bin/python
+# twitter account dispatcher
+import csv, json, os, random, re, sys, time, hashlib
+import redis
+from walrus import *
+
+wal = Walrus(host='localhost', port=6379, db=0)
+q0 = wal.Set("queue00work")
+q1 = wal.Set("queue01work")
+q2 = wal.Set("queue02work")
+q3 = wal.Set("queue03work")
+q4 = wal.Set("queue04work")
+q5 = wal.Set("queue05work")
+q6 = wal.Set("queue06work")
+q7 = wal.Set("queue07work")
+q8 = wal.Set("queue08work")
+q9 = wal.Set("queue09work")
+qa = wal.Set("queue0awork")
+qb = wal.Set("queue0bwork")
+qc = wal.Set("queue0cwork")
+qd = wal.Set("queue0dwork")
+qe = wal.Set("queue0ework")
+qf = wal.Set("queue0fwork")
+
+accts = open(sys.argv[1], 'r')
+
+for acct in accts:
+	acct = str(acct.rstrip())
+	qq = hashlib.md5(acct.encode("utf-8")).hexdigest()[5]
+	print(qq + " " + acct)
+	if(qq == "0"):
+		q0.add(acct)
+	if(qq == "1"):
+		q1.add(acct)
+	if(qq == "2"):
+		q2.add(acct)
+	if(qq == "3"):
+		q3.add(acct)
+	if(qq == "4"):
+		q4.add(acct)
+	if(qq == "5"):
+		q5.add(acct)
+	if(qq == "6"):
+		q6.add(acct)
+	if(qq == "7"):
+		q7.add(acct)
+	if(qq == "8"):
+		q8.add(acct)
+	if(qq == "9"):
+		q9.add(acct)
+	if(qq == "a"):
+		qa.add(acct)
+	if(qq == "b"):
+		qb.add(acct)
+	if(qq == "c"):
+		qc.add(acct)
+	if(qq == "d"):
+		qd.add(acct)
+	if(qq == "e"):
+		qe.add(acct)
+	if(qq == "f"):
+		qf.add(acct)

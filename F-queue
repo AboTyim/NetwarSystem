@@ -10,7 +10,6 @@ from bs4 import BeautifulSoup
 from time import gmtime, strftime
 import ssl
 from elasticsearch.connection import create_ssl_context
-#from elasticsearch.connection.http_urllib3 import create_ssl_context
 
 def elog(scname,mesg):
         mydate = str(datetime.datetime.utcnow())
