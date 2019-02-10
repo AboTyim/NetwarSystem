@@ -1,4 +1,5 @@
 #!/bin/bash
+#take a file of names and prep them for batch capture
 split -n 4 $1
 tw-id2queue xaa
 tw-id12queue xab

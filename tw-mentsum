@@ -1,4 +1,0 @@
-#!/bin/bash
-cat $1-mentions*csv | awk -F "," {'print $1 "," $2'} | sort | uniq -c | awk -F " " {'print $1 "," $2'} | sort -n  > $1-mentsumm.csv
-tail -25 $1-mentsumm.csv > $1-topment.csv
-

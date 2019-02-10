@@ -1,6 +1,0 @@
-#!/bin/bash
-#DESC: new accounts to monitor get 'primed' with an empty file from 1970
-#DESC: modified to correct long standing custom of name,name format files
-#DESC: which has not been used since mid 2013, but which lingered.
-cat $1 | awk {'print "echo 999999999999999999 > " $1 "-consolidated-1970-01-01-00-00.txt"'} > prime
-sh prime
