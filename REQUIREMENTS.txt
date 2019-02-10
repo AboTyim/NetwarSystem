@@ -5,4 +5,3 @@ psutil>=5.5.0
 redis>=3.1.0
 tweepy>=3.7.0
 urllib3>=1.22
-
