@@ -8,6 +8,7 @@ if len(sys.argv) == 1:
     myconf = os.environ['HOME'] +'/.twitter'
 if len(sys.argv) == 2:
     myconf = sys.argv[1]
+    print(myconf)
 
 config = configparser.ConfigParser()
 config.read(myconf)
