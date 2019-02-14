@@ -6,15 +6,6 @@ from elasticsearch_dsl import Search
 import ssl
 from elasticsearch.connection import create_ssl_context
 
-#config = simpleconfigparser()
-#config.read(os.environ['HOME'] +'/.twitter')
-
-#auth = tweepy.OAuthHandler(config[API][consumer_key], config[API][consumer_secret])
-#auth.set_access_token(config[API][access_token_key], config[API][access_token_secret])
-#api = tweepy.API(auth)
-#my = api.verify_credentials()
-
-
 try:
         ssl_context = create_ssl_context(cafile='/home/root-ca.pem')
         ssl_context.check_hostname = False
@@ -24,13 +15,28 @@ try:
 except:
         sys.exit()
 
+#867786088969940994
+#response = client.search(
+#    index="tumaster",
+#    body={
+# 	 "query": {
+#    		"regexp": {
+#      	"screen_name": "[a-zA-Z]{4,8}[0-9]{4,8}"
+#    }
+#  }
+#}
+#)
 
-s = Search(using=client, index="tumaster").query("match", text=sys.argv[1])
-response = s.execute()
-print(dir(response))
-print(response)
+
+for hit in response['hits']['hits']:
+	print(str(hit) + "\n")
+
+#s = Search(using=client, index="tumaster").query("match", text=sys.argv[1])
+#response = s.execute()
+#print(dir(response))
+#print(response)
 #print(dir(response[0]))
-for resp in response:
-	print(resp.user['screen_name'])
-	print(resp.text)
-#print(response[0].text)
+#for resp in response:
+#	print(resp.user['screen_name'])
+#	print(resp.text)
+##print(response[0].text)

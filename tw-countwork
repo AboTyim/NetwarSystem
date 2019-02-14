@@ -1,0 +1,3 @@
+#!/bin/bash
+wc -l missing
+grep -n "`tail -1 missing`" $1 ; sleep 60 ; grep -n "`tail -1 missing`" $1

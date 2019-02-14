@@ -4,7 +4,7 @@ from elasticsearch import Elasticsearch
 from elasticsearch_dsl import Search
 import sys, time, re, json
 
-client = Elasticsearch(use_ssl=True, verify_certs=False, http_auth="admin:admin")
+client = Elasticsearch(use_ssl=True, verify_certs=False, http_auth="admin:LongPassword2019")
 
 f = open(sys.argv[1], 'r')
 order = "{ \"index\" : { \"_index\" : \"tracisis\", \"_type\" : \"tweets\" }\n"

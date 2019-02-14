@@ -20,7 +20,7 @@ if True:
 		for page in tweepy.Cursor(api.followers_ids, screen_name=sys.argv[1]).pages():
 			for derp in page:
 				print(derp)
-				out.write(derp + "\n")
+				out.write(str(derp) + "\n")
 			zod = api.rate_limit_status()
 			while(zod['resources']['followers']['/followers/ids']['remaining'] < 1):
 				time.sleep(60)

@@ -5,7 +5,6 @@ import redis, tweepy
 import psutil, getpass, setproctitle, platform
 import logging, logging.handlers
 import configparser
-from bs4 import BeautifulSoup
 from time import gmtime, strftime
 from elasticsearch import Elasticsearch
 from elasticsearch_dsl import Search

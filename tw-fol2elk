@@ -25,11 +25,11 @@ def elog(scname,mesg):
 def check_resources():
 	# make sure prior instance has exited
 	for p in psutil.process_iter(attrs=['name', 'username']):
-		if (p.info['username'] == getpass.getuser()) and (p.info['name'] == "work" +getpass.getuser()):
+		if (p.info['username'] == getpass.getuser()) and (p.info['name'] == "follow" +getpass.getuser()):
 			elog("FAIL", "already running")
 			sys.exit()
 
-	setproctitle.setproctitle("work" + getpass.getuser())
+	setproctitle.setproctitle("follow" + getpass.getuser())
 
 	i = 0
 	while (i < 30):
@@ -50,51 +50,7 @@ def check_resources():
 		#elog(getpass.getuser(),"sufficient resources to run")
 
 
-def load_lists(myname):
-	lists = api.lists_all(myname)
-	if(len(work) == 0 ):
-		seen.clear()
-	for list in lists:
-		print(list.slug)
-		if re.match("nsce-", list.slug):
-			for member in tweepy.Cursor(api.list_members,myname,list.slug).items():
-				if(member.screen_name not in seen):
-					#print("adding " + list.slug + " " +  member.screen_name)
-					seen.add(member.screen_name)
-					adds.add(member.screen_name)
 
-def get_all_tweets(acct_name):
-	maxtweet = "9999999999999999999"
-	if client.indices.exists(index="tu" + getpass.getuser()):
-		s = Search(using=client, index="tu" + getpass.getuser()).query("match", screen_name=acct_name)
-		resp = s.execute()
-		if(resp):
-			maxtweet = resp[0].status.id_str
-	bod = ""
-	cnt1 = 0
-	cnt2 = 0
-	for tweet in tweepy.Cursor(api.user_timeline, id=acct_name,tweet_mode='extended').items():
-		cnt1 = cnt1 + 1
-		cnt2 = cnt2 + 1
-		if(tweet.id_str == maxtweet):
-			print(maxtweet + " has been seen!!!")
-			break
-		print("adding " + acct_name + " " + str(tweet.id) + " " + " " + str(cnt2))
-		bod = bod + "{ \"index\" : { \"_index\" : \"tw" + getpass.getuser() + "\", \"_type\" : \"tweets\", \"_id\" : \"" + str(tweet.id) + "\"} }\n"
-		bod = bod + json.dumps(tweet._json) + "\n"
-		if(cnt1 == 800):
-			try:
-				client.bulk(index="tw" + getpass.getuser(),doc_type="tweets",body=bod)
-				bod = ""
-				cnt1 = 0
-			except (RuntimeError, TypeError, NameError):
-				pass
-	# leftovers
-	if(len(bod) > 0):
-		try:
-			client.bulk(index="tw" + getpass.getuser(),doc_type="tweets",body=bod)
-		except (RuntimeError, TypeError, NameError):
-			pass
 
 # main begin
 config = configparser.ConfigParser()
@@ -121,27 +77,6 @@ work = wal.Set(getpass.getuser() + "work")
 seen = wal.Set(getpass.getuser() + "seen")
 
 
-load_lists(my.screen_name)
-
-if(len(adds) > 0):
-	nextid = adds.pop().decode('utf-8')
-	work.add(nextid)
-	print("adds: " + str(nextid))
-else:
-	nextid = work.pop().decode('utf-8')
-	print("work: " + str(nextid))
-
-get_all_tweets(nextid)
-elog("monitoring",nextid)
-try:
-	y = api.get_user(nextid)
-	if y:
-		twbod = "{ \"index\" : { \"_index\" : \"tu" + getpass.getuser() + "\", \"_type\" : \"twid\", \"_id\" : \"" + y.id_str + "\" }\n"
-		twbod = twbod + json.dumps(y._json)
-		client.bulk(index="tu" + getpass.getuser(),doc_type="twid",body=twbod)
-except (RuntimeError, TypeError, NameError):
-	print("tu failed")
-	pass
 
 try:
 #	y = api.get_user(nextid)
@@ -152,4 +87,3 @@ try:
 except (RuntimeError, TypeError, NameError):
 	print("tumaster failed")
 	pass
-

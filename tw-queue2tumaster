@@ -1,10 +1,23 @@
 #!/usr/bin/python
 import tweepy
 import os, sys, json, time
-import configparser
+import configparser, getpass, platform
 from elasticsearch import Elasticsearch
+from walrus import *
 import ssl
 from elasticsearch.connection import create_ssl_context
+
+def elog(scname,mesg):
+        mydate = str(datetime.datetime.utcnow())
+        ebod = "{ \"index\" : { \"_index\" : \"perflog\", \"_type\" : \"perfdata\"} }\n"
+        ebod = ebod + "{\"host\" : \"" + platform.node() + "\", \"shell\" : \"" + getpass.getuser() + "\", \"screen_name\" : \"" 
+        ebod = ebod + str(scname) + "\", \"event\" : \"" + str(mesg) + "\" , \"date\" : \"" + mydate + "\"}\n"
+        #print(ebod)
+        try:
+                client.bulk(body=ebod)
+        except(RuntimeError, TypeError, NameError):
+                pass
+
 
 config = configparser.ConfigParser()
 config.read(os.environ['HOME'] +'/.twitter')
@@ -18,15 +31,17 @@ ssl_context.check_hostname = False
 ssl_context.verify_mode = ssl.CERT_NONE
 client = Elasticsearch('https://hp0.netwarsystem.com:9200', ssl_context=ssl_context, timeout=60, http_auth=("admin", "admin"))
 
+wal = Walrus(host='localhost', port=6379, db=0)
+tum = wal.Set("tumaster")
 
-infile = open(os.environ['HOME'] + '/' + sys.argv[1] , 'r')
+
 twbod = ""
 cnt = 0
-for line in infile:
+cnt2 = 0
+while(cnt2 < 600):
 	try:
-		y = api.get_user(line.rstrip())
+		y = api.get_user(tum.pop().decode('utf-8'))
 		if y:
-			print(line)
 			twbod = twbod + "{ \"index\" : { \"_index\" : \"tumaster\", \"_type\" : \"twid\", \"_id\" : \"" + y.id_str + "\" }\n"
 			twbod = twbod + json.dumps(y._json) + "\n"
 			cnt = cnt + 1
@@ -35,17 +50,14 @@ for line in infile:
 		pass
 	if(cnt > 99):
 		client.bulk(index="tumaster",doc_type="twid",body=twbod)
+		cnt2 = cnt2 + cnt
 		twbod = ""
 		cnt = 0
-		try:
-			zod = api.rate_limit_status()
-			#/users/show/:id
-			while(zod['resources']['users']['/users/show/:id']['remaining'] < 300):
-				print("waiting to recharge " + str(zod['resources']['users']['/users/show/:id']['remaining']))
-				time.sleep(60)
-				zod = api.rate_limit_status()
-		except (RuntimeError, TypeError, NameError):
-			pass
-	
-
-infile.close()
+		elog(getpass.getuser(),"profiling " + str(cnt2))
+		zod = api.rate_limit_status()
+		if(zod['resources']['users']['/users/show/:id']['remaining'] < 300):
+			cnt2 = 600
+#leftovers?
+if(len(twbod) > 0):
+	client.bulk(index="tumaster",doc_type="twid",body=twbod)
+	elog(getpass.getuser(), "leftovers")

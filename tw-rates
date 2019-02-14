@@ -20,8 +20,6 @@ api = tweepy.API(auth)
 zod = api.rate_limit_status()
 for zoop in zod['resources']:
 	for zord in zod['resources'][zoop]:
-		#if(zod['resources'][zoop][zord]['remaining'] < zod['resources'][zoop][zord]['limit']):
-			print(zoop)
-			print(zord)
+		if(zod['resources'][zoop][zord]['remaining'] < zod['resources'][zoop][zord]['limit']):
 			print(zord + " " + str(zod['resources'][zoop][zord]['remaining']) + "/" +str(zod['resources'][zoop][zord]['limit']))
 
