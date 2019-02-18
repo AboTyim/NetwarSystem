@@ -1,0 +1,101 @@
+#!/usr/bin/python
+import tweepy
+import os, sys, json, time, re
+import configparser
+from elasticsearch import Elasticsearch
+import ssl
+from elasticsearch.connection import create_ssl_context
+
+config = configparser.ConfigParser()
+config.read(os.environ['HOME'] +'/.twitter')
+
+auth = tweepy.OAuthHandler(config['API']['consumer_key'], config['API']['consumer_secret'])
+auth.set_access_token(config['API']['access_token_key'], config['API']['access_token_secret'])
+api = tweepy.API(auth)
+
+ssl_context = create_ssl_context(cafile='/home/root-ca.pem')
+ssl_context.check_hostname = False
+ssl_context.verify_mode = ssl.CERT_NONE
+client = Elasticsearch('https://hp0.netwarsystem.com:9200', ssl_context=ssl_context, timeout=60, http_auth=("admin", "LongPassword2019"))
+
+
+#infile = open(os.environ['HOME'] + '/' + sys.argv[1] , 'r')
+infile = open( sys.argv[1] , 'r')
+twbod = ""
+cnt = 0
+for line in infile:
+	try:
+		y = api.get_user(line.rstrip())
+		if y:
+			print(line)
+			y._json.pop('truncated', None)
+			y._json.pop('contributors', None)
+			y._json.pop('notifications', None)
+			y._json.pop('contributors_enabled', None)
+			y._json.pop('default_profile', None)
+			y._json.pop('default_profile_image', None)
+			y._json.pop('has_extended_profile', None)
+			y._json.pop('is_translation_enabled', None)
+			y._json.pop('is_translator', None)
+			y._json.pop('translator_type', None)
+			y._json.pop('is_quote_status', None)
+			y._json.pop('in_reply_to_status_id', None)
+			y._json.pop('favorite_count', None)
+			y._json.pop('in_reply_to_screen_name', None)
+			y._json.pop('in_reply_to_user_id', None)
+			y._json.pop('retweet_count', None)
+			y._json.pop('favorite', None)
+			y._json.pop('favorited', None)
+			y._json.pop('favorite_count', None)
+			y._json.pop('in_reply_to_user_id_str', None)
+			y._json.pop('possibly_sensitive', None)
+			y._json.pop('in_reply_to_status_id_str', None)
+			y._json.pop('retweeted', None)
+			y._json.pop('retweets', None)
+			y._json.pop('retweet', None)
+			y._json.pop('status', None)
+			y._json.pop('profile_background_color', None)
+			y._json.pop('profile_background_image_url', None)
+			y._json.pop('profile_background_image_url_https', None)
+			y._json.pop('profile_background_tile', None)
+			y._json.pop('profile_banner_url', None)
+			y._json.pop('profile_image_url', None)
+			y._json.pop('profile_image_url_https', None)
+			y._json.pop('profile_link_color', None)
+			y._json.pop('profile_location', None)
+			y._json.pop('profile_sidebar_border_color', None)
+			y._json.pop('profile_sidebar_fill_color', None)
+			y._json.pop('profile_text_color', None)
+			y._json.pop('profile_use_background_image', None)
+			y._json.pop('id', None)
+			y._json.pop('following', None)
+			y._json.pop('follow_request_sent', None)
+			#y._json['source'] = re.sub("<.*?>", "",y._json['source'])
+			#y._json['source'] = re.sub("\"", "",y._json['source'])
+			print("hey")
+			twbod = twbod + "{ \"index\" : { \"_index\" : \"running\", \"_type\" : \"twid\", \"_id\" : \"" + y.id_str + "\" }\n"
+			twbod = twbod + json.dumps(y._json) + "\n"
+			cnt = cnt + 1
+			print("cnt: " + str(cnt))
+	except (RuntimeError, TypeError, NameError, tweepy.error.TweepError):
+		print("error")
+	if(cnt > 99):
+		oops = client.bulk(index="running",doc_type="twid",body=twbod)
+		print(oops)
+		twbod = ""
+		cnt = 0
+		try:
+			zod = api.rate_limit_status()
+			#/users/show/:id
+			while(zod['resources']['users']['/users/show/:id']['remaining'] < 300):
+				print("waiting to recharge " + str(zod['resources']['users']['/users/show/:id']['remaining']))
+				time.sleep(60)
+				zod = api.rate_limit_status()
+		except (RuntimeError, TypeError, NameError):
+			pass
+	
+if(len(twbod) > 0):
+	print("adding to index")
+	oops = client.bulk(index="running",doc_type="twid",body=twbod)
+	print(oops)
+infile.close()
