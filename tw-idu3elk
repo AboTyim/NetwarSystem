@@ -131,7 +131,7 @@ print("got all tweets")
 try:
 	y = api.get_user(nextacct)
 	if y:
-		twbod = "{ \"index\" : { \"_index\" : \"tu" + sys.argv[1] + "\", \"_type\" : \"twid\" }\n"
+		twbod = "{ \"index\" : { \"_index\" : \"tu" + sys.argv[1] + "\", \"_type\" : \"twid\", \"_id\" : \"" + y.id_str + "\"} }\n"
 		twbod = twbod + json.dumps(y._json)
 		client.bulk(index="tu" + sys.argv[1],doc_type="twid",body=twbod)
 		elog(nextacct," tulogging")
@@ -143,7 +143,7 @@ except (RuntimeError, TypeError, NameError):
 try:
 #	y = api.get_user(nextacct)
 	if y:
-		twbod = "{ \"index\" : { \"_index\" : \"tumaster\", \"_type\" : \"twid\" }\n"
+		twbod = "{ \"index\" : { \"_index\" : \"tu" + sys.argv[1] + "\", \"_type\" : \"twid\", \"_id\" : \"" + y.id_str + "\"} }\n"
 		twbod = twbod + json.dumps(y._json)
 		client.bulk(index="tumaster",doc_type="twid",body=twbod)
 		elog(nextacct," tumaster")

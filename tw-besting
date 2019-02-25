@@ -17,7 +17,6 @@ def elog(scname,mesg):
 	ebod = "{ \"index\" : { \"_index\" : \"perflog\", \"_type\" : \"perfdata\"} }\n"
 	ebod = ebod + "{\"host\" : \"" + platform.node() + "\", \"shell\" : \"" + getpass.getuser() + "\", \"screen_name\" : \"" 
 	ebod = ebod + str(scname) + "\", \"event\" : \"" + str(mesg) + "\" , \"date\" : \"" + mydate + "\"}\n"
-	#print(ebod)
 	try:
 		client.bulk(body=ebod)
 	except(RuntimeError, TypeError, NameError):
@@ -54,12 +53,26 @@ def get_all_tweets(screen_name):
 			tweet._json.pop('retweeted_status', None)
 			tweet._json.pop('retweets', None)
 			tweet._json.pop('retweet', None)
+			tweet._json.pop('user.profile_background_color', None)
+			tweet._json.pop('user.profile_background_image_url', None)
+			tweet._json.pop('user.profile_background_image_url_https', None)
+			tweet._json.pop('user.profile_background_tile', None)
+			tweet._json.pop('user.profile_banner_url', None)
+			tweet._json.pop('user.profile_image_url', None)
+			tweet._json.pop('user.profile_image_url_https', None)
+			tweet._json.pop('user.profile_link_color', None)
+			tweet._json.pop('user.profile_location', None)
+			tweet._json.pop('user.profile_sidebar_border_color', None)
+			tweet._json.pop('user.profile_sidebar_fill_color', None)
+			tweet._json.pop('user.profile_text_color', None)
+			tweet._json.pop('user.profile_use_background_image', None)                        
+			#tweet._json.pop('user', None)
 			tweet._json['source'] = re.sub("<.*?>", "",tweet._json['source'])
 			tweet._json['source'] = re.sub("\"", "",tweet._json['source'])
 			bod = bod + json.dumps(tweet._json) + "\n"
 		try:
 			client.bulk(index="tw" + sys.argv[1],doc_type="tweets",body=bod)
-			except (RuntimeError, TypeError, NameError):
+		except (RuntimeError, TypeError, NameError):
 			elog(screen_name, "failed bulk add " + str(len(bod)))
 			pass
 		bod = ""
@@ -121,9 +134,6 @@ auth = tweepy.OAuthHandler(config['API']['consumer_key'], config['API']['consume
 auth.set_access_token(config['API']['access_token_key'], config['API']['access_token_secret'])
 api = tweepy.API(auth)
 my = api.verify_credentials()
-#listlim = api.rate_limit_status()[u'resources'][u'lists'][u'/lists/members'][u'remaining']
-#tweetlim = api.rate_limit_status()[u'resources'][u'statuses'][u'/statuses/user_timeline'][u'remaining']
-#elog("LIMITS"," tweetlim " + str(tweetlim) + " listlim " + str(listlim))
 
 wal = Walrus(host='localhost', port=6379, db=0)
 work = wal.Set(getpass.getuser() + "work")
@@ -134,25 +144,17 @@ print("got all tweets")
 try:
 	y = api.get_user(nextacct)
 	if y:
-		twbod = "{ \"index\" : { \"_index\" : \"tu" + sys.argv[1] + "\", \"_type\" : \"twid\" }\n"
+		twbod = "{ \"index\" : { \"_index\" : \"tu" + sys.argv[1] + "\", \"_type\" : \"twid\", \"_id\" : \"" + y.id_str + "\" }\n"
 		twbod = twbod + json.dumps(y._json)
 		client.bulk(index="tu" + sys.argv[1],doc_type="twid",body=twbod)
 		elog(nextacct," tulogging")
-
-except (RuntimeError, TypeError, NameError):
-	elog(nextacct, " tulogging failed")
-	pass
-
-try:
-#	y = api.get_user(nextacct)
-	if y:
-		twbod = "{ \"index\" : { \"_index\" : \"tumaster\", \"_type\" : \"twid\" }\n"
+		twbod = "{ \"index\" : { \"_index\" : \"tumaster\", \"_type\" : \"twid\", \"_id\" : \"" + y.id_str + "\" }\n"
 		twbod = twbod + json.dumps(y._json)
 		client.bulk(index="tumaster",doc_type="twid",body=twbod)
 		elog(nextacct," tumaster")
 
 except (RuntimeError, TypeError, NameError):
-	elog(nextacct, " tulmaster failed")
+	elog(nextacct, " tulogging failed")
 	pass
 
 print("logged " + nextacct)

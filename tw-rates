@@ -8,7 +8,6 @@ if len(sys.argv) == 1:
     myconf = os.environ['HOME'] +'/.twitter'
 if len(sys.argv) == 2:
     myconf = sys.argv[1]
-    print(myconf)
 
 config = configparser.ConfigParser()
 config.read(myconf)
@@ -17,6 +16,8 @@ auth = tweepy.OAuthHandler(config['API']['consumer_key'], config['API']['consume
 auth.set_access_token(config['API']['access_token_key'], config['API']['access_token_secret'])
 api = tweepy.API(auth)
 
+print("")
+print(myconf)
 zod = api.rate_limit_status()
 for zoop in zod['resources']:
 	for zord in zod['resources'][zoop]:
