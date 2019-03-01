@@ -2,16 +2,8 @@
 import getpass, sys
 from walrus import *
 
-if len(sys.argv) == 1:
-	name = getpass.getuser()
-if len(sys.argv) == 2:
-    name = sys.argv[1]
 
 
 wal = Walrus(host='localhost', port=6379, db=0)
-adds = wal.Set(name + "adds")
-work = wal.Set(name + "work")
-seen = wal.Set(name + "seen")
-print(adds)
-print(seen)
-print(work)
+tum = wal.Set("work")
+print(tum)

@@ -1,0 +1,65 @@
+#!/usr/bin/python
+# one shot bulk Twitter account recorder
+import csv, json, os, random, re, sys, time, datetime
+import redis, tweepy
+import psutil, getpass, setproctitle, platform
+import logging, logging.handlers
+import configparser
+from time import gmtime, strftime
+from elasticsearch import Elasticsearch
+from elasticsearch_dsl import Search
+import ssl
+from elasticsearch.connection import create_ssl_context
+from walrus import *
+from tweepy import OAuthHandler
+from textwrap import TextWrapper
+from datetime import datetime
+
+config = configparser.ConfigParser()
+
+
+config.read(os.environ['HOME'] +'/.twitter')
+
+
+try:
+	auth = tweepy.OAuthHandler(config['API']['consumer_key'], config['API']['consumer_secret'])
+	auth.set_access_token(config['API']['access_token_key'], config['API']['access_token_secret'])
+	api = tweepy.API(auth)
+	y = api.verify_credentials()
+	print(getpass.getuser() + " " +  y.screen_name)
+except tweepy.error.TweepError:
+	print(sys.argv[1] + " " + config[API].account)
+	exit(1)
+
+
+try:
+	ssl_context = create_ssl_context(cafile='/home/root-ca.pem')
+	ssl_context.check_hostname = False
+	ssl_context.verify_mode = ssl.CERT_NONE
+
+	client = Elasticsearch('https://hp0.netwarsystem.com:9200', ssl_context=ssl_context, timeout=60, http_auth=("admin", "LongPassword2019"))
+except:
+	sys.exit()
+
+
+#client.indices.create(index='twyellow', ignore=400)
+
+class StreamApi(tweepy.StreamListener):
+
+	def on_status(self, status):
+
+		json_data = status._json
+		print(status.user.screen_name)
+		client.index(index='twyellow',
+			doc_type='tweets',
+			body=json_data,
+			ignore=400
+			)
+
+streamer = tweepy.Stream(auth=auth, listener=StreamApi(), timeout=30)
+
+terms = ['YellowVest','GelbenWesten','GiletsJaunes','YellowVestsUK','YellowVestsCanada','ActeXV', 'ChalecosAmarillos','GilletJaune']
+
+
+
+streamer.filter(None, terms)

@@ -18,13 +18,13 @@ except:
 accts = open(sys.argv[1], 'r')
 for acct in accts:
 	acct = acct.rstrip()
-	s = Search(using=client, index="tumaster").query("match", _id=acct)
+	s = Search(using=client, index="userids").query("match",screen_name=acct)
 	response = s.execute()
 	if(response):
 		for resp in response:
 #			print(resp)
 #			print(dir(resp))
-        		print(resp['screen_name'])
+        		print(resp['id_str'])
 #        		print(resp.text)
 
 	else:

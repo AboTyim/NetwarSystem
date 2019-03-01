@@ -1,0 +1,16 @@
+#!/usr/bin/python
+# one shot bulk Twitter account recorder
+import csv, json, os, random, re, sys, time, datetime
+from elasticsearch import Elasticsearch
+from elasticsearch_dsl import Search
+import ssl
+from elasticsearch.connection import create_ssl_context
+
+
+ssl_context = create_ssl_context(cafile='/home/root-ca.pem')
+ssl_context.check_hostname = False
+ssl_context.verify_mode = ssl.CERT_NONE
+
+client = Elasticsearch('https://hp0.netwarsystem.com:9200', ssl_context=ssl_context, timeout=60, http_auth=("admin", "LongPassword2019"))
+
+client.indices.create(index=sys.argv[1],ignore=400)

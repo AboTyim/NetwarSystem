@@ -1,0 +1,32 @@
+import sys
+import time
+import json
+import pandas as pd
+from tweepy import OAuthHandler
+from tweepy import Stream
+from tweepy.streaming import StreamListener
+
+crypto_tickers = ['bitcoin', 'ethereum', 'litecoin', 'denarius', '-filter:links', '-filter:retweets']
+
+class StdOutListener(StreamListener):
+
+def on_data(self, data):
+    tweet = json.loads(data)
+    print(tweet)
+
+
+def on_error(self, status):
+    if status == 420:
+        sys.stderr.write('Enhance Your Calm; The App Is Being Rate Limited For Making Too Many Requests')
+        return True
+    else:
+        sys.stderr.write('Error {}n'.format(status))
+        return True
+
+if __name__ == "__main__":
+listener =  StdOutListener()
+auth = OAuthHandler(USER_KEY, USER_SECRET)
+auth.set_access_token(ACCESS_TOKEN, ACCESS_SECRET)
+
+stream = Stream(auth, listener)
+stream.filter(languages=['en'], track=crypto_tickers)

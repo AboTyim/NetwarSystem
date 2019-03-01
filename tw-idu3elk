@@ -33,7 +33,7 @@ def get_all_tweets(screen_name):
 			cnt = cnt + 1
 			print(str(tweet.id) + " " + str(screen_name) + " " + str(cnt))
 			bod = bod + "{ \"index\" : { \"_index\" : \"tw" + sys.argv[1] + "\", \"_type\" : \"tweets\", \"_id\" : \"" + str(tweet.id) + "\"} }\n"
-			tweet._json.pop('truncated', None)
+			tweet._json.pop('coordinates', None)
 			tweet._json.pop('contributors', None)
 			tweet._json.pop('is_quote_status', None)
 			tweet._json.pop('in_reply_to_status_id', None)
@@ -47,9 +47,27 @@ def get_all_tweets(screen_name):
 			tweet._json.pop('in_reply_to_user_id_str', None)
 			tweet._json.pop('possibly_sensitive', None)
 			tweet._json.pop('in_reply_to_status_id_str', None)
+			tweet._json.pop('quoted_status', None)
+			tweet._json.pop('quoted_status_id', None)
+			tweet._json.pop('quoted_status_id_str', None)
 			tweet._json.pop('retweeted', None)
+			tweet._json.pop('retweeted_status', None)
 			tweet._json.pop('retweets', None)
 			tweet._json.pop('retweet', None)
+			tweet._json.pop('user.profile_background_color', None)
+			tweet._json.pop('user.profile_background_image_url', None)
+			tweet._json.pop('user.profile_background_image_url_https', None)
+			tweet._json.pop('user.profile_background_tile', None)
+			tweet._json.pop('user.profile_banner_url', None)
+			tweet._json.pop('user.profile_image_url', None)
+			tweet._json.pop('user.profile_image_url_https', None)
+			tweet._json.pop('user.profile_link_color', None)
+			tweet._json.pop('user.profile_location', None)
+			tweet._json.pop('user.profile_sidebar_border_color', None)
+			tweet._json.pop('user.profile_sidebar_fill_color', None)
+			tweet._json.pop('user.profile_text_color', None)
+			tweet._json.pop('user.profile_use_background_image', None)                        
+			#tweet._json.pop('user', None)
 			tweet._json['source'] = re.sub("<.*?>", "",tweet._json['source'])
 			tweet._json['source'] = re.sub("\"", "",tweet._json['source'])
 			bod = bod + json.dumps(tweet._json) + "\n"
@@ -136,14 +154,7 @@ try:
 		client.bulk(index="tu" + sys.argv[1],doc_type="twid",body=twbod)
 		elog(nextacct," tulogging")
 
-except (RuntimeError, TypeError, NameError):
-	elog(nextacct, " tulogging failed")
-	pass
-
-try:
-#	y = api.get_user(nextacct)
-	if y:
-		twbod = twbod + "{ \"index\" : { \"_index\" : \"userids\", \"_type\" : \"userid\", \"_id\" : \"" + y.id_str + "\" }\n"
+		twbod = "{ \"index\" : { \"_index\" : \"userids\", \"_type\" : \"userid\", \"_id\" : \"" + y.id_str + "\" }\n"
 		y._json.pop('default_profile', None)
 		y._json.pop('default_profile_image', None)
 		y._json.pop('geo_enabled', None)
@@ -178,9 +189,8 @@ try:
 		twbod = twbod + json.dumps(y._json)
 		client.bulk(index="userids",doc_type="twid",body=twbod)
 		elog(nextacct," userids")
-
 except (RuntimeError, TypeError, NameError):
-	elog(nextacct, " tulmaster failed")
+	elog(nextacct, " tulogging failed")
 	pass
 
 print("logged " + nextacct)

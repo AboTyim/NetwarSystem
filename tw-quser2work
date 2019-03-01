@@ -5,7 +5,7 @@ import redis
 from walrus import *
 
 wal = Walrus(host='localhost', port=6379, db=0)
-qq = wal.Set("tumaster")
+qq = wal.Set("work")
 
 accts = open(sys.argv[1], 'r')
 
