@@ -6,6 +6,7 @@ from time import gmtime, strftime
 from elasticsearch import Elasticsearch
 from elasticsearch_dsl import Search
 from elasticsearch.connection import create_ssl_context
+from urllib3.exceptions import ProtocolError
 
 config = configparser.ConfigParser()
 config.read(os.environ['HOME'] +'/.twitter')
@@ -32,11 +33,13 @@ except:
 	sys.exit()
 
 
-client.indices.create(index='twbrexit', ignore=400)
-client.indices.create(index='tubrexit', ignore=400)
+client.indices.create(index='tw' + config['STREAM']['index'], ignore=400)
+client.indices.create(index='tu' + config['STREAM']['index'], ignore=400)
+client.indices.create(index='tr' + config['STREAM']['index'], ignore=400)
 
 class StreamApi(tweepy.StreamListener):
 	def on_status(self, status):
+		print(status.created_at)
 		status._json.pop('coordinates', None)
 		status._json.pop('contributors', None)
 		status._json.pop('is_quote_status', None)
@@ -74,10 +77,11 @@ class StreamApi(tweepy.StreamListener):
 		status._json['source'] = re.sub("<.*?>", "",status._json['source'])
 		status._json['source'] = re.sub("\"", "",status._json['source'])
 
-		bod = "{ \"index\" : { \"_index\" : \"twbrexit\", \"_type\" : \"tweets\", \"_id\" : \"" + status.id_str + "\"} }\n"
+		bod = "{ \"index\" : { \"_index\" : \"tw" + config['STREAM']['index'] + "\", \"_type\" : \"tweets\", \"_id\" : \"" + status.id_str + "\"} }\n"
 		bod = bod + json.dumps(status._json) + "\n"
-		client.bulk(index="twbrexit",doc_type="tweets",body=bod)
-		twbod = "{ \"index\" : { \"_index\" : \"tubrexit\", \"_type\" : \"twid\", \"_id\" : \"" + status.user.id_str + "\" }\n"
+		client.bulk(index="tw" + config['STREAM']['index'],doc_type="tweets",body=bod)
+		print(status.user.screen_name + " " + str(status.created_at))
+		twbod = "{ \"index\" : { \"_index\" : \"tu" + config['STREAM']['index'] + "\", \"_type\" : \"twid\", \"_id\" : \"" + status.user.id_str + "\" }\n"
 		status.user._json.pop('default_profile', None)
 		status.user._json.pop('default_profile_image', None)
 		status.user._json.pop('geo_enabled', None)
@@ -110,13 +114,13 @@ class StreamApi(tweepy.StreamListener):
 		status.user._json.pop('protected', None)
 		status.user._json.pop('status', None)
 		twbod = twbod + json.dumps(status.user._json) + "\n"
-		client.bulk(index="tubrexit",doc_type="twid",body=twbod)
+		client.bulk(index="tu" + config['STREAM']['index'],doc_type="twid",body=twbod)
 		try:
 			status.retweeted_status
 		except:
 			print("not an RT")
 		else:
-			twbod = "{ \"index\" : { \"_index\" : \"tubrexit\", \"_type\" : \"twid\", \"_id\" : \"" + status.retweeted_status.user.id_str + "\" }\n"
+			twbod = "{ \"index\" : { \"_index\" : \"tu" + config['STREAM']['index'] + "\", \"_type\" : \"twid\", \"_id\" : \"" + status.retweeted_status.user.id_str + "\" }\n"
 			status.retweeted_status.user._json.pop('default_profile', None)
 			status.retweeted_status.user._json.pop('default_profile_image', None)
 			status.retweeted_status.user._json.pop('geo_enabled', None)
@@ -150,10 +154,58 @@ class StreamApi(tweepy.StreamListener):
 			status.retweeted_status.user._json.pop('status', None)
 			#print(status.retweeted_status.user._json)
 			twbod = twbod + json.dumps(status.retweeted_status.user._json) + "\n" 
-			client.bulk(index="tubrexit",doc_type="twid",body=twbod)
+			client.bulk(index="tu" + config['STREAM']['index'],doc_type="twid",body=twbod)
+			#mentions stream here
+			trbod = "{ \"index\" : { \"_index\" : \"tr" + config['STREAM']['index'] + "\", \"_type\" : \"retweet\", \"_id\" : \"" + status.id_str + "\" }\n"
+			trdict = {}
+			trdict['status.id_str'] = status.id_str
+			trdict['created_at'] = str(status.created_at)
+			trdict['user.screen_name'] = status.user.screen_name
+			trdict['dest.screen_name'] = status.retweeted_status.user.screen_name
+			trdict['dest.id_str']      = status.retweeted_status.id_str
+			trdict['status.text'] = status.text
+			trbod = trbod + json.dumps(trdict) + "\n" 
+			#print(trbod)
+			#print("")
+			client.bulk(index="tr" + config['STREAM']['index'],doc_type="tweets",body=trbod)
+#      "mappings" : {"tweets" : { "_all" : {"enabled" : false},
+#       "properties" : {
+#	  "coordinates" : {"properties" : {"coordinates" : {"type" : "geo_point"},"type" : {"type" : "text"}}},
+#	  "created_at" : {"type" : "date",  "format" : "EEE MMM dd HH:mm:ss Z YYYY"},
+#	  "id_str" : {"type" : "text",  "fields" : {"keyword" : {"type" : "keyword", "ignore_above" : 256}}},
+#	  "lang" : {"type" : "text",  "fields" : {"keyword" : {"type" : "keyword", "ignore_above" : 256}}},
+#	  "source" : {"type" : "text",  "fields" : {"keyword" : {"type" : "keyword", "ignore_above" : 256}}},
+#	  "text" : {"type" : "text",  "fields" : {"keyword" : {"type" : "keyword", "ignore_above" : 256}}},
+#	  "user" : {"properties" : {"contributors_enabled" : {"type" : "boolean"},
+#	      "created_at" : {"type" : "date",  "format" : "EEE MMM dd HH:mm:ss Z YYYY"},
+#	      "description" : {"type" : "text", "fields" : {"keyword" : {"type" : "keyword","ignore_above" : 256}}},
+#	      "name" : {"type" : "text", "fields" : {"keyword" : {"type" : "keyword","ignore_above" : 256}}},
+#	      "screen_name" : {"type" : "text"}}}}}}}'
+
+
+def on_error(self, status):
+	if status == 420:
+		sys.stderr.write('Enhance Your Calm; The App Is Being Rate Limited For Making Too Many Requests')
+		return True
+	else:
+		sys.stderr.write('Error {}n'.format(status))
+		return True
+
 	
 streamer = tweepy.Stream(auth=auth, listener=StreamApi(), timeout=30)
 
-terms = ['Brexit', 'NoDeal', 'RevokeA50', 'PeoplesVote']
 
-streamer.filter(None, terms)
+f = open(sys.argv[1],'r')
+mps = []
+for line in f:
+	mps.append(line.rstrip())
+
+streamer = tweepy.Stream(auth=auth, listener=StreamApi(), timeout=30)
+
+while True:
+	try:
+		streamer.filter(follow=mps)
+	except (ProtocolError, AttributeError):
+		print("CAUGHT ERROR - CONTINUING")
+		continue
+

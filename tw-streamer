@@ -162,6 +162,7 @@ class StreamApi(tweepy.StreamListener):
 			trdict['created_at'] = str(status.created_at)
 			trdict['user.screen_name'] = status.user.screen_name
 			trdict['dest.screen_name'] = status.retweeted_status.user.screen_name
+			trdict['dest.id_str']      = status.retweeted_status.id_str
 			trdict['status.text'] = status.text
 			trbod = trbod + json.dumps(trdict) + "\n" 
 			#print(trbod)
