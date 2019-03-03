@@ -1,0 +1,207 @@
+#!/usr/bin/python
+import csv, json, pprint, os, random, re, sys, time, datetime
+import redis, walrus, tweepy, configparser, ssl
+import psutil, getpass, setproctitle, platform
+from time import gmtime, strftime
+from elasticsearch import Elasticsearch
+from elasticsearch_dsl import Search
+from elasticsearch.connection import create_ssl_context
+from urllib3.exceptions import ProtocolError
+
+config = configparser.ConfigParser()
+config.read(os.environ['HOME'] +'/.twitter')
+
+
+try:
+	auth = tweepy.OAuthHandler(config['API']['consumer_key'], config['API']['consumer_secret'])
+	auth.set_access_token(config['API']['access_token_key'], config['API']['access_token_secret'])
+	api = tweepy.API(auth)
+	y = api.verify_credentials()
+	print(getpass.getuser() + " " +  y.screen_name)
+except tweepy.error.TweepError:
+	print(sys.argv[1] + " " + config[API].account)
+	exit(1)
+
+
+try:
+	ssl_context = create_ssl_context(cafile='/home/root-ca.pem')
+	ssl_context.check_hostname = False
+	ssl_context.verify_mode = ssl.CERT_NONE
+
+	client = Elasticsearch('https://hp0.netwarsystem.com:9200', ssl_context=ssl_context, timeout=60, http_auth=("admin", "LongPassword2019"))
+except:
+	sys.exit()
+
+
+client.indices.create(index='tw' + config['STREAM']['index'], ignore=400)
+client.indices.create(index='tu' + config['STREAM']['index'], ignore=400)
+client.indices.create(index='tr' + config['STREAM']['index'], ignore=400)
+
+class StreamApi(tweepy.StreamListener):
+	def on_status(self, status):
+		print(status.created_at)
+		status._json.pop('coordinates', None)
+		status._json.pop('contributors', None)
+		status._json.pop('is_quote_status', None)
+		status._json.pop('in_reply_to_status_id', None)
+		status._json.pop('favorite_count', None)
+		status._json.pop('in_reply_to_screen_name', None)
+		status._json.pop('in_reply_to_user_id', None)
+		status._json.pop('retweet_count', None)
+		status._json.pop('favorite', None)
+		status._json.pop('favorited', None)
+		status._json.pop('favorite_count', None)
+		status._json.pop('in_reply_to_user_id_str', None)
+		status._json.pop('possibly_sensitive', None)
+		status._json.pop('in_reply_to_status_id_str', None)
+		status._json.pop('quoted_status', None)
+		status._json.pop('quoted_status_id', None)
+		status._json.pop('quoted_status_id_str', None)
+		status._json.pop('retweeted', None)
+		#status._json.pop('retweeted_status', None)
+		status._json.pop('retweets', None)
+		status._json.pop('retweet', None)
+		status._json.pop('user.profile_background_color', None)
+		status._json.pop('user.profile_background_image_url', None)
+		status._json.pop('user.profile_background_image_url_https', None)
+		status._json.pop('user.profile_background_tile', None)
+		status._json.pop('user.profile_banner_url', None)
+		status._json.pop('user.profile_image_url', None)
+		status._json.pop('user.profile_image_url_https', None)
+		status._json.pop('user.profile_link_color', None)
+		status._json.pop('user.profile_location', None)
+		status._json.pop('user.profile_sidebar_border_color', None)
+		status._json.pop('user.profile_sidebar_fill_color', None)
+		status._json.pop('user.profile_text_color', None)
+		status._json.pop('user.profile_use_background_image', None)
+		status._json['source'] = re.sub("<.*?>", "",status._json['source'])
+		status._json['source'] = re.sub("\"", "",status._json['source'])
+
+		bod = "{ \"index\" : { \"_index\" : \"tw" + config['STREAM']['index'] + "\", \"_type\" : \"tweets\", \"_id\" : \"" + status.id_str + "\"} }\n"
+		bod = bod + json.dumps(status._json) + "\n"
+		client.bulk(index="tw" + config['STREAM']['index'],doc_type="tweets",body=bod)
+		print(status.user.screen_name + " " + str(status.created_at))
+		twbod = "{ \"index\" : { \"_index\" : \"tu" + config['STREAM']['index'] + "\", \"_type\" : \"twid\", \"_id\" : \"" + status.user.id_str + "\" }\n"
+		status.user._json.pop('default_profile', None)
+		status.user._json.pop('default_profile_image', None)
+		status.user._json.pop('geo_enabled', None)
+		status.user._json.pop('has_extended_profile', None)
+		status.user._json.pop('is_translation_enabled', None)
+		status.user._json.pop('is_translator', None)
+		status.user._json.pop('notifications', None)
+		status.user._json.pop('profile_background_color', None)
+		status.user._json.pop('profile_background_image_url', None)
+		status.user._json.pop('profile_background_image_url_https', None)
+		status.user._json.pop('profile_background_tile', None)
+		status.user._json.pop('profile_banner_url', None)
+		status.user._json.pop('profile_image_url', None)
+		status.user._json.pop('profile_image_url_https', None)
+		status.user._json.pop('profile_link_color', None)
+		status.user._json.pop('profile_location', None)
+		status.user._json.pop('profile_location.bounding_box', None)
+		status.user._json.pop('profile_location.contained_within', None)
+		status.user._json.pop('profile_location.country', None)
+		status.user._json.pop('profile_location.country_code', None)
+		status.user._json.pop('profile_location.full_name', None)
+		status.user._json.pop('profile_location.id', None)
+		status.user._json.pop('profile_location.name', None)
+		status.user._json.pop('profile_location.place_type', None)
+		status.user._json.pop('profile_location.url', None)
+		status.user._json.pop('profile_sidebar_border_color', None)
+		status.user._json.pop('profile_sidebar_fill_color', None)
+		status.user._json.pop('profile_text_color', None)
+		status.user._json.pop('profile_use_background_image', None)
+		status.user._json.pop('protected', None)
+		status.user._json.pop('status', None)
+		twbod = twbod + json.dumps(status.user._json) + "\n"
+		client.bulk(index="tu" + config['STREAM']['index'],doc_type="twid",body=twbod)
+		try:
+			status.retweeted_status
+		except:
+			print("not an RT")
+		else:
+			twbod = "{ \"index\" : { \"_index\" : \"tu" + config['STREAM']['index'] + "\", \"_type\" : \"twid\", \"_id\" : \"" + status.retweeted_status.user.id_str + "\" }\n"
+			status.retweeted_status.user._json.pop('default_profile', None)
+			status.retweeted_status.user._json.pop('default_profile_image', None)
+			status.retweeted_status.user._json.pop('geo_enabled', None)
+			status.retweeted_status.user._json.pop('has_extended_profile', None)
+			status.retweeted_status.user._json.pop('is_translation_enabled', None)
+			status.retweeted_status.user._json.pop('is_translator', None)
+			status.retweeted_status.user._json.pop('notifications', None)
+			status.retweeted_status.user._json.pop('profile_background_color', None)
+			status.retweeted_status.user._json.pop('profile_background_image_url', None)
+			status.retweeted_status.user._json.pop('profile_background_image_url_https', None)
+			status.retweeted_status.user._json.pop('profile_background_tile', None)
+			status.retweeted_status.user._json.pop('profile_banner_url', None)
+			status.retweeted_status.user._json.pop('profile_image_url', None)
+			status.retweeted_status.user._json.pop('profile_image_url_https', None)
+			status.retweeted_status.user._json.pop('profile_link_color', None)
+			status.retweeted_status.user._json.pop('profile_location', None)
+			status.retweeted_status.user._json.pop('profile_location.bounding_box', None)
+			status.retweeted_status.user._json.pop('profile_location.contained_within', None)
+			status.retweeted_status.user._json.pop('profile_location.country', None)
+			status.retweeted_status.user._json.pop('profile_location.country_code', None)
+			status.retweeted_status.user._json.pop('profile_location.full_name', None)
+			status.retweeted_status.user._json.pop('profile_location.id', None)
+			status.retweeted_status.user._json.pop('profile_location.name', None)
+			status.retweeted_status.user._json.pop('profile_location.place_type', None)
+			status.retweeted_status.user._json.pop('profile_location.url', None)
+			status.retweeted_status.user._json.pop('profile_sidebar_border_color', None)
+			status.retweeted_status.user._json.pop('profile_sidebar_fill_color', None)
+			status.retweeted_status.user._json.pop('profile_text_color', None)
+			status.retweeted_status.user._json.pop('profile_use_background_image', None)
+			status.retweeted_status.user._json.pop('protected', None)
+			status.retweeted_status.user._json.pop('status', None)
+			#print(status.retweeted_status.user._json)
+			twbod = twbod + json.dumps(status.retweeted_status.user._json) + "\n" 
+			client.bulk(index="tu" + config['STREAM']['index'],doc_type="twid",body=twbod)
+			#mentions stream here
+			trbod = "{ \"index\" : { \"_index\" : \"tr" + config['STREAM']['index'] + "\", \"_type\" : \"retweet\", \"_id\" : \"" + status.id_str + "\" }\n"
+			trdict = {}
+			trdict['status.id_str'] = status.id_str
+			trdict['created_at'] = str(status.created_at)
+			trdict['user.screen_name'] = status.user.screen_name
+			trdict['dest.screen_name'] = status.retweeted_status.user.screen_name
+			trdict['status.text'] = status.text
+			trbod = trbod + json.dumps(trdict) + "\n" 
+			#print(trbod)
+			#print("")
+			client.bulk(index="tr" + config['STREAM']['index'],doc_type="tweets",body=trbod)
+#      "mappings" : {"tweets" : { "_all" : {"enabled" : false},
+#       "properties" : {
+#          "coordinates" : {"properties" : {"coordinates" : {"type" : "geo_point"},"type" : {"type" : "text"}}},
+#          "created_at" : {"type" : "date",  "format" : "EEE MMM dd HH:mm:ss Z YYYY"},
+#          "id_str" : {"type" : "text",  "fields" : {"keyword" : {"type" : "keyword", "ignore_above" : 256}}},
+#          "lang" : {"type" : "text",  "fields" : {"keyword" : {"type" : "keyword", "ignore_above" : 256}}},
+#          "source" : {"type" : "text",  "fields" : {"keyword" : {"type" : "keyword", "ignore_above" : 256}}},
+#          "text" : {"type" : "text",  "fields" : {"keyword" : {"type" : "keyword", "ignore_above" : 256}}},
+#          "user" : {"properties" : {"contributors_enabled" : {"type" : "boolean"},
+#              "created_at" : {"type" : "date",  "format" : "EEE MMM dd HH:mm:ss Z YYYY"},
+#              "description" : {"type" : "text", "fields" : {"keyword" : {"type" : "keyword","ignore_above" : 256}}},
+#              "name" : {"type" : "text", "fields" : {"keyword" : {"type" : "keyword","ignore_above" : 256}}},
+#              "screen_name" : {"type" : "text"}}}}}}}'
+
+
+def on_error(self, status):
+	if status == 420:
+		sys.stderr.write('Enhance Your Calm; The App Is Being Rate Limited For Making Too Many Requests')
+		return True
+	else:
+		sys.stderr.write('Error {}n'.format(status))
+		return True
+
+	
+streamer = tweepy.Stream(auth=auth, listener=StreamApi(), timeout=30)
+
+terms = []
+tfile = open(os.environ['HOME'] + "/" +  config['STREAM']['terms'], 'r')
+for thing in tfile:
+	terms.append(thing.rstrip())
+print(terms)
+
+while True:
+	try:
+		streamer.filter(None, terms)
+	except (ProtocolError, AttributeError):
+		print("CAUGHT ERROR - CONTINUING")
+		continue
