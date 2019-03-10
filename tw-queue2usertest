@@ -1,0 +1,114 @@
+#!/usr/bin/python
+import tweepy
+import os, sys, json, time
+import configparser, getpass, platform
+from elasticsearch import Elasticsearch
+from walrus import *
+import ssl
+from elasticsearch.connection import create_ssl_context
+
+def elog(scname,mesg):
+        mydate = str(datetime.datetime.utcnow())
+        ebod = "{ \"index\" : { \"_index\" : \"perflog\", \"_type\" : \"perfdata\"} }\n"
+        ebod = ebod + "{\"host\" : \"" + platform.node() + "\", \"shell\" : \"" + getpass.getuser() + "\", \"screen_name\" : \"" 
+        ebod = ebod + str(scname) + "\", \"event\" : \"" + str(mesg) + "\" , \"date\" : \"" + mydate + "\"}\n"
+        #print(ebod)
+        try:
+                client.bulk(body=ebod)
+        except(RuntimeError, TypeError, NameError):
+                pass
+
+
+config = configparser.ConfigParser()
+config.read(os.environ['HOME'] +'/.twitter')
+
+auth = tweepy.OAuthHandler(config['API']['consumer_key'], config['API']['consumer_secret'])
+auth.set_access_token(config['API']['access_token_key'], config['API']['access_token_secret'])
+api = tweepy.API(auth)
+
+ssl_context = create_ssl_context(cafile='/home/root-ca.pem')
+ssl_context.check_hostname = False
+ssl_context.verify_mode = ssl.CERT_NONE
+client = Elasticsearch('https://hp0.netwarsystem.com:9200', ssl_context=ssl_context, timeout=60, http_auth=("admin", "LongPassword2019"))
+
+client.indices.create(index='usertest', ignore=400)
+wal = Walrus(host='localhost', port=6379, db=0)
+tum = wal.Set("usertest")
+
+
+twbod = ""
+cnt = 0
+cnt2 = 0
+while(cnt2 < 800):
+	try:
+		y = api.get_user(tum.pop().decode('utf-8'))
+		if y:
+			id = y._json.pop('id', None)
+			y._json.pop('default_profile', None)
+			y._json.pop('default_profile_image', None)
+			y._json.pop('geo_enabled', None)
+			y._json.pop('has_extended_profile', None)
+			y._json.pop('is_translation_enabled', None)
+			y._json.pop('is_translator', None)
+			y._json.pop('notifications', None)
+			y._json.pop('profile_background_color', None)
+			y._json.pop('profile_background_image_url', None)
+			y._json.pop('profile_background_image_url_https', None)
+			y._json.pop('profile_background_tile', None)
+			y._json.pop('profile_banner_url', None)
+			y._json.pop('profile_image_url', None)
+			y._json.pop('profile_image_url_https', None)
+			y._json.pop('profile_link_color', None)
+			y._json.pop('profile_location', None)
+			y._json.pop('profile_location.bounding_box', None)
+			y._json.pop('profile_location.contained_within', None)
+			y._json.pop('profile_location.country', None)
+			y._json.pop('profile_location.country_code', None)
+			y._json.pop('profile_location.full_name', None)
+			y._json.pop('profile_location.id', None)
+			y._json.pop('profile_location.name', None)
+			y._json.pop('profile_location.place_type', None)
+			y._json.pop('profile_location.url', None)
+			y._json.pop('profile_sidebar_border_color', None)
+			y._json.pop('profile_sidebar_fill_color', None)
+			y._json.pop('profile_text_color', None)
+			y._json.pop('profile_use_background_image', None)
+			y._json.pop('contributors_enabled', None)
+			y._json.pop('following', None)
+			y._json.pop('follow_request_sent', None)
+			y._json.pop('translator_type', None)
+			try:
+				status = y._json.pop('status', None)
+				y._json['status_at'] = status['created_at']
+				print("YAY! status for " + str(id))
+			except:
+				print("no status for " + str(id))
+				y._json['status_at'] = "Fri Dec 31 23:59:59 +0000 1999"
+				pass
+			twbod = twbod + "{ \"index\" : { \"_index\" : \"usertest\", \"_type\" : \"userid\", \"_id\" : \"" + y.id_str + "\" }\n"
+			twbod = twbod + json.dumps(y._json) + "\n"
+			cnt = cnt + 1
+			print("last status " + str(sdate))
+			print("cnt: " + str(cnt))
+	except (RuntimeError, TypeError, NameError, tweepy.error.TweepError):
+		pass
+	except(AttributeError):
+		cnt = 800
+	if(cnt > 99):
+		zork = open('twbod.txt', 'w')
+		for line in twbod:
+			zork.write(line)
+		zork.close()
+		client.bulk(index="usertest",doc_type="userid",body=twbod)
+		cnt2 = cnt2 + cnt
+		twbod = ""
+		cnt = 0
+		elog(getpass.getuser(),"test profiling " + str(cnt2))
+		zod = api.rate_limit_status()
+		if(zod['resources']['users']['/users/show/:id']['remaining'] < 100):
+			cnt2 = 800
+#leftovers?
+if(len(twbod) > 0):
+	client.bulk(index="usertest",doc_type="userid",body=twbod)
+	elog(getpass.getuser(), "leftovers")
+
