@@ -1,0 +1,34 @@
+#!/usr/bin/python
+#DESC: print  members of <USER'S> <LIST>
+import tweepy
+import csv
+import sys
+import configparser
+import os
+
+config = configparser.ConfigParser()
+config.read(os.environ['HOME'] +'/.twitter')
+
+
+auth = tweepy.OAuthHandler(config['API']['consumer_key'], config['API']['consumer_secret'])
+auth.set_access_token(config['API']['access_token_key'], config['API']['access_token_secret'])
+api = tweepy.API(auth)
+
+y = api.verify_credentials()
+name = y.screen_name
+head = '{ "query": { "bool": { "should": ['
+pre = '        { "match_phrase": { "user.screen_name": "'
+post = '"}}'
+tail = '      ], "minimum_should_match": 1}}}'
+
+if len(sys.argv) == 2:
+    targlist = sys.argv[1]
+if len(sys.argv) == 3:
+    name = sys.argv[1]
+    targlist = sys.argv[2]
+
+print(head)
+for member in tweepy.Cursor(api.list_members, name, targlist).items():
+    print(pre + member.screen_name + post + ",")
+
+print(tail)

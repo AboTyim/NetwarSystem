@@ -1,0 +1,18 @@
+#!/usr/bin/python
+import csv
+import sys
+import os
+
+name = y.screen_name
+head = '{ "query": { "bool": { "should": ['
+pre = '        { "match_phrase": { "user.screen_name": "'
+post = '"}}'
+tail = '      ], "minimum_should_match": 1}}}'
+
+
+print(head)
+nuts = open(sys.argv[1],'r')
+for line in nuts:
+    print(pre + line + post + ",")
+
+print(tail)

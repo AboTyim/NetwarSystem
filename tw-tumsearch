@@ -15,6 +15,8 @@ try:
 except:
         sys.exit()
 
+found = open(sys.argv[1] + "-found.txt", 'w')
+missd = open(sys.argv[1] + "-missed.txt", 'w')
 accts = open(sys.argv[1], 'r')
 for acct in accts:
 	acct = acct.rstrip()
@@ -22,13 +24,12 @@ for acct in accts:
 	response = s.execute()
 	if(response):
 		for resp in response:
-#			print(resp)
-#			print(dir(resp))
         		print(resp['id_str'])
-#        		print(resp.text)
-
+			found.write(resp['id_str'] + "\n")
 	else:
-		k=0
+		print(acct)
+		missd.write(str(acct) + "\n")
+
 
 #<Hit(tumaster/twid/420217887): {'id': 420217887, 'id_str': '420217887', 'name': 'Ayub Khali...}>
 #['contributors_enabled',
