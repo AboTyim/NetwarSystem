@@ -1,0 +1,6 @@
+squish/__init__.py
+squish.egg-info/PKG-INFO
+squish.egg-info/SOURCES.txt
+squish.egg-info/dependency_links.txt
+squish.egg-info/not-zip-safe
+squish.egg-info/top_level.txt
