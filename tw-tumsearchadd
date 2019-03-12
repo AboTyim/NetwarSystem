@@ -5,6 +5,8 @@ from elasticsearch import Elasticsearch
 from elasticsearch_dsl import Search
 import ssl
 from elasticsearch.connection import create_ssl_context
+import redis
+from walrus import *
 
 try:
         ssl_context = create_ssl_context(cafile='/home/root-ca.pem')
@@ -14,6 +16,10 @@ try:
         client = Elasticsearch('https://hp1.netwarsystem.com:9200', ssl_context=ssl_context, timeout=60, http_auth=("admin", "LongPassword2019"))
 except:
         sys.exit()
+
+wal = Walrus(host='localhost', port=6379, db=0)
+qq = wal.Set("tumaster")
+
 
 found = open(sys.argv[1] + "-found.txt", 'w')
 missd = open(sys.argv[1] + "-missed.txt", 'w')
@@ -29,6 +35,7 @@ for acct in accts:
 	else:
 		print(acct)
 		missd.write(str(acct) + "\n")
+		qq.add(str(acct))
 
 
 #<Hit(tumaster/twid/420217887): {'id': 420217887, 'id_str': '420217887', 'name': 'Ayub Khali...}>

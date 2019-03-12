@@ -11,8 +11,8 @@ from urllib3.exceptions import ProtocolError
 config = configparser.ConfigParser()
 config.read(os.environ['HOME'] +'/.twitter')
 max = 500
-if(len(sys.argv) > 1):
-	max = int(sys.argv[1])
+if(len(sys.argv) > 2):
+	max = int(sys.argv[2])
 
 try:
 	auth = tweepy.OAuthHandler(config['API']['consumer_key'], config['API']['consumer_secret'])

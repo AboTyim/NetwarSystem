@@ -10,7 +10,9 @@ from urllib3.exceptions import ProtocolError
 
 config = configparser.ConfigParser()
 config.read(os.environ['HOME'] +'/.twitter')
-
+max = 500
+if(len(sys.argv) > 1):
+	max = int(sys.argv[1])
 
 try:
 	auth = tweepy.OAuthHandler(config['API']['consumer_key'], config['API']['consumer_secret'])
@@ -40,6 +42,11 @@ client.indices.create(index='tr' + config['STREAM']['index'], ignore=400)
 
 class StreamApi(tweepy.StreamListener):
 	def on_status(self, status):
+		global twbod
+		global tmbod
+		global tubod
+		global trbod
+		global cnt
 		status._json.pop('coordinates', None)
 		status._json.pop('contributors', None)
 		status._json.pop('is_quote_status', None)
@@ -80,11 +87,10 @@ class StreamApi(tweepy.StreamListener):
 		twbod = twbod + "{ \"index\" : { \"_index\" : \"tw" + config['STREAM']['index'] + "\", \"_type\" : \"tweets\", \"_id\" : \"" + status.id_str + "\"} }\n"
 		twbod = twbod + json.dumps(status._json) + "\n"
 		cnt = cnt + 1
-		print(status.user.screen_name + " " + str(status.created_at))
+		#print(status.user.screen_name + " " + str(status.created_at))
 # end twbod type tweets
 		if(len(status._json['entities']['user_mentions']) > 0):
 			for derp in status._json['entities']['user_mentions']:
-				print("DERP!!!! " + str(derp))
 				tmbod = tmbod + "{ \"index\" : { \"_index\" : \"tm" + config['STREAM']['index'] + "\", \"_type\" : \"mention\" }\n"
 				tmdict = {}
 				tmdict['status.id_str'] = status.id_str
@@ -95,7 +101,7 @@ class StreamApi(tweepy.StreamListener):
 				tmdict['mention.id_str']      = derp['id_str']
 				tmdict['status.text'] = status.text
 				tmbod = tmbod + json.dumps(tmdict) + "\n"
-				print("TMBOD RIGHT HERE " + tmbod)
+				#print("TMBOD RIGHT HERE " + tmbod)
 				cnt = cnt + 1
 # end tmbod type mention
 		tubod = tubod + "{ \"index\" : { \"_index\" : \"tu" + config['STREAM']['index'] + "\", \"_type\" : \"twid\", \"_id\" : \"" + status.user.id_str + "\" }\n"
@@ -136,7 +142,7 @@ class StreamApi(tweepy.StreamListener):
 		try:
 			status.retweeted_status
 		except:
-			print("not an RT")
+			cnt = cnt
 		else:
 			status.retweeted_status.user._json.pop('default_profile', None)
 			status.retweeted_status.user._json.pop('default_profile_image', None)
@@ -188,11 +194,13 @@ class StreamApi(tweepy.StreamListener):
 			#print(trbod)
 			#print("")
 # end trbod type retweet
-			if(cnt > 100):
+			if(cnt > max):
 				client.bulk(index="tw" + config['STREAM']['index'],doc_type="tweets",body=twbod)
 				client.bulk(index="tm" + config['STREAM']['index'],doc_type="mention",body=tmbod)
 				client.bulk(index="tu" + config['STREAM']['index'],doc_type="twid",body=tubod)
 				client.bulk(index="tr" + config['STREAM']['index'],doc_type="tweets",body=trbod)
+				print("!@# !@# !@# BULK !@# !@# !@#")
+				print(str(len(twbod)) + " " + str(len(tmbod)) + " " + str(len(tubod)) + " " + str(len(trbod)))
 
 				twbod = ""
 				tmbod = ""

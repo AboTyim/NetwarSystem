@@ -11,6 +11,7 @@ from elasticsearch_dsl import Search
 import ssl
 from elasticsearch.connection import create_ssl_context
 from walrus import *
+import squish
 
 def elog(scname,mesg):
 	mydate = str(datetime.datetime.utcnow())
@@ -155,37 +156,7 @@ try:
 		elog(nextacct," tulogging")
 
 		twbod = "{ \"index\" : { \"_index\" : \"userids\", \"_type\" : \"userid\", \"_id\" : \"" + y.id_str + "\" }\n"
-		y._json.pop('default_profile', None)
-		y._json.pop('default_profile_image', None)
-		y._json.pop('geo_enabled', None)
-		y._json.pop('has_extended_profile', None)
-		y._json.pop('is_translation_enabled', None)
-		y._json.pop('is_translator', None)
-		y._json.pop('notifications', None)
-		y._json.pop('profile_background_color', None)
-		y._json.pop('profile_background_image_url', None)
-		y._json.pop('profile_background_image_url_https', None)
-		y._json.pop('profile_background_tile', None)
-		y._json.pop('profile_banner_url', None)
-		y._json.pop('profile_image_url', None)
-		y._json.pop('profile_image_url_https', None)
-		y._json.pop('profile_link_color', None)
-		y._json.pop('profile_location', None)
-		y._json.pop('profile_location.bounding_box', None)
-		y._json.pop('profile_location.contained_within', None)
-		y._json.pop('profile_location.country', None)
-		y._json.pop('profile_location.country_code', None)
-		y._json.pop('profile_location.full_name', None)
-		y._json.pop('profile_location.id', None)
-		y._json.pop('profile_location.name', None)
-		y._json.pop('profile_location.place_type', None)
-		y._json.pop('profile_location.url', None)
-		y._json.pop('profile_sidebar_border_color', None)
-		y._json.pop('profile_sidebar_fill_color', None)
-		y._json.pop('profile_text_color', None)
-		y._json.pop('profile_use_background_image', None)
-		y._json.pop('protected', None)
-		y._json.pop('status', None)
+		y = squish.squishuser(y)
 		twbod = twbod + json.dumps(y._json)
 		client.bulk(index="userids",doc_type="twid",body=twbod)
 		elog(nextacct," userids")
