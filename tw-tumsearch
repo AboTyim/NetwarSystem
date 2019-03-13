@@ -20,7 +20,7 @@ missd = open(sys.argv[1] + "-missed.txt", 'w')
 accts = open(sys.argv[1], 'r')
 for acct in accts:
 	acct = acct.rstrip()
-	s = Search(using=client, index="userids").query("match",id_str=acct)
+	s = Search(using=client, index="usertest").query("match",id_str=acct)
 	response = s.execute()
 	if(response):
 		for resp in response:
