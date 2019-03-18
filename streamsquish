@@ -1,0 +1,49 @@
+#!/usr/bin/python
+import csv, json, pprint, os, random, re, sys, time, datetime
+import redis, walrus, tweepy, configparser, ssl
+import psutil, getpass, setproctitle, platform
+from time import gmtime, strftime
+from elasticsearch import Elasticsearch
+from elasticsearch_dsl import Search
+from elasticsearch.connection import create_ssl_context
+from urllib3.exceptions import ProtocolError
+import squish2
+
+config = configparser.ConfigParser()
+config.read(os.environ['HOME'] +'/.twitter')
+max = 500
+if(len(sys.argv) > 2):
+	max = int(sys.argv[2])
+
+try:
+	auth = tweepy.OAuthHandler(config['API']['consumer_key'], config['API']['consumer_secret'])
+	auth.set_access_token(config['API']['access_token_key'], config['API']['access_token_secret'])
+	api = tweepy.API(auth)
+	y = api.verify_credentials()
+	print(getpass.getuser() + " " +  y.screen_name)
+except tweepy.error.TweepError:
+	print(sys.argv[1] + " " + config[API].account)
+	exit(1)
+
+class StreamApi(tweepy.StreamListener):
+	def on_status(self, status):
+		troutfile = open("troutfile.txt", 'w')
+		troutfile.write(json.dumps(status._json))
+		shrunk = squish2.squishtweet(status)
+		outfile = open("outfile.txt", 'w')
+		outfile.write(json.dumps(shrunk._json))
+	
+streamer = tweepy.Stream(auth=auth, listener=StreamApi(), timeout=30)
+
+tfile = open(sys.argv[1], 'r')
+terms = []
+for thing in tfile:
+	terms.append(thing.rstrip())
+print(terms)
+
+while True:
+	twbod = ""
+	try:
+		streamer.filter(None, terms)
+	except (ProtocolError, AttributeError):
+		sys.exit()
