@@ -116,15 +116,10 @@ class StreamApi(tweepy.StreamListener):
 					bneo = Node("user",screen_name=derp['screen_name'],id_str=derp['id_str'])
 				#do this here, aneo might have been a bneo first, will not have timestamp
 				aneo['created_at'] = re.sub(" ", "T",str(status.user.created_at))
-				
 				aneo['followers_count'] = status.user.followers_count
 				aneo['friends_count'] = status.user.friends_count
 				aneo['listed_count'] = status.user.listed_count
 				aneo['statuses_count'] = status.user.statuses_count
-				#'friends_count': 39, 
-				#'listed_count': 0, 
-				#'favourites_count': 7249, 
-				#'statuses_count': 3676,
 				neog.create(Relationship(aneo, "MENTIONS", bneo, created_at=re.sub(" ", "T",str(status.created_at))))
 				cnt = cnt + 1
 # end tmbod type mention
