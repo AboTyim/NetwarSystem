@@ -108,15 +108,16 @@ class StreamApi(tweepy.StreamListener):
 				tmdict['status.text'] = status.text
 				tmbod = tmbod + json.dumps(tmdict) + "\n"
 				#EEE MMM dd HH:mm:ss Z YYYY - created_at
-				# Neo4j - March 21st 2019, 11:42:36.000
-				print(str(status.created_at))
+				# Neo4j 
+				# actual: 2019-03-21 18:49:57
+				neotime = re.sub(" ", "T",status.created_at)
 				aneo = neom.match("user", screen_name=tmdict['user.screen_name']).first()
 				bneo = neom.match("user", screen_name=tmdict['mention.screen_name']).first()
 				if(not aneo):
 				        aneo = Node("user",screen_name=tmdict['user.screen_name'],id_str=tmdict['user.id_str'])
 				if(not bneo):
 				        bneo = Node("user",screen_name=tmdict['mention.screen_name'],id_str=tmdict['mention.id_str'])
-				neog.create(Relationship(aneo, "MENTIONS", bneo))
+				neog.create(Relationship(aneo, "MENTIONS", bneo), created_at=neotime)
 
 				#print("TMBOD RIGHT HERE " + tmbod)
 				cnt = cnt + 1
