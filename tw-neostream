@@ -52,7 +52,7 @@ class StreamApi(tweepy.StreamListener):
 		global tubod
 		global trbod
 		global cnt
-		#print(status.text)
+		print(status.user)
 		status._json.pop('coordinates', None)
 		status._json.pop('contributors', None)
 		status._json.pop('is_quote_status', None)
@@ -97,6 +97,7 @@ class StreamApi(tweepy.StreamListener):
 # end twbod type tweets
 		if(len(status._json['entities']['user_mentions']) > 0):
 			for derp in status._json['entities']['user_mentions']:
+				#print(derp)
 				tmbod = tmbod + "{ \"index\" : { \"_index\" : \"tm" + config['STREAM']['index'] + "\", \"_type\" : \"mention\" }\n"
 				tmdict = {}
 				tmdict['status.id_str'] = status.id_str
@@ -115,6 +116,15 @@ class StreamApi(tweepy.StreamListener):
 					bneo = Node("user",screen_name=derp['screen_name'],id_str=derp['id_str'])
 				#do this here, aneo might have been a bneo first, will not have timestamp
 				aneo['created_at'] = re.sub(" ", "T",str(status.user.created_at))
+				
+				aneo['followers_count'] = status.user.followers_count
+				aneo['friends_count'] = status.user.friends_count
+				aneo['listed_count'] = status.user.listed_count
+				aneo['statuses_count'] = status.user.statuses_count
+				#'friends_count': 39, 
+				#'listed_count': 0, 
+				#'favourites_count': 7249, 
+				#'statuses_count': 3676,
 				neog.create(Relationship(aneo, "MENTIONS", bneo, created_at=re.sub(" ", "T",str(status.created_at))))
 				cnt = cnt + 1
 # end tmbod type mention
@@ -150,6 +160,11 @@ class StreamApi(tweepy.StreamListener):
 				bneo = Node("user",screen_name=trdict['dest.screen_name'],id_str=trdict['dest.id_str'])
 			#do this here, aneo might have been a bneo first, will not have timestamp
 			aneo['created_at'] = re.sub(" ", "T",str(status.user.created_at))
+			aneo['followers_count'] = status.user.followers_count
+			aneo['friends_count'] = status.user.friends_count
+			aneo['listed_count'] = status.user.listed_count
+			aneo['statuses_count'] = status.user.statuses_count
+
 			neog.create(Relationship(aneo, "RTS", bneo, created_at=re.sub(" ", "T",str(status.created_at))))
 			cnt = cnt + 1
 			#print(trbod)
