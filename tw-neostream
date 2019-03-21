@@ -7,6 +7,7 @@ from elasticsearch import Elasticsearch
 from elasticsearch_dsl import Search
 from elasticsearch.connection import create_ssl_context
 from urllib3.exceptions import ProtocolError
+from py2neo import Graph, Node, Relationship, NodeMatcher, RelationshipMatcher
 import squish
 
 config = configparser.ConfigParser()
@@ -14,6 +15,9 @@ config.read(os.environ['HOME'] +'/.twitter')
 max = 500
 if(len(sys.argv) > 2):
 	max = int(sys.argv[2])
+
+neog = Graph(host="192.168.88.63", user="neo4j", password="3020plus+")
+neom = NodeMatcher(neog)
 
 try:
 	auth = tweepy.OAuthHandler(config['API']['consumer_key'], config['API']['consumer_secret'])
@@ -103,42 +107,20 @@ class StreamApi(tweepy.StreamListener):
 				tmdict['mention.id_str']      = derp['id_str']
 				tmdict['status.text'] = status.text
 				tmbod = tmbod + json.dumps(tmdict) + "\n"
+				aneo = sel.match("user", screen_name=tmdict['user.screen_name']).first()
+				bneo = sel.match("user", screen_name=tmdict['mention.screen_name']).first()
+				if(not aneo):
+				        aneo = Node("user",screen_name=tmdict['user.screen_name'])
+				if(not bneo):
+				        bneo = Node("user",screen_name=tmdict['mention.screen_name'])
+				neog.create(Relationship(aneo, "MENTIONS", bneo))
+
 				#print("TMBOD RIGHT HERE " + tmbod)
 				cnt = cnt + 1
 # end tmbod type mention
 		tubod = tubod + "{ \"index\" : { \"_index\" : \"tu" + config['STREAM']['index'] + "\", \"_type\" : \"twid\", \"_id\" : \"" + status.user.id_str + "\" }\n"
+		print("USER ID STRING: " + status.user.id_str)
 		smuser = squish.squishuser(status.user)
-		#status.user._json.pop('default_profile', None)
-		#status.user._json.pop('default_profile_image', None)
-		#status.user._json.pop('geo_enabled', None)
-		#status.user._json.pop('has_extended_profile', None)
-		#status.user._json.pop('is_translation_enabled', None)
-		#status.user._json.pop('is_translator', None)
-		#status.user._json.pop('notifications', None)
-		#status.user._json.pop('profile_background_color', None)
-		#status.user._json.pop('profile_background_image_url', None)
-		#status.user._json.pop('profile_background_image_url_https', None)
-		#status.user._json.pop('profile_background_tile', None)
-		#status.user._json.pop('profile_banner_url', None)
-		#status.user._json.pop('profile_image_url', None)
-		#status.user._json.pop('profile_image_url_https', None)
-		#status.user._json.pop('profile_link_color', None)
-		#status.user._json.pop('profile_location', None)
-		#status.user._json.pop('profile_location.bounding_box', None)
-		#status.user._json.pop('profile_location.contained_within', None)
-		#status.user._json.pop('profile_location.country', None)
-		#status.user._json.pop('profile_location.country_code', None)
-		#status.user._json.pop('profile_location.full_name', None)
-		#status.user._json.pop('profile_location.id', None)
-		#status.user._json.pop('profile_location.name', None)
-		#status.user._json.pop('profile_location.place_type', None)
-		#status.user._json.pop('profile_location.url', None)
-		#status.user._json.pop('profile_sidebar_border_color', None)
-		#status.user._json.pop('profile_sidebar_fill_color', None)
-		#status.user._json.pop('profile_text_color', None)
-		#status.user._json.pop('profile_use_background_image', None)
-		#status.user._json.pop('protected', None)
-		#status.user._json.pop('status', None)
 		tubod = tubod + json.dumps(smuser._json) + "\n"
 		cnt = cnt + 1
 # end tubod type twid
@@ -148,39 +130,6 @@ class StreamApi(tweepy.StreamListener):
 			cnt = cnt
 		else:
 			rtuser = squish.squishuser(status.retweeted_status.user)
-			#status.retweeted_status.user._json.pop('default_profile', None)
-			#status.retweeted_status.user._json.pop('default_profile_image', None)
-			#status.retweeted_status.user._json.pop('geo_enabled', None)
-			#status.retweeted_status.user._json.pop('has_extended_profile', None)
-			#status.retweeted_status.user._json.pop('is_translation_enabled', None)
-			#status.retweeted_status.user._json.pop('is_translator', None)
-			#status.retweeted_status.user._json.pop('notifications', None)
-			#status.retweeted_status.user._json.pop('profile_background_color', None)
-			#status.retweeted_status.user._json.pop('profile_background_image_url', None)
-			#status.retweeted_status.user._json.pop('profile_background_image_url_https', None)
-			#status.retweeted_status.user._json.pop('profile_background_tile', None)
-			#status.retweeted_status.user._json.pop('profile_banner_url', None)
-			#status.retweeted_status.user._json.pop('profile_image_url', None)
-			#status.retweeted_status.user._json.pop('profile_image_url_https', None)
-			#status.retweeted_status.user._json.pop('profile_link_color', None)
-			#status.retweeted_status.user._json.pop('profile_location', None)
-			#status.retweeted_status.user._json.pop('profile_location.bounding_box', None)
-			#status.retweeted_status.user._json.pop('profile_location.contained_within', None)
-			#status.retweeted_status.user._json.pop('profile_location.country', None)
-			#status.retweeted_status.user._json.pop('profile_location.country_code', None)
-			#status.retweeted_status.user._json.pop('profile_location.full_name', None)
-			#status.retweeted_status.user._json.pop('profile_location.id', None)
-			#status.retweeted_status.user._json.pop('profile_location.name', None)
-			#status.retweeted_status.user._json.pop('profile_location.place_type', None)
-			#status.retweeted_status.user._json.pop('profile_location.url', None)
-			#status.retweeted_status.user._json.pop('profile_sidebar_border_color', None)
-			#status.retweeted_status.user._json.pop('profile_sidebar_fill_color', None)
-			#status.retweeted_status.user._json.pop('profile_text_color', None)
-			#status.retweeted_status.user._json.pop('profile_use_background_image', None)
-			#status.retweeted_status.user._json.pop('protected', None)
-			#status.retweeted_status.user._json.pop('status', None)
-			#print(status.retweeted_status.user._json)
-			#This is tracking accounts that he been RT'd. Should be added to user cache?
 			tubod = tubod + "{ \"index\" : { \"_index\" : \"tu" + config['STREAM']['index'] + "\", \"_type\" : \"twid\", \"_id\" : \"" + status.retweeted_status.user.id_str + "\" }\n"
 			tubod = tubod + json.dumps(rtuser._json) + "\n"
 			cnt = cnt + 1
@@ -203,7 +152,6 @@ class StreamApi(tweepy.StreamListener):
 				client.bulk(index="tm" + config['STREAM']['index'],doc_type="mention",body=tmbod)
 				client.bulk(index="tu" + config['STREAM']['index'],doc_type="twid",body=tubod)
 				client.bulk(index="tr" + config['STREAM']['index'],doc_type="tweets",body=trbod)
-				print("!@# !@# !@# BULK !@# !@# !@#")
 				print(str(len(twbod)) + " " + str(len(tmbod)) + " " + str(len(tubod)) + " " + str(len(trbod)))
 
 				twbod = ""
