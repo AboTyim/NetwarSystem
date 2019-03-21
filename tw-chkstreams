@@ -1,0 +1,2 @@
+#!/bin/bash
+ps aux | grep "stream" |  grep "tw-[st]" | sort | awk -F " " {'print $1 " " $12 " " $13 " " $14'}
