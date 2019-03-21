@@ -143,13 +143,13 @@ class StreamApi(tweepy.StreamListener):
 			trdict['dest.id_str']      = status.retweeted_status.id_str
 			trdict['status.text'] = status.text
 			trbod = trbod + json.dumps(trdict) + "\n"
-				aneo = neom.match("user", screen_name=trdict['user.screen_name']).first()
-				bneo = neom.match("user", screen_name=trdict['dest.screen_name']).first()
-				if(not aneo):
-				        aneo = Node("user",screen_name=trdict['user.screen_name'])
-				if(not bneo):
-				        bneo = Node("user",screen_name=trdict['dest.screen_name'])
-				neog.create(Relationship(aneo, "RTS", bneo))
+			aneo = neom.match("user", screen_name=trdict['user.screen_name']).first()
+			bneo = neom.match("user", screen_name=trdict['dest.screen_name']).first()
+			if(not aneo):
+			        aneo = Node("user",screen_name=trdict['user.screen_name'])
+			if(not bneo):
+			        bneo = Node("user",screen_name=trdict['dest.screen_name'])
+			neog.create(Relationship(aneo, "RTS", bneo))
 			cnt = cnt + 1
 			#print(trbod)
 			#print("")
