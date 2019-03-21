@@ -52,7 +52,7 @@ class StreamApi(tweepy.StreamListener):
 		global tubod
 		global trbod
 		global cnt
-		print(status.text)
+		#print(status.text)
 		status._json.pop('coordinates', None)
 		status._json.pop('contributors', None)
 		status._json.pop('is_quote_status', None)
@@ -107,23 +107,18 @@ class StreamApi(tweepy.StreamListener):
 				tmdict['mention.id_str']      = derp['id_str']
 				tmdict['status.text'] = status.text
 				tmbod = tmbod + json.dumps(tmdict) + "\n"
-				#EEE MMM dd HH:mm:ss Z YYYY - created_at
-				# Neo4j 
-				# actual: 2019-03-21 18:49:57
-				neotime = re.sub(" ", "T",status.created_at)
 				aneo = neom.match("user", screen_name=tmdict['user.screen_name']).first()
 				bneo = neom.match("user", screen_name=tmdict['mention.screen_name']).first()
 				if(not aneo):
-				        aneo = Node("user",screen_name=tmdict['user.screen_name'],id_str=tmdict['user.id_str'])
+					aneo = Node("user",screen_name=tmdict['user.screen_name'],id_str=status.user.id_str)
 				if(not bneo):
-				        bneo = Node("user",screen_name=tmdict['mention.screen_name'],id_str=tmdict['mention.id_str'])
-				neog.create(Relationship(aneo, "MENTIONS", bneo), created_at=neotime)
-
-				#print("TMBOD RIGHT HERE " + tmbod)
+					bneo = Node("user",screen_name=derp['screen_name'],id_str=derp['id_str'])
+				#do this here, aneo might have been a bneo first, will not have timestamp
+				aneo['created_at'] = re.sub(" ", "T",str(status.user.created_at))
+				neog.create(Relationship(aneo, "MENTIONS", bneo, created_at=re.sub(" ", "T",str(status.created_at))))
 				cnt = cnt + 1
 # end tmbod type mention
 		tubod = tubod + "{ \"index\" : { \"_index\" : \"tu" + config['STREAM']['index'] + "\", \"_type\" : \"twid\", \"_id\" : \"" + status.user.id_str + "\" }\n"
-		print("USER ID STRING: " + status.user.id_str)
 		smuser = squish.squishuser(status.user)
 		tubod = tubod + json.dumps(smuser._json) + "\n"
 		cnt = cnt + 1
@@ -150,10 +145,12 @@ class StreamApi(tweepy.StreamListener):
 			aneo = neom.match("user", screen_name=trdict['user.screen_name']).first()
 			bneo = neom.match("user", screen_name=trdict['dest.screen_name']).first()
 			if(not aneo):
-			        aneo = Node("user",screen_name=trdict['user.screen_name'])
+				aneo = Node("user",screen_name=trdict['user.screen_name'],id_str=status.user.id_str)
 			if(not bneo):
-			        bneo = Node("user",screen_name=trdict['dest.screen_name'])
-			neog.create(Relationship(aneo, "RTS", bneo))
+				bneo = Node("user",screen_name=trdict['dest.screen_name'],id_str=trdict['dest.id_str'])
+			#do this here, aneo might have been a bneo first, will not have timestamp
+			aneo['created_at'] = re.sub(" ", "T",str(status.user.created_at))
+			neog.create(Relationship(aneo, "RTS", bneo, created_at=re.sub(" ", "T",str(status.created_at))))
 			cnt = cnt + 1
 			#print(trbod)
 			#print("")
