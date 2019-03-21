@@ -14,13 +14,18 @@ if len(sys.argv) == 2:
 #config.read(os.environ['HOME'] +'/.twitter')
 config.read(myconf)
 
+try:
+    idx = config['STREAM']['index']
+except:
+    idx = ""
+    pass
 
 try:
     auth = tweepy.OAuthHandler(config['API']['consumer_key'], config['API']['consumer_secret'])
     auth.set_access_token(config['API']['access_token_key'], config['API']['access_token_secret'])
     api = tweepy.API(auth)
     y = api.verify_credentials()
-    print(getpass.getuser() + " " +  y.screen_name)
+    print(getpass.getuser() + " " +  y.screen_name + " " + idx)
 except tweepy.error.TweepError:
     print(sys.argv[1] + " " + config[API].account)
     exit(1)

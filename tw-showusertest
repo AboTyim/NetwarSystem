@@ -1,9 +1,14 @@
 #!/usr/bin/python
-import getpass, sys
+import getpass, sys, time
 from walrus import *
 
 
 
 wal = Walrus(host='localhost', port=6379, db=0)
 tum = wal.Set("usertest")
-print(tum)
+tot = len(tum)
+print(tot)
+time.sleep(60)
+move = tot - len(tum)
+print(move)
+print(str(tot/move))

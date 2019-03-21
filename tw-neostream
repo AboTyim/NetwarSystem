@@ -107,8 +107,8 @@ class StreamApi(tweepy.StreamListener):
 				tmdict['mention.id_str']      = derp['id_str']
 				tmdict['status.text'] = status.text
 				tmbod = tmbod + json.dumps(tmdict) + "\n"
-				aneo = sel.match("user", screen_name=tmdict['user.screen_name']).first()
-				bneo = sel.match("user", screen_name=tmdict['mention.screen_name']).first()
+				aneo = neom.match("user", screen_name=tmdict['user.screen_name']).first()
+				bneo = neom.match("user", screen_name=tmdict['mention.screen_name']).first()
 				if(not aneo):
 				        aneo = Node("user",screen_name=tmdict['user.screen_name'])
 				if(not bneo):

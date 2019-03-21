@@ -11,7 +11,7 @@ try:
         ssl_context.check_hostname = False
         ssl_context.verify_mode = ssl.CERT_NONE
 
-        client = Elasticsearch('https://hp1.netwarsystem.com:9200', ssl_context=ssl_context, timeout=60, http_auth=("admin", "LongPassword2019"))
+        client = Elasticsearch('https://hp0.netwarsystem.com:9200', ssl_context=ssl_context, timeout=60, http_auth=("admin", "LongPassword2019"))
 except:
         sys.exit()
 
@@ -24,8 +24,8 @@ for acct in accts:
 	response = s.execute()
 	if(response):
 		for resp in response:
-			print(resp['id_str'])
-			found.write(resp['id_str'] + "\n")
+			print(resp['screen_name'])
+			found.write(resp['screen_name'] + "\n")
 	else:
 		print(acct)
 		missd.write(str(acct) + "\n")

@@ -1,7 +1,7 @@
 #!/usr/bin/python
 #DESC: drain Redis queue of numeric IDs to usertest index
 import tweepy
-import os, sys, json, time
+import os, sys, json, time, psutil, setproctitle
 import configparser, getpass, platform
 from elasticsearch import Elasticsearch
 from walrus import *
@@ -9,21 +9,29 @@ import ssl
 from elasticsearch.connection import create_ssl_context
 import squish
 
-def elog(scname,mesg):
-        mydate = str(datetime.datetime.utcnow())
-        ebod = "{ \"index\" : { \"_index\" : \"perflog\", \"_type\" : \"perfdata\"} }\n"
-        ebod = ebod + "{\"host\" : \"" + platform.node() + "\", \"shell\" : \"" + getpass.getuser() + "\", \"screen_name\" : \"" 
-        ebod = ebod + str(scname) + "\", \"event\" : \"" + str(mesg) + "\" , \"date\" : \"" + mydate + "\"}\n"
-        #print(ebod)
-        try:
-                client.bulk(body=ebod)
-        except(RuntimeError, TypeError, NameError):
-                pass
+def perflog(scname,mesg):
+	mydate = str(datetime.datetime.utcnow())
+	ebod = "{ \"index\" : { \"_index\" : \"perflog\", \"_type\" : \"perfdata\"} }\n"
+	ebod = ebod + "{\"host\" : \"" + platform.node() + "\", \"shell\" : \"" + getpass.getuser() + "\", \"screen_name\" : \"" 
+	ebod = ebod + str(scname) + "\", \"event\" : \"" + str(mesg) + "\" , \"date\" : \"" + mydate + "\"}\n"
+	#print(ebod)
+	try:
+		client.bulk(body=ebod)
+	except(RuntimeError, TypeError, NameError):
+		pass
+def check_resources():
+	# make sure prior instance has exited
+	for p in psutil.process_iter(attrs=['name', 'username']):
+		if (p.info['username'] == getpass.getuser()) and (p.info['name'] == "usertest" +getpass.getuser()):
+			perflog("FAIL", "already running")
+			sys.exit()
+
+	setproctitle.setproctitle("work" + getpass.getuser())
 
 
+check_resources()
 config = configparser.ConfigParser()
 config.read(os.environ['HOME'] +'/.twitter')
-
 auth = tweepy.OAuthHandler(config['API']['consumer_key'], config['API']['consumer_secret'])
 auth.set_access_token(config['API']['access_token_key'], config['API']['access_token_secret'])
 api = tweepy.API(auth)
@@ -41,9 +49,11 @@ tum = wal.Set("usertest")
 twbod = ""
 cnt = 0
 cnt2 = 0
+popcnt = 0
 while(cnt2 < 800):
 	try:
 		y = api.get_user(tum.pop().decode('utf-8'))
+		popcnt = popcnt + 1
 		if y:
 			id = y._json.pop('id', None)
 			y = squish.squishuser(y)
@@ -52,10 +62,12 @@ while(cnt2 < 800):
 			twbod = twbod + json.dumps(y._json) + "\n"
 			cnt = cnt + 1
 	except (RuntimeError, TypeError, NameError, tweepy.error.TweepError):
+		perflog(config['API']['account'], "tweepy error " + str(tweepy.error.TweepError))
 		pass
 	except(AttributeError):
+		perflog(config['API']['account'], "AttributeError " + str(id))
 		cnt = 800
-	if(cnt > 99):
+	if(cnt > 199):
 		#zork = open('twbod.txt', 'w')
 		#for line in twbod:
 		#	zork.write(line)
@@ -65,7 +77,7 @@ while(cnt2 < 800):
 		cnt2 = cnt2 + cnt
 		twbod = ""
 		cnt = 0
-		elog(getpass.getuser(),"test profiling " + str(cnt2))
+		perflog(config['API']['account'],"test profiling " + str(cnt2) + " popcnt " + str(popcnt))
 		zod = api.rate_limit_status()
 		if(zod['resources']['users']['/users/show/:id']['remaining'] < 100):
 			cnt2 = 800

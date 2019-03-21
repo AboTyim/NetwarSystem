@@ -4,6 +4,7 @@ import configparser
 from elasticsearch import Elasticsearch
 from elasticsearch_dsl import Search
 from walrus import *
+import squish
 #import psutil, getpass, setproctitle, platform
 
 def load_lists(myname):
@@ -83,6 +84,7 @@ get_all_tweets(nextid)
 try:
 	y = api.get_user(nextid)
 	if y:
+		y = squish.squishuser(y)
 		twbod = "{ \"index\" : { \"_index\" : \"tu" + getpass.getuser() + "\", \"_type\" : \"twid\", \"_id\" : \"" + y.id_str + "\" }\n"
 		twbod = twbod + json.dumps(y._json)
 		client.bulk(index="tu" + getpass.getuser(),doc_type="twid",body=twbod)

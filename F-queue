@@ -9,24 +9,26 @@ import logging, logging.handlers
 from time import gmtime, strftime
 import ssl
 from elasticsearch.connection import create_ssl_context
+import squish
 
-def elog(scname,mesg):
-        mydate = str(datetime.datetime.utcnow())
+def perflog(scname,mesg):
+        mydate = str(datetime.datetime.utcnow())   
         ebod = "{ \"index\" : { \"_index\" : \"perflog\", \"_type\" : \"perfdata\"} }\n"
-        ebod = ebod + "{\"host\" : \"" + platform.node() + "\", \"shell\" : \"" + getpass.getuser() + "\", \"screen_name\" : \"" 
+        ebod = ebod + "{\"host\" : \"" + platform.node() + "\", \"shell\" : \"" + getpass.getuser() + "\", \"screen_name\" : \""
         ebod = ebod + scname + "\", \"event\" : \"" + mesg + "\" , \"date\" : \"" + mydate + "\"}\n"
-	#print(ebod)
+        #print(ebod)
         try:
                 client.bulk(body=ebod)
         except(RuntimeError, TypeError, NameError):
                 pass
 
 
+
 def check_resources():
 	# make sure prior instance has exited
 	for p in psutil.process_iter(attrs=['name', 'username']):
 		if (p.info['username'] == getpass.getuser()) and (p.info['name'] == "work" +getpass.getuser()):
-			elog("FAIL", "already running")
+			perflog("FAIL", "already running")
 			sys.exit()
 
 	setproctitle.setproctitle("work" + getpass.getuser())
@@ -43,11 +45,11 @@ def check_resources():
 	#i < 60, don't have resources
 	if (i  < 60):
 		print()
-		elog("FAIL","zcpu " + str(zcpu) + " zmem " + str(zmem))
+		perflog("FAIL","zcpu " + str(zcpu) + " zmem " + str(zmem))
 		sys.exit()
 	else:
 		print("")
-		#elog(getpass.getuser(),"sufficient resources to run")
+		#perflog(getpass.getuser(),"sufficient resources to run")
 
 
 def load_lists(myname):
@@ -132,24 +134,25 @@ else:
 	print("work: " + str(nextid))
 
 get_all_tweets(nextid)
-elog("monitoring",nextid)
+perflog("monitoring",nextid)
 try:
 	y = api.get_user(nextid)
 	if y:
+		y = squish.squishuser(y)
 		twbod = "{ \"index\" : { \"_index\" : \"tu" + getpass.getuser() + "\", \"_type\" : \"twid\", \"_id\" : \"" + y.id_str + "\" }\n"
 		twbod = twbod + json.dumps(y._json)
 		client.bulk(index="tu" + getpass.getuser(),doc_type="twid",body=twbod)
 except (RuntimeError, TypeError, NameError):
-	print("tu failed")
+	print("tu index write failed failed")
 	pass
 
 try:
 #	y = api.get_user(nextid)
 	if y:
-		twbod = "{ \"index\" : { \"_index\" : \"tumaster\", \"_type\" : \"twid\", \"_id\" : \"" + y.id_str + "\" }\n"
+		y = squish.squishuser(y)
+		twbod = "{ \"index\" : { \"_index\" : \"usertest\", \"_type\" : \"twid\", \"_id\" : \"" + y.id_str + "\" }\n"
 		twbod = twbod + json.dumps(y._json)
 		client.bulk(index="tumaster",doc_type="twid",body=twbod)
 except (RuntimeError, TypeError, NameError):
-	print("tumaster failed")
+	print("usertest index write failed")
 	pass
-
