@@ -27,11 +27,14 @@ except tweepy.error.TweepError:
 
 class StreamApi(tweepy.StreamListener):
 	def on_status(self, status):
-		troutfile = open("troutfile.txt", 'w')
-		troutfile.write(json.dumps(status._json))
+		troutfile = open("a.txt", 'w')
+		troutfile.write(re.sub(",", ",\n", json.dumps(status._json)))
 		shrunk = squish2.squishtweet(status)
-		outfile = open("outfile.txt", 'w')
-		outfile.write(json.dumps(shrunk._json))
+		outfile = open("b.txt", 'w')
+		outfile.write(re.sub(",", ",\n", json.dumps(shrunk._json)))
+		troutfile.close()
+		outfile.close()
+		sys.exit()
 	
 streamer = tweepy.Stream(auth=auth, listener=StreamApi(), timeout=30)
 
@@ -40,6 +43,7 @@ terms = []
 for thing in tfile:
 	terms.append(thing.rstrip())
 print(terms)
+
 
 while True:
 	twbod = ""
