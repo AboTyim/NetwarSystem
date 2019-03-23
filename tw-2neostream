@@ -1,4 +1,5 @@
 #!/usr/bin/python
+import datetime, platform, getpass
 import csv, json, pprint, os, random, re, sys, time, datetime
 import redis, walrus, tweepy, configparser, ssl
 import psutil, getpass, setproctitle, platform
@@ -8,7 +9,10 @@ from elasticsearch_dsl import Search
 from elasticsearch.connection import create_ssl_context
 from urllib3.exceptions import ProtocolError
 from py2neo import Graph, Node, Relationship, NodeMatcher, RelationshipMatcher
-import squish2
+import squish2, requests
+
+#urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+requests.packages.urllib3.disable_warnings()
 
 config = configparser.ConfigParser()
 config.read(os.environ['HOME'] +'/.twitter')
@@ -16,8 +20,9 @@ max = 500
 if(len(sys.argv) > 2):
 	max = int(sys.argv[2])
 
-neog = Graph(host="192.168.88.62", user="neo4j", password="3020plus+")
+neog = Graph(host="192.168.88.63", user="neo4j", password="3020plus+")
 neom = NodeMatcher(neog)
+
 
 try:
 	auth = tweepy.OAuthHandler(config['API']['consumer_key'], config['API']['consumer_secret'])
@@ -35,10 +40,11 @@ try:
 	ssl_context.check_hostname = False
 	ssl_context.verify_mode = ssl.CERT_NONE
 
-	client = Elasticsearch('https://hp0.netwarsystem.com:9200', ssl_context=ssl_context, timeout=60, http_auth=("admin", "LongPassword2019"))
+	client = Elasticsearch('https://hp1.netwarsystem.com:9200', ssl_context=ssl_context, timeout=60, http_auth=("admin", "LongPassword2019"))
 except:
 	sys.exit()
 
+squish2.perflog(client, "squish", "Just testing")
 
 client.indices.create(index='tw' + config['STREAM']['index'], ignore=400)
 client.indices.create(index='tu' + config['STREAM']['index'], ignore=400)
@@ -48,6 +54,7 @@ class StreamApi(tweepy.StreamListener):
 		global twbod
 		global tubod
 		global cnt
+		global config
 #		print(status.user)
 		status._json.pop('coordinates', None)
 		status._json.pop('contributors', None)
@@ -104,6 +111,15 @@ class StreamApi(tweepy.StreamListener):
 				aneo['friends_count'] = status.user.friends_count
 				aneo['listed_count'] = status.user.listed_count
 				aneo['statuses_count'] = status.user.statuses_count
+				#mention doesn't have full object, look it up in Elastic??
+				#bneo['created_at'] = re.sub(" ", "T",str(derp['created_at']))
+				#bneo['followers_count'] = derp['followers_count']
+				#bneo['friends_count'] = derp['friends_count']
+				#bneo['listed_count'] = derp['listed_count']
+				#bneo['statuses_count'] = derp['statuses_count']
+
+				aneo[config['STREAM']['index']] = 1
+				bneo[config['STREAM']['index']] = 1
 				neog.create(Relationship(aneo, "MENTIONS", bneo, created_at=re.sub(" ", "T",str(status.created_at))))
 				cnt = cnt + 1
 # end tmbod type mention
@@ -141,7 +157,6 @@ class StreamApi(tweepy.StreamListener):
 				client.bulk(index="tw" + config['STREAM']['index'],doc_type="tweets",body=twbod)
 				client.bulk(index="tu" + config['STREAM']['index'],doc_type="twid",body=tubod)
 				print(str(len(twbod)) + " " + str(len(tubod)))
-
 				twbod = ""
 				tubod = ""
 				cnt = 0
@@ -171,5 +186,7 @@ while True:
 	cnt = 0
 	try:
 		streamer.filter(None, terms)
-	except (ProtocolError, AttributeError):
-		sys.exit()
+#	except (ProtocolError, AttributeError):
+	except tweepy.error.TweepError:
+		print("whoops")
+	#	sys.exit()

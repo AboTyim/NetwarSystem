@@ -7,7 +7,10 @@ from elasticsearch import Elasticsearch
 from elasticsearch_dsl import Search
 from elasticsearch.connection import create_ssl_context
 from urllib3.exceptions import ProtocolError
-import squish
+import squish2, requests
+
+#urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+requests.packages.urllib3.disable_warnings()
 
 config = configparser.ConfigParser()
 config.read(os.environ['HOME'] +'/.twitter')
@@ -31,7 +34,7 @@ try:
 	ssl_context.check_hostname = False
 	ssl_context.verify_mode = ssl.CERT_NONE
 
-	client = Elasticsearch('https://hp0.netwarsystem.com:9200', ssl_context=ssl_context, timeout=60, http_auth=("admin", "LongPassword2019"))
+	client = Elasticsearch('https://hp1.netwarsystem.com:9200', ssl_context=ssl_context, timeout=60, http_auth=("admin", "LongPassword2019"))
 except:
 	sys.exit()
 
@@ -106,7 +109,7 @@ class StreamApi(tweepy.StreamListener):
 				cnt = cnt + 1
 # end tmbod type mention
 		tubod = tubod + "{ \"index\" : { \"_index\" : \"tu" + config['STREAM']['index'] + "\", \"_type\" : \"twid\", \"_id\" : \"" + status.user.id_str + "\" }\n"
-		smuser = squish.squishuser(status.user)
+		smuser = squish2.squishuser(status.user)
 		tubod = tubod + json.dumps(smuser._json) + "\n"
 		cnt = cnt + 1
 # end tubod type twid
@@ -115,7 +118,7 @@ class StreamApi(tweepy.StreamListener):
 		except:
 			cnt = cnt
 		else:
-			rtuser = squish.squishuser(status.retweeted_status.user)
+			rtuser = squish2.squishuser(status.retweeted_status.user)
 			#print(status.retweeted_status.user._json)
 			#This is tracking accounts that he been RT'd. Should be added to user cache?
 			tubod = tubod + "{ \"index\" : { \"_index\" : \"tu" + config['STREAM']['index'] + "\", \"_type\" : \"twid\", \"_id\" : \"" + status.retweeted_status.user.id_str + "\" }\n"
