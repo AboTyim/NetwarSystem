@@ -1,5 +1,5 @@
 import datetime, platform, getpass
-def perflog(scname,mesg):
+def perflog(client, scname,mesg):
 	mydate = str(datetime.datetime.utcnow())
 	ebod = "{ \"index\" : { \"_index\" : \"perflog\", \"_type\" : \"perfdata\"} }\n"
 	ebod = ebod + "{\"host\" : \"" + platform.node() + "\", \"shell\" : \"" + getpass.getuser() + "\", \"screen_name\" : \""
