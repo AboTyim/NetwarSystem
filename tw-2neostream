@@ -172,17 +172,23 @@ streamer = tweepy.Stream(auth=auth, listener=StreamApi(), timeout=30)
 
 tfile = open(sys.argv[1], 'r')
 terms = []
+text = False
+# one letter anywhere indicates text filter stream
+# otherwise all numeric is userids
 for thing in tfile:
+	if(re.search("[a-zA-Z]",thing)):
+		text = True	
 	terms.append(thing.rstrip())
-print(terms)
-
 
 while True:
 	twbod = ""
 	tubod = ""
 	cnt = 0
 	try:
-		streamer.filter(None, terms)
+		if(text):
+			streamer.filter(None, terms)
+		else:
+			streamer.filter(follow=terms)
 #	except (ProtocolError, AttributeError):
 	except tweepy.error.TweepError:
 		print("whoops")
