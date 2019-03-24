@@ -16,11 +16,12 @@ requests.packages.urllib3.disable_warnings()
 
 config = configparser.ConfigParser()
 config.read(os.environ['HOME'] +'/.twitter')
-max = 500
+
+max = 100
 if(len(sys.argv) > 2):
 	max = int(sys.argv[2])
 
-neog = Graph(host="192.168.88.63", user="neo4j", password="3020plus+")
+neog = Graph(config['STREAM']['neo4j'], user=config['STREAM']['neo4juser'], password=config['STREAM']['neo4jpass'])
 neom = NodeMatcher(neog)
 
 
@@ -34,13 +35,11 @@ except tweepy.error.TweepError:
 	print(sys.argv[1] + " " + config[API].account)
 	exit(1)
 
-
 try:
 	ssl_context = create_ssl_context(cafile='/home/root-ca.pem')
 	ssl_context.check_hostname = False
 	ssl_context.verify_mode = ssl.CERT_NONE
-
-	client = Elasticsearch('https://hp1.netwarsystem.com:9200', ssl_context=ssl_context, timeout=60, http_auth=("admin", "LongPassword2019"))
+	client = Elasticsearch(config['STREAM']['elksg'], ssl_context=ssl_context, timeout=60, http_auth=(config['STREAM']['elksguser'], config['STREAM']['elksgpass']))
 except:
 	sys.exit()
 
@@ -97,20 +96,26 @@ class StreamApi(tweepy.StreamListener):
 		twbod = twbod + json.dumps(status._json) + "\n"
 		#print(status.user.screen_name + " " + str(status.created_at))
 # end twbod type tweets
+		aneo = neom.match("user", screen_name=status.user.screen_name).first()
+		if(not aneo):
+			#how often do we refresh attributes?
+			aneo = Node("user",screen_name=status.user.screen_name,id_str=status.user.id_str)
+			aneo['created_at'] = re.sub(" ", "T",str(status.user.created_at))
+			aneo['followers_count'] = status.user.followers_count
+			aneo['friends_count'] = status.user.friends_count
+			aneo['listed_count'] = status.user.listed_count
+			aneo['statuses_count'] = status.user.statuses_count
+		tsource = neom.match("source", source=status.source).first()
+		if(not tsource):
+			tsource = Node("source",source=status.source)
+		neog.create(Relationship(aneo, "USES", tsource))
+
 		if(len(status._json['entities']['user_mentions']) > 0):
 			for derp in status._json['entities']['user_mentions']:
-				aneo = neom.match("user", screen_name=status.user.screen_name).first()
 				bneo = neom.match("user", screen_name=derp['screen_name']).first()
-				if(not aneo):
-					aneo = Node("user",screen_name=status.user.screen_name,id_str=status.user.id_str)
 				if(not bneo):
 					bneo = Node("user",screen_name=derp['screen_name'],id_str=derp['id_str'])
 				#do this here, aneo might have been a bneo first, will not have timestamp
-				aneo['created_at'] = re.sub(" ", "T",str(status.user.created_at))
-				aneo['followers_count'] = status.user.followers_count
-				aneo['friends_count'] = status.user.friends_count
-				aneo['listed_count'] = status.user.listed_count
-				aneo['statuses_count'] = status.user.statuses_count
 				#mention doesn't have full object, look it up in Elastic??
 				#bneo['created_at'] = re.sub(" ", "T",str(derp['created_at']))
 				#bneo['followers_count'] = derp['followers_count']
@@ -122,6 +127,7 @@ class StreamApi(tweepy.StreamListener):
 				bneo[config['STREAM']['index']] = 1
 				neog.create(Relationship(aneo, "MENTIONS", bneo, created_at=re.sub(" ", "T",str(status.created_at))))
 				cnt = cnt + 1
+
 # end tmbod type mention
 		tubod = tubod + "{ \"index\" : { \"_index\" : \"tu" + config['STREAM']['index'] + "\", \"_type\" : \"twid\", \"_id\" : \"" + status.user.id_str + "\" }\n"
 		smuser = squish2.squishuser(status.user)
@@ -137,19 +143,10 @@ class StreamApi(tweepy.StreamListener):
 			tubod = tubod + "{ \"index\" : { \"_index\" : \"tu" + config['STREAM']['index'] + "\", \"_type\" : \"twid\", \"_id\" : \"" + status.retweeted_status.user.id_str + "\" }\n"
 			tubod = tubod + json.dumps(rtuser._json) + "\n"
 			cnt = cnt + 1
-			aneo = neom.match("user", screen_name=status.user.screen_name).first()
-			bneo = neom.match("user", screen_name=status.retweeted_status.user.screen_name).first()
-			if(not aneo):
-				aneo = Node("user",screen_name=status.user.screen_name,id_str=status.user.id_str)
-			if(not bneo):
-				bneo = Node("user",screen_name=status.retweeted_status.user.screen_name,id_str=status.retweeted_status.id_str)
-			#do this here, aneo might have been a bneo first, will not have timestamp
-			aneo['created_at'] = re.sub(" ", "T",str(status.user.created_at))
-			aneo['followers_count'] = status.user.followers_count
-			aneo['friends_count'] = status.user.friends_count
-			aneo['listed_count'] = status.user.listed_count
-			aneo['statuses_count'] = status.user.statuses_count
 
+			bneo = neom.match("user", screen_name=status.retweeted_status.user.screen_name).first()
+			if(not bneo):
+				bneo = Node("user",screen_name=status.retweeted_status.user.screen_name,id_str=status.retweeted_status.user.id_str)
 			neog.create(Relationship(aneo, "RTS", bneo, created_at=re.sub(" ", "T",str(status.created_at))))
 			cnt = cnt + 1
 # end trbod type retweet
