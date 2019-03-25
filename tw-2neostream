@@ -54,7 +54,7 @@ class StreamApi(tweepy.StreamListener):
 		global tubod
 		global cnt
 		global config
-#		print(status.user)
+#		print(status)
 		status._json.pop('coordinates', None)
 		status._json.pop('contributors', None)
 		status._json.pop('is_quote_status', None)
@@ -108,6 +108,7 @@ class StreamApi(tweepy.StreamListener):
 		tsource = neom.match("source", source=status.source).first()
 		if(not tsource):
 			tsource = Node("source",source=status.source)
+			tsource[config['STREAM']['index']] = 1
 		neog.create(Relationship(aneo, "USES", tsource))
 
 		if(len(status._json['entities']['user_mentions']) > 0):
@@ -115,19 +116,17 @@ class StreamApi(tweepy.StreamListener):
 				bneo = neom.match("user", screen_name=derp['screen_name']).first()
 				if(not bneo):
 					bneo = Node("user",screen_name=derp['screen_name'],id_str=derp['id_str'])
-				#do this here, aneo might have been a bneo first, will not have timestamp
-				#mention doesn't have full object, look it up in Elastic??
-				#bneo['created_at'] = re.sub(" ", "T",str(derp['created_at']))
-				#bneo['followers_count'] = derp['followers_count']
-				#bneo['friends_count'] = derp['friends_count']
-				#bneo['listed_count'] = derp['listed_count']
-				#bneo['statuses_count'] = derp['statuses_count']
 
 				aneo[config['STREAM']['index']] = 1
 				bneo[config['STREAM']['index']] = 1
 				neog.create(Relationship(aneo, "MENTIONS", bneo, created_at=re.sub(" ", "T",str(status.created_at))))
 				cnt = cnt + 1
-
+		if(len(status._json['entities']['urls']) > 0):
+			if not (re.search("twitter.com",status._json['entities']['urls'][0]['expanded_url'])):			
+				print(status._json['entities']['urls'][0]['expanded_url'])
+				aurl = Node("url",expurl=status._json['entities']['urls'][0]['expanded_url'],status=status.id_str)
+				aurl[config['STREAM']['index']] = 1
+				neog.create(Relationship(aneo, "TWEETS", aurl, created_at=re.sub(" ", "T",str(status.created_at))))
 # end tmbod type mention
 		tubod = tubod + "{ \"index\" : { \"_index\" : \"tu" + config['STREAM']['index'] + "\", \"_type\" : \"twid\", \"_id\" : \"" + status.user.id_str + "\" }\n"
 		smuser = squish2.squishuser(status.user)
@@ -147,6 +146,7 @@ class StreamApi(tweepy.StreamListener):
 			bneo = neom.match("user", screen_name=status.retweeted_status.user.screen_name).first()
 			if(not bneo):
 				bneo = Node("user",screen_name=status.retweeted_status.user.screen_name,id_str=status.retweeted_status.user.id_str)
+			bneo[config['STREAM']['index']] = 1
 			neog.create(Relationship(aneo, "RTS", bneo, created_at=re.sub(" ", "T",str(status.created_at))))
 			cnt = cnt + 1
 # end trbod type retweet
@@ -189,7 +189,7 @@ while True:
 			streamer.filter(None, terms)
 		else:
 			streamer.filter(follow=terms)
-#	except (ProtocolError, AttributeError):
-	except tweepy.error.TweepError:
+	except (ProtocolError, AttributeError):
+#	except tweepy.error.TweepError:
 		print("whoops")
-	#	sys.exit()
+#		sys.exit()
