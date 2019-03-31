@@ -36,12 +36,19 @@ auth = tweepy.OAuthHandler(config['API']['consumer_key'], config['API']['consume
 auth.set_access_token(config['API']['access_token_key'], config['API']['access_token_secret'])
 api = tweepy.API(auth)
 
-ssl_context = create_ssl_context(cafile='/home/root-ca.pem')
-ssl_context.check_hostname = False
-ssl_context.verify_mode = ssl.CERT_NONE
-client = Elasticsearch('https://hp0.netwarsystem.com:9200', ssl_context=ssl_context, timeout=60, http_auth=("admin", "LongPassword2019"))
+if(config['STREAM']['elksg'][:5] == "https"):
+	print(config['STREAM']['elksg'][:5])
+	try:
+		ssl_context = create_ssl_context(cafile='/home/root-ca.pem')
+		ssl_context.check_hostname = False
+		ssl_context.verify_mode = ssl.CERT_NONE
+		client = Elasticsearch(config['STREAM']['elksg'], ssl_context=ssl_context, timeout=60, http_auth=(config['STREAM']['elksguser'], config['STREAM']['elksgpass']))
+	except:
+		sys.exit()
+else:
+	client = Elasticsearch(config['STREAM']['elksg'])
 
-client.indices.create(index='usertest', ignore=400)
+#client.indices.create(index='usertest', ignore=400)
 wal = Walrus(host='localhost', port=6379, db=0)
 tum = wal.Set("usertest")
 

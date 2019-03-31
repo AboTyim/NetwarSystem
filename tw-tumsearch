@@ -6,14 +6,18 @@ from elasticsearch_dsl import Search
 import ssl
 from elasticsearch.connection import create_ssl_context
 
-try:
-        ssl_context = create_ssl_context(cafile='/home/root-ca.pem')
-        ssl_context.check_hostname = False
-        ssl_context.verify_mode = ssl.CERT_NONE
 
-        client = Elasticsearch('https://hp0.netwarsystem.com:9200', ssl_context=ssl_context, timeout=60, http_auth=("admin", "LongPassword2019"))
-except:
-        sys.exit()
+if(config['STREAM']['elksg'][:5] == "https"):
+	print(config['STREAM']['elksg'][:5])
+	try:
+		ssl_context = create_ssl_context(cafile='/home/root-ca.pem')
+		ssl_context.check_hostname = False
+		ssl_context.verify_mode = ssl.CERT_NONE
+		client = Elasticsearch(config['STREAM']['elksg'], ssl_context=ssl_context, timeout=60, http_auth=(config['STREAM']['elksguser'], config['STREAM']['elksgpass']))
+	except:
+		sys.exit()
+else:
+	client = Elasticsearch(config['STREAM']['elksg'])
 
 found = open(sys.argv[1] + "-found.txt", 'w')
 missd = open(sys.argv[1] + "-missed.txt", 'w')
