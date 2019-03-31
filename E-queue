@@ -4,7 +4,7 @@ import configparser
 from elasticsearch import Elasticsearch
 from elasticsearch_dsl import Search
 from walrus import *
-import squish
+import squish2
 #import psutil, getpass, setproctitle, platform
 
 def load_lists(myname):
@@ -61,7 +61,17 @@ auth.set_access_token(config['API']['access_token_key'], config['API']['access_t
 api = tweepy.API(auth)
 my = api.verify_credentials()
 
-client = Elasticsearch()
+if(config['STREAM']['elksg'][:5] == "https"):
+	print(config['STREAM']['elksg'][:5])
+	try:
+		ssl_context = create_ssl_context(cafile='/home/root-ca.pem')
+		ssl_context.check_hostname = False
+		ssl_context.verify_mode = ssl.CERT_NONE
+		client = Elasticsearch(config['STREAM']['elksg'], ssl_context=ssl_context, timeout=60, http_auth=(config['STREAM']['elksguser'], config['STREAM']['elksgpass']))
+	except:
+		sys.exit()
+else:
+	client = Elasticsearch(config['STREAM']['elksg'])
 
 wal = Walrus(host='localhost', port=6379, db=0)
 adds = wal.Set(getpass.getuser() + "adds")
@@ -84,7 +94,7 @@ get_all_tweets(nextid)
 try:
 	y = api.get_user(nextid)
 	if y:
-		y = squish.squishuser(y)
+		y = squish2.squishuser(y)
 		twbod = "{ \"index\" : { \"_index\" : \"tu" + getpass.getuser() + "\", \"_type\" : \"userid\", \"_id\" : \"" + y.id_str + "\" }\n"
 		twbod = twbod + json.dumps(y._json)
 		client.bulk(index="tu" + getpass.getuser(),doc_type="userid",body=twbod)

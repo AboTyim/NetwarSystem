@@ -9,7 +9,7 @@ import logging, logging.handlers
 from time import gmtime, strftime
 import ssl
 from elasticsearch.connection import create_ssl_context
-import squish
+import squish2
 
 def perflog(scname,mesg):
         mydate = str(datetime.datetime.utcnow())   
@@ -110,12 +110,17 @@ auth.set_access_token(config['API']['access_token_key'], config['API']['access_t
 api = tweepy.API(auth)
 my = api.verify_credentials()
 
-
-ssl_context = create_ssl_context(cafile='/home/root-ca.pem')
-ssl_context.check_hostname = False
-ssl_context.verify_mode = ssl.CERT_NONE
-
-client = Elasticsearch('https://hp0.netwarsystem.com:9200', ssl_context=ssl_context, timeout=60, http_auth=("admin", "LongPassword2019"))
+if(config['STREAM']['elksg'][:5] == "https"):
+	print(config['STREAM']['elksg'][:5])
+	try:
+		ssl_context = create_ssl_context(cafile='/home/root-ca.pem')
+		ssl_context.check_hostname = False
+		ssl_context.verify_mode = ssl.CERT_NONE
+		client = Elasticsearch(config['STREAM']['elksg'], ssl_context=ssl_context, timeout=60, http_auth=(config['STREAM']['elksguser'], config['STREAM']['elksgpass']))
+	except:
+		sys.exit()
+else:
+	client = Elasticsearch(config['STREAM']['elksg'])
 
 wal = Walrus(host='localhost', port=6379, db=0)
 adds = wal.Set(getpass.getuser() + "adds")
@@ -138,7 +143,7 @@ perflog("monitoring",nextid)
 try:
 	y = api.get_user(nextid)
 	if y:
-		y = squish.squishuser(y)
+		y = squish2.squishuser(y)
 		twbod = "{ \"index\" : { \"_index\" : \"tu" + getpass.getuser() + "\", \"_type\" : \"userid\", \"_id\" : \"" + y.id_str + "\" }\n"
 		twbod = twbod + json.dumps(y._json)
 		client.bulk(index="tu" + getpass.getuser(),doc_type="userid",body=twbod)
@@ -149,7 +154,7 @@ except (RuntimeError, TypeError, NameError):
 try:
 #	y = api.get_user(nextid)
 	if y:
-		y = squish.squishuser(y)
+		y = squish2.squishuser(y)
 		twbod = "{ \"index\" : { \"_index\" : \"usertest\", \"_type\" : \"userid\", \"_id\" : \"" + y.id_str + "\" }\n"
 		twbod = twbod + json.dumps(y._json)
 		client.bulk(index="tumaster",doc_type="userid",body=twbod)
