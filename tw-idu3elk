@@ -150,15 +150,15 @@ print("got all tweets")
 try:
 	y = api.get_user(nextacct)
 	if y:
-		twbod = "{ \"index\" : { \"_index\" : \"tu" + sys.argv[1] + "\", \"_type\" : \"twid\", \"_id\" : \"" + y.id_str + "\"} }\n"
+		twbod = "{ \"index\" : { \"_index\" : \"tu" + sys.argv[1] + "\", \"_type\" : \"userid\", \"_id\" : \"" + y.id_str + "\"} }\n"
 		twbod = twbod + json.dumps(y._json)
-		client.bulk(index="tu" + sys.argv[1],doc_type="twid",body=twbod)
+		client.bulk(index="tu" + sys.argv[1],doc_type="userid",body=twbod)
 		perflog(nextacct," tulogging")
 
 		twbod = "{ \"index\" : { \"_index\" : \"usertest\", \"_type\" : \"userid\", \"_id\" : \"" + y.id_str + "\" }\n"
 		y = squish.squishuser(y)
 		twbod = twbod + json.dumps(y._json)
-		client.bulk(index="usertest",doc_type="twid",body=twbod)
+		client.bulk(index="usertest",doc_type="userid",body=twbod)
 		perflog(nextacct," usertest")
 except (RuntimeError, TypeError, NameError):
 	perflog(nextacct, " tulogging failed")

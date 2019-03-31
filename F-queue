@@ -139,9 +139,9 @@ try:
 	y = api.get_user(nextid)
 	if y:
 		y = squish.squishuser(y)
-		twbod = "{ \"index\" : { \"_index\" : \"tu" + getpass.getuser() + "\", \"_type\" : \"twid\", \"_id\" : \"" + y.id_str + "\" }\n"
+		twbod = "{ \"index\" : { \"_index\" : \"tu" + getpass.getuser() + "\", \"_type\" : \"userid\", \"_id\" : \"" + y.id_str + "\" }\n"
 		twbod = twbod + json.dumps(y._json)
-		client.bulk(index="tu" + getpass.getuser(),doc_type="twid",body=twbod)
+		client.bulk(index="tu" + getpass.getuser(),doc_type="userid",body=twbod)
 except (RuntimeError, TypeError, NameError):
 	print("tu index write failed failed")
 	pass
@@ -150,9 +150,9 @@ try:
 #	y = api.get_user(nextid)
 	if y:
 		y = squish.squishuser(y)
-		twbod = "{ \"index\" : { \"_index\" : \"usertest\", \"_type\" : \"twid\", \"_id\" : \"" + y.id_str + "\" }\n"
+		twbod = "{ \"index\" : { \"_index\" : \"usertest\", \"_type\" : \"userid\", \"_id\" : \"" + y.id_str + "\" }\n"
 		twbod = twbod + json.dumps(y._json)
-		client.bulk(index="tumaster",doc_type="twid",body=twbod)
+		client.bulk(index="tumaster",doc_type="userid",body=twbod)
 except (RuntimeError, TypeError, NameError):
 	print("usertest index write failed")
 	pass

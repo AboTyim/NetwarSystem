@@ -128,18 +128,18 @@ class StreamApi(tweepy.StreamListener):
 				aurl[config['STREAM']['index']] = 1
 				neog.create(Relationship(aneo, "TWEETS", aurl, created_at=re.sub(" ", "T",str(status.created_at))))
 # end tmbod type mention
-		tubod = tubod + "{ \"index\" : { \"_index\" : \"tu" + config['STREAM']['index'] + "\", \"_type\" : \"twid\", \"_id\" : \"" + status.user.id_str + "\" }\n"
+		tubod = tubod + "{ \"index\" : { \"_index\" : \"tu" + config['STREAM']['index'] + "\", \"_type\" : \"userid\", \"_id\" : \"" + status.user.id_str + "\" }\n"
 		smuser = squish2.squishuser(status.user)
 		tubod = tubod + json.dumps(smuser._json) + "\n"
 		cnt = cnt + 1
-# end tubod type twid
+# end tubod type userid
 		try:
 			status.retweeted_status
 		except:
 			cnt = cnt
 		else:
 			rtuser = squish2.squishuser(status.retweeted_status.user)
-			tubod = tubod + "{ \"index\" : { \"_index\" : \"tu" + config['STREAM']['index'] + "\", \"_type\" : \"twid\", \"_id\" : \"" + status.retweeted_status.user.id_str + "\" }\n"
+			tubod = tubod + "{ \"index\" : { \"_index\" : \"tu" + config['STREAM']['index'] + "\", \"_type\" : \"userid\", \"_id\" : \"" + status.retweeted_status.user.id_str + "\" }\n"
 			tubod = tubod + json.dumps(rtuser._json) + "\n"
 			cnt = cnt + 1
 
@@ -151,8 +151,11 @@ class StreamApi(tweepy.StreamListener):
 			cnt = cnt + 1
 # end trbod type retweet
 			if(cnt > max):
+				print(tubod)
 				client.bulk(index="tw" + config['STREAM']['index'],doc_type="tweets",body=twbod)
-				client.bulk(index="tu" + config['STREAM']['index'],doc_type="twid",body=tubod)
+				k = client.bulk(index="tu" + config['STREAM']['index'],doc_type="userid",body=tubod)
+				print()
+				print(k)
 				print(str(len(twbod)) + " " + str(len(tubod)))
 				twbod = ""
 				tubod = ""
