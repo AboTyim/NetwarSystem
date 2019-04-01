@@ -10,27 +10,51 @@ CONSUMER_SECRET = 'cVKQsqxLQYgQODdHCmM1dFfyXUG6Thred16X1sQsbxEAbCFac6'
 
 auth = tweepy.OAuthHandler(CONSUMER_KEY, CONSUMER_SECRET)
 auth_url = auth.get_authorization_url()
-print 'Please authorize: ' + auth_url
-verifier = raw_input('PIN: ').strip()
+print('Please authorize: ' + auth_url)
+verifier = input('PIN: ').strip()
 auth.get_access_token(verifier)
 
-print "[API]"
-print [consumer_key] = %s" % CONSUMER_KEY
-print [consumer_secret] = %s" % CONSUMER_SECRET
-print [access_token_key] = %s" % auth.access_token
-print [access_token_secret] = %s" % auth[access_token_secret]
+print("[API]")
+print("consumer_key = %s" % CONSUMER_KEY)
+print("consumer_secret = %s" % CONSUMER_SECRET)
+print("access_token_key = %s" % auth.access_token)
+print("access_token_secret = %s" % auth.access_token_secret)
+print("[STREAM]")
+print("index = throwaway")
+print("neo4j = 192.168.88.62")
+print("neo4juser = neo4j")
+print("neo4jpass = neo4j")
+print("elksg = https://hp0.netwarsystem.com:9200")
+print("elksguser = fixme")
+print("elksgpass = fixme")
+print("redishost = localhost")
+print("redisport = 6379")
 
-auth.set_access_token(auth.access_token, auth[access_token_secret])
+
+
+auth.set_access_token(auth.access_token, auth.access_token_secret)
 api = tweepy.API(auth)
 y = api.verify_credentials()
-print "account = %s" % y.screen_name
-print "homedir = lists"
+print("account = %s" % y.screen_name)
+print("homedir = lists")
 
 tw = open(os.environ['HOME'] +'/.twitter','w')
 tw.write("[API]" +"\n")
-tw.write([consumer_key] = %s" % CONSUMER_KEY +"\n")
-tw.write([consumer_secret] = %s" % CONSUMER_SECRET +"\n")
-tw.write([access_token_key] = %s" % auth.access_token +"\n")
-tw.write([access_token_secret] = %s" % auth[access_token_secret] +"\n")
+tw.write("consumer_key = %s" % CONSUMER_KEY +"\n")
+tw.write("consumer_secret = %s" % CONSUMER_SECRET +"\n")
+tw.write("access_token_key = %s" % auth.access_token +"\n")
+tw.write("access_token_secret = %s" % auth.access_token_secret +"\n")
 tw.write("account = %s" % y.screen_name +"\n")
 tw.write("homedir = lists" +"\n")
+
+tw.write("[STREAM]\n")
+tw.write("index = throwaway\n")
+tw.write("neo4j = 192.168.88.62\n")
+tw.write("neo4juser = neo4j\n")
+tw.write("neo4jpass = neo4j\n")
+tw.write("elksg = https://hp0.netwarsystem.com:9200\n")
+tw.write("elksguser = fixme\n")
+tw.write("elksgpass = fixme\n")
+tw.write("redishost = localhost\n")
+tw.write("redisport = 6379\n")
+
