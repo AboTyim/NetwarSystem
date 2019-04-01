@@ -21,6 +21,7 @@ config.read(os.environ['HOME'] +'/.twitter')
 neog = Graph(config['STREAM']['neo4j'], user=config['STREAM']['neo4juser'], password=config['STREAM']['neo4jpass'])
 neom = NodeMatcher(neog)
 
-name=
-aneo = neom.match("user", screen_name=name).first()
+#neog.create(Node("user",screen_name=sys.argv[1],id_str=sys.argv[2]))
+aneo = neom.match("user", screen_name=sys.argv[1])
 print(aneo)
+print(aneo.first())
