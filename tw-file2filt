@@ -3,7 +3,6 @@ import csv
 import sys
 import os
 
-name = y.screen_name
 head = '{ "query": { "bool": { "should": ['
 pre = '        { "match_phrase": { "user.screen_name": "'
 post = '"}}'
