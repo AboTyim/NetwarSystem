@@ -157,7 +157,7 @@ class StreamApi(tweepy.StreamListener):
 				#print(tubod)
 				client.bulk(index="tw" + config['STREAM']['index'],doc_type="tweets",body=twbod)
 				k = client.bulk(index="tu" + config['STREAM']['index'],doc_type="userid",body=tubod)
-				print(type(k))
+				squish2.perflog(client, "streaming " + config['STREAM']['index'], str(len(twbod)) + " " + str(len(tubod)))
 				print(str(len(twbod)) + " " + str(len(tubod)))
 				twbod = ""
 				tubod = ""
@@ -197,5 +197,5 @@ while True:
 			print("Following accounts")
 			streamer.filter(follow=terms)
 	except (ProtocolError, AttributeError):
+		squish2.perflog(client, "stream error " + config['STREAM']['index'], str(len(twbod)) + " " + str(len(tubod)))
 		print("whoops")
-#		sys.exit()

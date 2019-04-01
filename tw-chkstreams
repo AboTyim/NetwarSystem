@@ -1,2 +1,2 @@
 #!/bin/bash
-ps aux | grep "stream" |  grep "tw-[n23st]" | sort | awk -F " " {'print $1 " " $12 " " $13 " " $14'}
+ps aux | grep "stream" |  grep "tw-[n234st]" | sort | awk -F " " {'print $1 " " $12 " " $13 " " $14'}
