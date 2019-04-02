@@ -42,6 +42,6 @@ def squishuser(y):
 		y._json['status_at'] = "Fri Dec 31 23:59:59 +0000 1999"
 	return(y)
 
+import datetime, platform, getpass
 from .squishtweet import squishtweet
 from .perflog import perflog
-
