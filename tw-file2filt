@@ -4,7 +4,7 @@ import sys
 import os
 
 head = '{ "query": { "bool": { "should": ['
-pre = '        { "match_phrase": { "user.screen_name": "'
+pre = '        { "match_phrase": { "entities.user_mentions.screen_name": "'
 post = '"}}'
 tail = '      ], "minimum_should_match": 1}}}'
 
@@ -12,6 +12,6 @@ tail = '      ], "minimum_should_match": 1}}}'
 print(head)
 nuts = open(sys.argv[1],'r')
 for line in nuts:
-    print(pre + line + post + ",")
+    print(pre + line.rstrip() + post + ",")
 
 print(tail)
