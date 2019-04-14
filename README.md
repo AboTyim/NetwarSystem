@@ -91,9 +91,9 @@ If you're going to collect a lot of data - 32 million user profiles are about 19
 
 tw-quser2work <file> - put a few Twitter account names in a file, this loads them to the Redis work queue.
 
-tw-idu3elk - run from the command line, you'll see it fetch an account and store tweets in tw<index>
+tw-idu3elk - run from the command line, you'll see it fetch an account and store tweets in tw <index>
 
-bonus - it'll also grab userids and put them in tu<index>
+bonus - it'll also grab userids and put them in tu <index>
 
 # Collecting Some User IDs
 
