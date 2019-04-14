@@ -38,7 +38,7 @@ This machine is still around for testing, but is limited to four to eight accoun
 
 Our current setup is a pair of machines with these specs:
 
-* Dual Xeon E5-2680v1 eight core processors - combined cpumark 25,000.
+* Dual Xeon E5-2680v1 eight core processors - combined cpumark 25,000 on each.
 * 192 gig of ram.
 * 500 gig SSD, half for OS, half for ZFS cache.
 * Pairs of Seagate IronWolf 2tb NAS drives.
@@ -110,7 +110,7 @@ tw-follow2usertest will grab the numeric IDs of every follower of an account and
 
 # Explore Your Results With Kibana
 
-Elasticsearch's default graphical front end is Kibana. This app runs on port tcp/5601 but all you need is to point a browser at it. There really aren't any good books on Kibana - we've looked and looked. Search YouTube for videos if you need hints. We've produced a few of our own ... but where are they? Link? Anyone? Bueller ... Bueller?
+Elasticsearch's default graphical front end is Kibana. This app runs on port tcp/5601 but all you need is to point a browser at it. There really aren't any good books on Kibana - we've looked and looked. Search YouTube for videos if you need hints. We've produced a few videos of our own ... but where are they? Link? Anyone? Bueller ... Bueller?
 
 # Explore The Neo4j Data
 
