@@ -17,6 +17,7 @@ The following are infrastructure dependencies.
 
 The following are the major Python dependencies:
 
+* This software requires Python 3.
 * Walrus - provides a Python objects layer over Redis.
 * Elasticsearch 6.3.1 for Python (yes, 6.3.1 of this software, not 6.5.4)
 * Py2neo Neo4j client.
@@ -41,7 +42,7 @@ Our current setup is a pair of machines with these specs:
 * Dual Xeon E5-2680v1 eight core processors - combined cpumark 25,000 on each.
 * 192 gig of ram.
 * 500 gig SSD, half for OS, half for ZFS cache.
-* Pairs of Seagate IronWolf 2tb NAS drives.
+* Pairs of Seagate IronWolf 2TB NAS drives.
 
 This configuration has supported sixty four accounts doing bulk collection of tweets or users, while simultaneously running 16 stream captures. Each machine runs three VMs that store the data. This requires a bit of hand waving to explain, but it sets us up to grow beyond two machines when we need to do so.
 
@@ -116,12 +117,25 @@ Elasticsearch's default graphical front end is Kibana. This app runs on port tcp
 
 You can point a browser at tcp/7474 and you'll find the Neo4j graph database.
 
-I've you've never touched a graph database before, Learning Neo4j 3.x by Jerome Baton & Rik Van Bruggen was a pretty good read. The O'Reilly Graph Databases book by Ian Robinson, Jim Webber, and Emil Eifrem speaks to a higher level of mastery - assuming the reader has SQl experience and needs to make a transition to using Neo4j.
+I've you've never touched a graph database before, Learning Neo4j 3.x by Jerome Baton & Rik Van Bruggen was a pretty good read. The O'Reilly Graph Databases book by Ian Robinson, Jim Webber, and Emil Eifrem speaks to a higher level of mastery - assuming the reader has SQL experience and needs to make a transition to using Neo4j.
 
 We looked at a variety of tools for visualizing graph data, and we are amazed and pleased with Graphileon, which has a free community edition, good instructional videos, and as a bonus it has some support for Elasticsearch, too.
 
-# Errata
+# Errata & Obscura
 
-* Redis is doing its own work and it's also handling some of RabbitMQ's natural tasks as well. RabbitMQ In Depth by Gavin M. Roy is on order and it should become part of the system over Q2 of 2019.
+* Redis is doing its own work and it's also handling some of RabbitMQ's natural tasks as well. RabbitMQ In Depth by Gavin M. Roy is on order and that package should become part of the system over Q2 of 2019.
 
-* Some of this software still gets run under the tmux terminal multiplexer utility. 
+* Some of this software still gets run under the tmux terminal multiplexer utility. We add the logging plugin and use it to capture output.
+
+* The perflog index is a general purpose logging feature that is not very mature, mostly because tmux is expedient.
+
+* Cron was a fantastic idea when it first came out, but bell bottoms were in style, too. We have been at the reading stage of evaluating new software and supervisord seems to be the best choice for an upgrade.
+
+* We have used the Gephi data visualization package for a long time and our older flat file software automatically produced outputs for it. We do some ad hoc tool chaining to produce similar files now. This has to be maintained since Gephi is the only _gratis_ package available to do this kind of work.
+
+
+# Support 
+
+* If it should run but doesn't, post a description here, bonus points awarded for logs, stack traces, etc.
+
+* If you think it should run, but you aren't precisely sure, the [NetwarSystem](http://netwarsystem.slack.com) Slack server is the best route.
