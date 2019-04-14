@@ -5,7 +5,7 @@ This is the prime repository for our Twitter related code. There are four major 
 * Bulk capture of Twitter account timelines.
 * Bulk capture of Twitter user profiles.
 * Persistent tracking based on a user's lists.
-* Capture streaming of userids or search terms.
+* Capture streams based on userids or search terms.
 
 The following are infrastructure dependencies.
 
