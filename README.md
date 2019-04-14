@@ -13,12 +13,12 @@ The following are infrastructure dependencies.
 * Elasticsearch 6.5.4 - searchable archive of text data.
 * Search Guard - Elasticsearch security, needed for teams and/or public access.
 * Neo4j - graph database for storing Twitter interactions, new as of 3/2019.
-* Netdata - system monitor, which you will become familiar.
+* Netdata - system monitor, which with you will become familiar.
 
 The following are the major Python dependencies:
 
 * Walrus - provides a Python objects layer over Redis.
-* Elasticsearch 6.3.1 for Python.
+* Elasticsearch 6.3.1 for Python (yes, 6.3.1 of this software, not 6.5.4)
 * Py2neo Neo4j client.
 * Tweepy Twitter API access for Python.
 
