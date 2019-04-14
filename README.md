@@ -56,9 +56,9 @@ This configuration has supported sixty four accounts doing bulk collection of tw
 * Install Redis.
 * Install Neo4j.
 * Install Netdata monitoring software.
-* Look at example.conf to see how a client is configured. You MUST have your own Twitter API keys, we do not provide that.
+* Look at example.conf to see how a client is configured. You MUST have your own Twitter API keys.
 * Look at crontab.txt to see how observer accounts, bulk tweets, and bulk userids are collected.
-* Copy the copy code to /usr/local/bin, then chmod 755 so it's executable.
+* Copy the  code to /usr/local/bin, then chmod 755 so it's executable.
 
 When configured and enabled you should find the following ports open. You can check this with netstat -lan | grep "LISTEN". If you are unsure what a given port does, try lsof -i :portnumber
 
