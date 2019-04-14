@@ -114,4 +114,14 @@ Elasticsearch's default graphical front end is Kibana. This app runs on port tcp
 
 # Explore The Neo4j Data
 
-You can point a browser at tcp/7474 and you'll find the Neo4j graph database. 
+You can point a browser at tcp/7474 and you'll find the Neo4j graph database.
+
+I've you've never touched a graph database before, Learning Neo4j 3.x by Jerome Baton & Rik Van Bruggen was a pretty good read. The O'Reilly Graph Databases book by Ian Robinson, Jim Webber, and Emil Eifrem speaks to a higher level of mastery - assuming the reader has SQl experience and needs to make a transition to using Neo4j.
+
+We looked at a variety of tools for visualizing graph data, and we are amazed and pleased with Graphileon, which has a free community edition, good instructional videos, and as a bonus it has some support for Elasticsearch, too.
+
+# Errata
+
+* Redis is doing its own work and it's also handling some of RabbitMQ's natural tasks as well. RabbitMQ In Depth by Gavin M. Roy is on order and it should become part of the system over Q2 of 2019.
+
+* Some of this software still gets run under the tmux terminal multiplexer utility. 
