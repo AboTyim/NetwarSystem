@@ -140,8 +140,5 @@ We looked at a variety of tools for visualizing graph data, and we are amazed an
 
 * If it should run but doesn't, post an [issue](https://github.com/NetwarSystem/TwitterRecorder/issues), bonus points awarded for logs, stack traces, etc.
 
-* If you think it should run, but you aren't precisely sure, the [NetwarSystem](http://netwarsystem.slack.com) Slack server is the best route.
+* If you think it should run, but you aren't precisely sure, the [NetwarSystem](http://netwarsystem.slack.com) Slack server is the best route
 
-# Analytical Tradecraft
-
-Once you've got some content 
