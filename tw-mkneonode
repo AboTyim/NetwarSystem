@@ -1,0 +1,27 @@
+#!/usr/bin/python
+import datetime, platform, getpass
+import csv, json, pprint, os, random, re, sys, time, datetime
+import redis, walrus, tweepy, configparser, ssl
+import psutil, getpass, setproctitle, platform
+from time import gmtime, strftime
+from elasticsearch import Elasticsearch
+from elasticsearch_dsl import Search
+from elasticsearch.connection import create_ssl_context
+from urllib3.exceptions import ProtocolError
+from py2neo import Graph, Node, Relationship, NodeMatcher, RelationshipMatcher
+import squish2, requests
+
+#urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+requests.packages.urllib3.disable_warnings()
+
+config = configparser.ConfigParser()
+config.read(os.environ['HOME'] +'/.twitter')
+
+
+neog = Graph(config['STREAM']['neo4j'], user=config['STREAM']['neo4juser'], password=config['STREAM']['neo4jpass'])
+neom = NodeMatcher(neog)
+
+#neog.create(Node("user",screen_name=sys.argv[1],id_str=sys.argv[2]))
+aneo = neom.match("user", screen_name=sys.argv[1])
+print(aneo)
+print(aneo.first())

@@ -1,5 +1,4 @@
 #!/usr/bin/python
-
 #DESC: Save screen name, ID, some other stats for a screen name.
 import tweepy
 import os, sys, json, time
