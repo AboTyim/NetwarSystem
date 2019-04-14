@@ -25,7 +25,7 @@ The following are the major Python dependencies:
 
 Elasticsearch and Redis/Walrus were the first things implemented, then Search Guard, and we have barely scratched the surface with Neo4j. There are significant changes from Elasticsearch 6.5.4 to 6.7.0, and even more dramatic changes to 7.x. We have a ELK7 prototype, but it's nowhere near ready. We can not support this software on anything but 6.5.x at this time.
 
-#System Requirements
+# System Requirements
 
 When we first ran this system it was on a small desktop:
 
