@@ -52,6 +52,7 @@ This configuration has supported sixty four accounts doing bulk collection of tw
 * Look at pipfreeze.txt to see what was actually running on 13 Apr 2019.
 * Clone TwitterUtils, which has some useful bits from our pre-Elastic software.
 * Do a git clone of the ELKSG archive, which has Elastic setup/tuning stuff in it.
+* Install Elasticsearch 6.5.4.
 * Install Redis.
 * Install Neo4j.
 * Install Netdata monitoring software.
