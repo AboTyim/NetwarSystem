@@ -40,7 +40,9 @@ if(config['STREAM']['elksg'][:5] == "https"):
 		ssl_context = create_ssl_context(cafile='/home/root-ca.pem')
 		ssl_context.check_hostname = False
 		ssl_context.verify_mode = ssl.CERT_NONE
-		client = Elasticsearch(config['STREAM']['elksg'], ssl_context=ssl_context, timeout=60, http_auth=(config['STREAM']['elksguser'], config['STREAM']['elksgpass']))
+		# timeout bumped from 60 to 120 - userid based streams are fine,
+		# high volume hashtag based streams timeout.
+		client = Elasticsearch(config['STREAM']['elksg'], ssl_context=ssl_context, timeout=120, http_auth=(config['STREAM']['elksguser'], config['STREAM']['elksgpass']))
 	except:
 		sys.exit()
 else:
@@ -153,8 +155,11 @@ class StreamApi(tweepy.StreamListener):
 			cnt = cnt + 1
 # end trbod type retweet
 			if(cnt > max):
+				# Yes, adding tweet count and users spotted count together
+				# here is intentional. Production use revealed a 4:1 or 5:1
+				# tweets to user data ratio, so this avoids annoying Elastic
+				# without requiring tracking two different variable states.
 				print("max " + str(max) + " count reached - loading to Elastic")
-				#print(tubod)
 				client.bulk(index="tw" + config['STREAM']['index'],doc_type="tweets",body=twbod)
 				k = client.bulk(index="tu" + config['STREAM']['index'],doc_type="userid",body=tubod)
 				squish2.perflog(client, "streaming " + config['STREAM']['index'], str(len(twbod)) + " " + str(len(tubod)))

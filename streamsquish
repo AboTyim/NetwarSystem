@@ -1,4 +1,10 @@
 #!/usr/bin/python
+#
+# TEST CODE:
+#
+# This is used as a testbed for improvements to the streaming
+# capture. It has no role in a production system.
+#
 import csv, json, pprint, os, random, re, sys, time, datetime
 import redis, walrus, tweepy, configparser, ssl
 import psutil, getpass, setproctitle, platform

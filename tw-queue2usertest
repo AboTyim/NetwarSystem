@@ -1,5 +1,6 @@
 #!/usr/bin/python
-#DESC: drain Redis queue of numeric IDs to usertest index
+# drain Redis queue of numeric IDs, populating
+# usertest index.
 import tweepy
 import os, sys, json, time, psutil, setproctitle
 import configparser, getpass, platform
@@ -7,7 +8,7 @@ from elasticsearch import Elasticsearch
 from walrus import *
 import ssl
 from elasticsearch.connection import create_ssl_context
-import squish
+import squish2
 
 def perflog(scname,mesg):
 	mydate = str(datetime.datetime.utcnow())
@@ -63,7 +64,7 @@ while(cnt2 < 800):
 		popcnt = popcnt + 1
 		if y:
 			id = y._json.pop('id', None)
-			y = squish.squishuser(y)
+			y = squish2.squishuser(y)
 			print(y.screen_name)
 			twbod = twbod + "{ \"index\" : { \"_index\" : \"usertest\", \"_type\" : \"userid\", \"_id\" : \"" + y.id_str + "\" }\n"
 			twbod = twbod + json.dumps(y._json) + "\n"
@@ -74,17 +75,18 @@ while(cnt2 < 800):
 	except(AttributeError):
 		perflog(config['API']['account'], "AttributeError " + str(id))
 		cnt = 800
+	# stash every 200 userids collected.
 	if(cnt > 199):
-		#zork = open('twbod.txt', 'w')
-		#for line in twbod:
-		#	zork.write(line)
-		#zork.close()
-		print("cnt > 99")
+		print("cnt > 199")
 		client.bulk(index="usertest",doc_type="userid",body=twbod)
 		cnt2 = cnt2 + cnt
 		twbod = ""
 		cnt = 0
 		perflog(config['API']['account'],"test profiling " + str(cnt2) + " popcnt " + str(popcnt))
 		zod = api.rate_limit_status()
+		# API provides 900 of these per every fifteen minutes. When we notice
+		# fewer than 100 calls left, we quit. The accounts used to do this
+		# may be doing other things where they need some calls, this seems to
+		# be enough cushion to keep them from failing.
 		if(zod['resources']['users']['/users/show/:id']['remaining'] < 100):
 			cnt2 = 800

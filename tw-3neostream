@@ -1,4 +1,11 @@
 #!/usr/bin/python
+#
+# DEPRECATED CODE
+#
+# Once tw-5neostream has a little more time in production
+# this will be removed.
+#
+#
 import datetime, platform, getpass
 import csv, json, pprint, os, random, re, sys, time, datetime
 import redis, walrus, tweepy, configparser, ssl

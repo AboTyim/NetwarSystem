@@ -1,4 +1,7 @@
 #!/usr/bin/python
+# Take a file, generally of Twitter screen_name,
+# and produce a compact JSON file in the format
+# needed by Elasticsearch queries.
 import csv
 import sys
 import os
@@ -9,9 +12,10 @@ post = '"}}'
 tail = '      ], "minimum_should_match": 1}}}'
 
 
+ff = open(sys.argv[1],'r')
 print(head)
-nuts = open(sys.argv[1],'r')
-for line in nuts:
+nuts = ff.readlines()
+for line in nuts[:-1]:
     print(pre + line.rstrip() + post + ",")
-
+print(pre + nuts[-1].rstrip() + post)
 print(tail)
