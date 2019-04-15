@@ -1,7 +1,9 @@
+configparser>=3.7.4
 elasticsearch>=6.3.1
 elasticsearch-dsl>=6.3.1
-html5lib>=0.999999999
-psutil>=5.5.0
-redis>=3.1.0
+psutil>=5.6.1
+py2neo>=4.2.0
+redis>=3.2.1
+setproctitle>=1.1.10
 tweepy>=3.7.0
-urllib3>=1.22
+walrus>=0.7.1
