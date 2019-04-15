@@ -19,9 +19,10 @@ The following are infrastructure dependencies.
 
 * [Redis](http://redis.io) - provides shared Python objects, used for various work queues.
 * [Elasticsearch](http://elastic.co) 6.5.4 - searchable archive of text data.
-* [Search Guard](http://search-guard.com) - Elasticsearch security, needed for teams and/or public access.
 * [Neo4j](http://neo4j.com) - graph database for storing Twitter interactions, new as of 3/2019.
 * [Netdata](https://github.com/netdata/netdata) - system monitor, which with you will become familiar.
+* [Search Guard](http://search-guard.com) - Elasticsearch security, needed for teams and/or public access.
+
 
 Elasticsearch and Redis/Walrus were the first things implemented, then Search Guard, and we have barely scratched the surface with Neo4j. There are significant changes from Elasticsearch 6.5.4 to 6.7.0, and even more dramatic changes to 7.x. We have a ELK7 prototype, but it's nowhere near ready. We can not support this software on anything but 6.5.x at this time.
 
