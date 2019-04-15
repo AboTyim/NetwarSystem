@@ -25,7 +25,11 @@ def perflog(scname,mesg):
 
 
 def check_resources():
-	# make sure prior instance has exited
+	# make sure prior instance has exited. This prevents
+	# multiple instances running when there are accounts
+	# with 3200+ tweets being collected. One account can 
+	# take up to 90 seconds due to API even under otherwise
+	# perfect conditions.
 	for p in psutil.process_iter(attrs=['name', 'username']):
 		if (p.info['username'] == getpass.getuser()) and (p.info['name'] == "work" +getpass.getuser()):
 			perflog("FAIL", "already running")
@@ -34,10 +38,18 @@ def check_resources():
 	setproctitle.setproctitle("work" + getpass.getuser())
 
 	i = 0
+	# Check system resources at two second intervals for thirty
+	# seconds. This smooths load when large numbers of processes
+	# launch via cron. Prior version of code wired maxcpu to 75
+	# and maxmem to 92. These numbers made sense on a machine with
+	# 16 cores, 128 gig of ram, and no other duties except running
+	# 64 accounts in parallel. There isn't much harm in delaying
+	# automated account following for a minute here and there, this
+	# is the first place to trim system load.
 	while (i < 30):
 		zcpu = psutil.cpu_percent(interval=None, percpu=False)
 		zmem = psutil.virtual_memory()[2]
-		if (zcpu < 75) and (zmem < 92):
+		if (zcpu < config['API']['maxcpu']) and (zmem < config['API']['maxmem']):
 			i = 60
 		i = i + 2
 		time.sleep(2)
@@ -51,7 +63,59 @@ def check_resources():
 		print("")
 		#perflog(getpass.getuser(),"sufficient resources to run")
 
-
+##########################################################
+# Because people scratch their heads over this algorithm.
+#
+# There are three Walrus sets - ADDS, SEEN, and WORK,
+# which provide a modified round robin processing flow
+# that prioritizes newly listed accounts for collection.
+#
+# When system is started OR when it has emptied ADDS & WORK,
+# all three sets are emptied. The system runs for the first
+# time, placing account IDs in ADDS, the priority processing
+# queue, and SEEN. During future invocations any account on
+# a list but not in SEEN must have been freshly listed, so
+# it gets queued to be processed first.
+#
+# When an account ID is found in ADDS, it gets popped from
+# that set, queued for immediate processing, and it is added 
+# to WORK, which will ensure it gets collected as part of 
+# the normal flow.
+#
+# When ADDS has been emptied, the system begins popping 
+# accounts from WORK. When WORK is exhausted, the system
+# treats this condition just like it has been restarted.
+#
+# Normal execution means that all listed accounts get
+# processed once because they were found in ADDS, then again
+# because they were found in WORK, then the system restarts.
+# Any accounts added to a list at any point during the run
+# are given priority. This is done so an operator tracking
+# 480 accounts does not have to wait eight hours before a
+# single account they have added appears in the system.
+#
+# This algorithm has a 1 in (total accounts tracked) chance
+# of finding a newly listed account during a reload, which
+# will introduce an average delay before that account
+# becomes available of (total accounts tracked)/2 minutes.
+#
+# During most processing time, defined by:
+#
+# (total accounts tracked - 1)/(total accounts tracked)
+#
+# The longest possible delay is sixty seconds for the 
+# currently executing account to finish, plus ninety 
+# seconds for the system to collect 3,200 tweets from a 
+# new account.
+#
+# There are faster ways to do this, but they all require
+# the system to have memory of the past. This method is
+# perceived as fast by the collection account operator and
+# its behavior is entirely controlled by the lists in 
+# the account they use. Any restart/failover of a server
+# in a clustered system passes unnoticed.
+#
+##########################################################
 def load_lists(myname):
 	lists = api.lists_all(myname)
 	if(len(work) == 0 ):
@@ -66,6 +130,29 @@ def load_lists(myname):
 					adds.add(member.screen_name)
 
 def get_all_tweets(acct_name):
+	##########################################################
+	# Each index of tweets has a companion index of Twitter ID
+	# data that contains the ID of the last status emitted by 
+	# the account. When the system processes an account it is
+	# either previously unseen, which means we collect up to
+	# 3,200 tweets, or it has been seen, in which case we only
+	# want the newly added tweets.
+	# 
+	# This method is admittedly imperfect. If an account is
+	# collected, then it deletes its final tweet, the system
+	# will collect up to 3,200 tweets again the next time it
+	# is processed. We use Twitter's "snowflake" numbers as 
+	# the unique identifier for both tweets and user ID data, 
+	# which means there is no way content would be duplicated,
+	# but this does waste time and API resources when it
+	# happens.
+	#
+	# It might make more sense to query the index, retrieving
+	# the last tweet from an account, then using either its
+	# ID or time stamp to limit processing. Testing this is
+	# on our short list of development goals.
+	##########################################################
+
 	maxtweet = "9999999999999999999"
 	if client.indices.exists(index="tu" + getpass.getuser()):
 		s = Search(using=client, index="tu" + getpass.getuser()).query("match", screen_name=acct_name)

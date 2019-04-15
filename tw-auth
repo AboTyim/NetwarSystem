@@ -1,5 +1,8 @@
 #!/usr/bin/env python
-#DESC: print .twitter config file
+# Authorize a Twitter account to use API.
+# account field is just for reference.
+# homedir field is used by some legacy apps
+# from the flat file system.
 import tweepy
 import os
 
