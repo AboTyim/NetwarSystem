@@ -7,14 +7,6 @@ This is the prime repository for our Twitter related code. There are four major 
 * Persistent tracking based on a user's lists.
 * Capture streams based on userids or search terms.
 
-The following are infrastructure dependencies.
-
-* [Redis](http://redis.io) - provides shared Python objects, used for various work queues.
-* [Elasticsearch](http://elastic.co) 6.5.4 - searchable archive of text data.
-* [Search Guard](http://search-guard.com) - Elasticsearch security, needed for teams and/or public access.
-* [Neo4j](http://neo4j.com) - graph database for storing Twitter interactions, new as of 3/2019.
-* [Netdata](https://github.com/netdata/netdata) - system monitor, which with you will become familiar.
-
 The following are the major Python dependencies:
 
 * This software requires Python 3.
@@ -22,6 +14,14 @@ The following are the major Python dependencies:
 * Elasticsearch 6.3.1 for Python (yes, 6.3.1 of this software, not 6.5.4)
 * Py2neo Neo4j client.
 * [Tweepy](http://www.tweepy.org/) Twitter API access for Python.
+
+The following are infrastructure dependencies.
+
+* [Redis](http://redis.io) - provides shared Python objects, used for various work queues.
+* [Elasticsearch](http://elastic.co) 6.5.4 - searchable archive of text data.
+* [Search Guard](http://search-guard.com) - Elasticsearch security, needed for teams and/or public access.
+* [Neo4j](http://neo4j.com) - graph database for storing Twitter interactions, new as of 3/2019.
+* [Netdata](https://github.com/netdata/netdata) - system monitor, which with you will become familiar.
 
 Elasticsearch and Redis/Walrus were the first things implemented, then Search Guard, and we have barely scratched the surface with Neo4j. There are significant changes from Elasticsearch 6.5.4 to 6.7.0, and even more dramatic changes to 7.x. We have a ELK7 prototype, but it's nowhere near ready. We can not support this software on anything but 6.5.x at this time.
 
