@@ -1,6 +1,10 @@
 #!/usr/bin/python
-import getpass, sys, time
+import getpass, sys, time, os
 from walrus import *
+import configparser
+
+config = configparser.ConfigParser()
+config.read(os.environ['HOME'] +'/.twitter')
 
 
 
@@ -8,7 +12,3 @@ wal = Walrus(host=config['STREAM']['redishost'],port=config['STREAM']['redisport
 tum = wal.Set("usertest")
 tot = len(tum)
 print(tot)
-time.sleep(60)
-move = tot - len(tum)
-print(move)
-print(str(tot/move))
