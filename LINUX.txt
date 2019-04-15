@@ -1,0 +1,17 @@
+
+# Must add the following to /etc/security/limits.conf
+# Elasticsearch needs the file handles, Neo4j needs the processes
+
+*               hard    nofile          300000
+*               soft    nofile          300000
+
+*               hard    nproc           10000
+*               soft    nproc           10000
+
+
+# And the following to /etc/sysctl.conf, which will prevent
+# Elasticsearch from dropping packets, and Netdata from
+# endlessly whining about it.
+
+net.core.netdev_budget=3500
+net.core.netdev_budget_usecs=35000
