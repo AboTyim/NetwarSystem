@@ -1,7 +1,11 @@
 #!/usr/bin/python
+# wipe the entire work queue for processing userids.
+# This is populated by tw-load4usertest
+# and drained by tw-queue2usertest.
+# Typically used only in testing new code.
 import getpass
 from walrus import *
 
-wal = Walrus(host='localhost', port=6379, db=0)
+wal = Walrus(host=config['STREAM']['redishost'],port=config['STREAM']['redisport'], db=0)
 qq = wal.Set("usertest")
 qq.clear()

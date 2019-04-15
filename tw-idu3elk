@@ -142,7 +142,7 @@ my = api.verify_credentials()
 #tweetlim = api.rate_limit_status()[u'resources'][u'statuses'][u'/statuses/user_timeline'][u'remaining']
 #perflog("LIMITS"," tweetlim " + str(tweetlim) + " listlim " + str(listlim))
 
-wal = Walrus(host='localhost', port=6379, db=0)
+wal = Walrus(host=config['STREAM']['redishost'],port=config['STREAM']['redisport'], db=0)
 work = wal.Set("work")
 nextacct = work.pop().decode('utf-8')
 print("NEXT NEXT NEXT " + nextacct)
@@ -158,7 +158,7 @@ try:
 		perflog(nextacct," tulogging")
 
 		twbod = "{ \"index\" : { \"_index\" : \"usertest\", \"_type\" : \"userid\", \"_id\" : \"" + y.id_str + "\" }\n"
-		y = squish.squishuser(y)
+		y = squish2.squishuser(y)
 		twbod = twbod + json.dumps(y._json)
 		client.bulk(index="usertest",doc_type="userid",body=twbod)
 		perflog(nextacct," usertest")

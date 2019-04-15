@@ -4,7 +4,7 @@ import csv, json, os, random, re, sys, time, hashlib
 import redis
 from walrus import *
 
-wal = Walrus(host='localhost', port=6379, db=0)
+wal = Walrus(host=config['STREAM']['redishost'],port=config['STREAM']['redisport'], db=0)
 qq = wal.Set("work")
 
 accts = open(sys.argv[1], 'r')

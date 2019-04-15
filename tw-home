@@ -1,7 +1,0 @@
-#!/usr/bin/python
-import sys,tweepy,os
-import configparser
-
-config = configparser.ConfigParser()
-config.read(os.environ['HOME'] +'/.twitter')
-print(config['API']['homedir'])

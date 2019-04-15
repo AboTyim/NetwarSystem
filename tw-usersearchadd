@@ -23,7 +23,7 @@ else:
 
 
 
-wal = Walrus(host='localhost', port=6379, db=0)
+wal = Walrus(host=config['STREAM']['redishost'],port=config['STREAM']['redisport'], db=0)
 qq = wal.Set("usertest")
 
 

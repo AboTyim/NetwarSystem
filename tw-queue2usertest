@@ -50,7 +50,7 @@ else:
 	client = Elasticsearch(config['STREAM']['elksg'])
 
 #client.indices.create(index='usertest', ignore=400)
-wal = Walrus(host='localhost', port=6379, db=0)
+wal = Walrus(host=config['STREAM']['redishost'],port=config['STREAM']['redisport'], db=0)
 tum = wal.Set("usertest")
 
 
