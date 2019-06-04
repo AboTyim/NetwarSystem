@@ -5,6 +5,7 @@ from elasticsearch import Elasticsearch
 from elasticsearch_dsl import Search
 import ssl
 from elasticsearch.connection import create_ssl_context
+from textblob import TextBlob
 import squish2, requests
 
 #urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -30,5 +31,11 @@ response = s.execute()
 if(response):
 	for resp in response:
 		print(resp['text'])
+		blob = TextBlob(resp['text'])
+		print(blob.tags)
+		print(blob.noun_phrases)
+		for sentence in blob.sentences:
+			print(sentence.sentiment.polarity)
+
 else:
-	print(sys.argv[1] + " not found")
+	print(sys.argv[2] + " not found")
