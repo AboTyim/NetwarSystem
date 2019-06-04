@@ -5,13 +5,10 @@ from elasticsearch import Elasticsearch
 from elasticsearch_dsl import Search
 import ssl
 from elasticsearch.connection import create_ssl_context
-import redis
-import requests
-from walrus import *
-from urllib3.exceptions import ProtocolError
+import squish2, requests
+
 #urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 requests.packages.urllib3.disable_warnings()
-
 
 config = configparser.ConfigParser()
 config.read(os.environ['HOME'] +'/.twitter')
@@ -28,26 +25,10 @@ else:
 	client = Elasticsearch(config['STREAM']['elksg'])
 
 
-
-
-
-wal = Walrus(host=config['STREAM']['redishost'],port=config['STREAM']['redisport'], db=0)
-qq = wal.Set("usertest")
-
-
-found = open(sys.argv[1] + "-found.txt", 'w')
-missd = open(sys.argv[1] + "-missed.txt", 'w')
-accts = open(sys.argv[1], 'r')
-for acct in accts:
-	acct = acct.rstrip()
-	s = Search(using=client, index="usertest").query("match",id_str=acct)
-	response = s.execute()
-	if(response):
-		for resp in response:
-			print(resp['id_str'])
-			found.write(resp['id_str'] + "\n")
-	else:
-		print(acct)
-		missd.write(str(acct) + "\n")
-		qq.add(str(acct))
-
+s = Search(using=client, index=sys.argv[1]).query("match",id_str=sys.argv[2])
+response = s.execute()
+if(response):
+	for resp in response:
+		print(resp['text'])
+else:
+	print(sys.argv[1] + " not found")
