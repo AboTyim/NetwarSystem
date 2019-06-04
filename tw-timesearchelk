@@ -1,13 +1,30 @@
 #!/usr/bin/python
-import datetime
+import csv, json, os, random, re, sys, time, redis, tweepy, getpass, datetime
+import configparser
+from elasticsearch import Elasticsearch
+from elasticsearch_dsl import Search
+import ssl
+from elasticsearch.connection import create_ssl_context
+from textblob import TextBlob
+import squish2, requests
 
-# Python strftime reference
-# http://strftime.org/
-#
-# Elasticsearch Twitter timestamp mapping as a single line of JSON
-# "created_at" : {"type" : "date",  "format" : "EEE MMM dd HH:mm:ss Z YYYY"},
-#
-# Example timestamp: Sun Mar 24 05:20:06 +0000 2019
+#urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+requests.packages.urllib3.disable_warnings()
+
+config = configparser.ConfigParser()
+config.read(os.environ['HOME'] +'/.twitter')
+
+if(config['STREAM']['elksg'][:5] == "https"):
+	try:
+		ssl_context = create_ssl_context(cafile='/home/root-ca.pem')
+		ssl_context.check_hostname = False
+		ssl_context.verify_mode = ssl.CERT_NONE
+		client = Elasticsearch(config['STREAM']['elksg'], ssl_context=ssl_context, timeout=60, http_auth=(config['STREAM']['elksguser'], config['STREAM']['elksgpass']))
+	except:
+		sys.exit()
+else:
+	client = Elasticsearch(config['STREAM']['elksg'])
+
 
 # Twitter timestamp of the now
 now = datetime.datetime.now()
@@ -18,4 +35,15 @@ last24 = now - datetime.timedelta(days=1)
 print(last24.strftime("%a %b %d %X +0000 %Y"))
 
 # This specific query works against Twitter data
-#s = Search(using=client, index="twbrexit").filter('range', created_at={"from": last24.strftime("%a %b %d %X +0000 %Y") }).query("match", text="Brexit")
+s = Search(using=client, index="twbrexit").filter('range', created_at={"from": last24.strftime("%a %b %d %X +0000 %Y") }).query("match", text="Brexit")
+response = s.execute()
+if(response):
+	for resp in response:
+		print(resp['text'])
+		blob = TextBlob(resp['text'])
+		for sentence in blob.sentences:
+			print(sentence.sentiment.polarity)
+
+	else:
+		print("LOLWUT")
+
