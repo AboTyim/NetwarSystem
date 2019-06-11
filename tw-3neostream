@@ -10,7 +10,7 @@ import datetime, platform, getpass
 import csv, json, pprint, os, random, re, sys, time, datetime
 import redis, walrus, tweepy, configparser, ssl
 import psutil, getpass, setproctitle, platform
-from time import gmtime, strftime
+from time import gmtime
 from elasticsearch import Elasticsearch
 from elasticsearch_dsl import Search
 from elasticsearch.connection import create_ssl_context

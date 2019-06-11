@@ -3,14 +3,9 @@
 import csv, json, os, random, re, sys, time, hashlib
 import redis
 from walrus import *
-import configparser
-
-config = configparser.ConfigParser()
-config.read(os.environ['HOME'] +'/.twitter')
-
 
 wal = Walrus(host=config['STREAM']['redishost'],port=config['STREAM']['redisport'], db=0)
-qq = wal.Set("work")
+qq = wal.Set("fbfriends")
 
 accts = open(sys.argv[1], 'r')
 

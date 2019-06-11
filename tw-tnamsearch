@@ -5,6 +5,13 @@ from elasticsearch import Elasticsearch
 from elasticsearch_dsl import Search
 import ssl
 from elasticsearch.connection import create_ssl_context
+import squish2, requests
+
+#urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+requests.packages.urllib3.disable_warnings()
+
+config = configparser.ConfigParser()
+config.read(os.environ['HOME'] +'/.twitter')
 
 if(config['STREAM']['elksg'][:5] == "https"):
 	print(config['STREAM']['elksg'][:5])

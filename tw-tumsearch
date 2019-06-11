@@ -3,8 +3,15 @@ import csv, json, os, random, re, sys, time, redis, tweepy, getpass
 import configparser
 from elasticsearch import Elasticsearch
 from elasticsearch_dsl import Search
-import ssl
+import ssl, requests
 from elasticsearch.connection import create_ssl_context
+from urllib3.exceptions import ProtocolError
+
+#urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+requests.packages.urllib3.disable_warnings()
+
+config = configparser.ConfigParser()
+config.read(os.environ['HOME'] +'/.twitter')
 
 
 if(config['STREAM']['elksg'][:5] == "https"):

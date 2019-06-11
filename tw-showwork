@@ -8,5 +8,5 @@ config.read(os.environ['HOME'] +'/.twitter')
 
 
 wal = Walrus(host=config['STREAM']['redishost'],port=config['STREAM']['redisport'], db=0)
-tum = wal.Set("work")
+tum = wal.Set(sys.argv[1].rstrip())
 print(tum)

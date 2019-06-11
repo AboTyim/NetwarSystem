@@ -1,14 +1,10 @@
 #!/usr/bin/python
-import csv, json, os, random, re, sys, time, redis, tweepy, getpass
+import csv, json, os, random, re, sys, time, redis, tweepy, getpass, re
 import configparser
 from elasticsearch import Elasticsearch
 from elasticsearch_dsl import Search
-import ssl
+import ssl, requests
 from elasticsearch.connection import create_ssl_context
-import redis
-import requests
-from walrus import *
-from urllib3.exceptions import ProtocolError
 #urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 requests.packages.urllib3.disable_warnings()
 
@@ -27,27 +23,13 @@ if(config['STREAM']['elksg'][:5] == "https"):
 else:
 	client = Elasticsearch(config['STREAM']['elksg'])
 
-
-
-
-
-wal = Walrus(host=config['STREAM']['redishost'],port=config['STREAM']['redisport'], db=0)
-qq = wal.Set("usertest")
-
-
-found = open(sys.argv[1] + "-found.txt", 'w')
-missd = open(sys.argv[1] + "-missed.txt", 'w')
-accts = open(sys.argv[1], 'r')
-for acct in accts:
-	acct = acct.rstrip()
-	s = Search(using=client, index="usertest").query("match",id_str=acct)
+accts = open(sys.argv[1] + ".txt", 'r')
+out = open(sys.argv[1] + ".ggg", 'w')
+for line in accts:
+	s = Search(using=client, index="usertest").query("match",id_str=line)
 	response = s.execute()
 	if(response):
 		for resp in response:
-			print(resp['screen_name'])
-			found.write(resp['id_str'] + "\n")
-	else:
-		print(acct)
-		missd.write(str(acct) + "\n")
-		qq.add(str(acct))
+			print(sys.argv[1] + "," + resp['screen_name'])
+			out.write(sys.argv[1] + "," + resp['screen_name'] + "\n")
 
