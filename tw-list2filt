@@ -5,6 +5,9 @@ import csv
 import sys
 import configparser
 import os
+import squish2, requests
+
+requests.packages.urllib3.disable_warnings()
 
 config = configparser.ConfigParser()
 config.read(os.environ['HOME'] +'/.twitter')

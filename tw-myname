@@ -3,6 +3,8 @@
 import tweepy
 import os, sys, pdb, getpass
 import configparser
+import squish2, requests
+requests.packages.urllib3.disable_warnings()
 
 config = configparser.ConfigParser()
 

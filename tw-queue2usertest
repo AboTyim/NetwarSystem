@@ -8,7 +8,7 @@ from elasticsearch import Elasticsearch
 from walrus import *
 import ssl
 from elasticsearch.connection import create_ssl_context
-import squish2
+import squish2, requests
 
 def perflog(scname,mesg):
 	mydate = str(datetime.datetime.utcnow())
@@ -31,6 +31,11 @@ def check_resources():
 
 
 check_resources()
+
+
+# start here
+requests.packages.urllib3.disable_warnings()
+
 config = configparser.ConfigParser()
 config.read(os.environ['HOME'] +'/.twitter')
 auth = tweepy.OAuthHandler(config['API']['consumer_key'], config['API']['consumer_secret'])

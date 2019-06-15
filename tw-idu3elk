@@ -11,7 +11,9 @@ from elasticsearch_dsl import Search
 import ssl
 from elasticsearch.connection import create_ssl_context
 from walrus import *
-import squish2
+import squish2, requests
+
+requests.packages.urllib3.disable_warnings()
 
 def perflog(scname,mesg):
 	mydate = str(datetime.datetime.utcnow())

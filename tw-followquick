@@ -4,6 +4,10 @@ import tweepy
 import os, sys, json, time
 import configparser
 from elasticsearch import Elasticsearch
+import squish2, requests
+
+#urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+requests.packages.urllib3.disable_warnings()
 
 config = configparser.ConfigParser()
 config.read(os.environ['HOME'] +'/.twitter')
@@ -21,7 +25,7 @@ if True:
 				print(derp)
 				out.write(str(derp) + "\n")
 			zod = api.rate_limit_status()
-			while(zod['resources']['followers']['/followers/ids']['remaining'] < 1):
+			while(zod['resources']['followers']['/followers/ids']['remaining'] < 2):
 				time.sleep(60)
 				zod = api.rate_limit_status()
 	except (RuntimeError, TypeError, NameError):

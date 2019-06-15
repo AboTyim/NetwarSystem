@@ -3,6 +3,8 @@
 import tweepy
 import os, sys
 import configparser
+import squish2, requests
+requests.packages.urllib3.disable_warnings()
 
 if len(sys.argv) == 1:
     myconf = os.environ['HOME'] +'/.twitter'

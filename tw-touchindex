@@ -5,6 +5,8 @@ from elasticsearch import Elasticsearch
 from elasticsearch_dsl import Search
 import ssl
 from elasticsearch.connection import create_ssl_context
+import squish2, requests
+requests.packages.urllib3.disable_warnings()
 
 if(config['STREAM']['elksg'][:5] == "https"):
 	print(config['STREAM']['elksg'][:5])

@@ -4,6 +4,8 @@ import tweepy
 import os, sys, json, time
 import configparser
 from elasticsearch import Elasticsearch
+import squish2, requests
+requests.packages.urllib3.disable_warnings()
 
 config = configparser.ConfigParser()
 config.read(os.environ['HOME'] +'/.twitter')
