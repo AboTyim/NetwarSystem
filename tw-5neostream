@@ -1,4 +1,5 @@
 #!/usr/bin/python
+#urllib3.exceptions.ReadTimeoutError: HTTPSConnectionPool(
 import datetime, platform, getpass
 import csv, json, pprint, os, random, re, sys, time, datetime
 import redis, walrus, tweepy, configparser, ssl

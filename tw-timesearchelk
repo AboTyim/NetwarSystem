@@ -35,7 +35,7 @@ last24 = now - datetime.timedelta(days=1)
 print(last24.strftime("%a %b %d %X +0000 %Y"))
 
 # This specific query works against Twitter data
-s = Search(using=client, index="twbrexit").filter('range', created_at={"from": last24.strftime("%a %b %d %X +0000 %Y") }).query("match", text="Brexit")
+s = Search(using=client, index="twbrexit").filter('range', created_at={"from": last24.strftime("%a %b %d %X +0000 %Y") }).query("match", text=sys.argv[1])
 response = s.execute()
 if(response):
 	for resp in response:
