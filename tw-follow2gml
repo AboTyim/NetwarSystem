@@ -6,6 +6,8 @@ from elasticsearch_dsl import Search
 import ssl, requests
 from elasticsearch.connection import create_ssl_context
 import networkx as nx
+from scipy.stats.mstats import gmean
+
 #urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 requests.packages.urllib3.disable_warnings()
 
@@ -29,6 +31,11 @@ DG = nx.DiGraph()
 
 for file in names:
 	fname = re.sub(".txt", "",file.rstrip())
+	s = Search(using=client, index="usertest").query("match",screen_name=fname)
+	response = s.execute()
+	if(response):
+		for resp in response:
+				DG.add_node(fname, faves = resp['favourites_count'], followers = resp['followers_count'],friends = resp['friends_count'], listed = resp['listed_count'], statuses = resp['statuses_count'], gmean=gmean(resp['favourites_count'],resp['followers_count'],resp['friends_count'], resp['listed_count'], resp['statuses_count']))
 	accts = open(fname + ".txt", 'r')
 	for line in accts:
 		s = Search(using=client, index="usertest").query("match",id_str=line)
@@ -37,7 +44,7 @@ for file in names:
 			for resp in response:
 				print(fname + "," + resp['screen_name'])
 				sn = resp['screen_name']
-				DG.add_node(sn, faves = resp['favourites_count'], followers = resp['followers_count'],friends = resp['friends_count'], listed = resp['listed_count'], statuses = resp['statuses_count'])
+				DG.add_node(sn, faves = resp['favourites_count'], followers = resp['followers_count'],friends = resp['friends_count'], listed = resp['listed_count'], statuses = resp['statuses_count'],gmean=gmean(resp['favourites_count'],resp['followers_count'],resp['friends_count'], resp['listed_count'], resp['statuses_count']))
 				DG.add_edge(fname,sn, weight=1)
 
-nx.write_gml(DG,fname + ".gml")
+nx.write_gml(DG,names + ".gml")
