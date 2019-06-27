@@ -10,7 +10,11 @@ import squish2, requests
 requests.packages.urllib3.disable_warnings()
 
 config = configparser.ConfigParser()
-config.read(os.environ['HOME'] +'/.twitter')
+if len(sys.argv) == 2:
+	cfile = sys.argv[2]
+else:
+	cfile = os.environ['HOME'] +'/.twitter'
+config.read(cfile)
 
 
 auth = tweepy.OAuthHandler(config['API']['consumer_key'], config['API']['consumer_secret'])
