@@ -1,5 +1,5 @@
 #!/usr/bin/python
-import csv, json, os, random, re, sys, time, redis, tweepy, getpass, re
+import csv, json, os, random, re, sys, time, redis, tweepy, getpass, re, math
 import configparser
 from elasticsearch import Elasticsearch
 from elasticsearch_dsl import Search
@@ -35,7 +35,15 @@ for file in names:
 	response = s.execute()
 	if(response):
 		for resp in response:
-				DG.add_node(fname, faves = resp['favourites_count'], followers = resp['followers_count'],friends = resp['friends_count'], listed = resp['listed_count'], statuses = resp['statuses_count'], gmean=gmean(resp['favourites_count'],resp['followers_count'],resp['friends_count'], resp['listed_count'], resp['statuses_count']))
+				DG.add_node(fname, faves = resp['favourites_count'], 
+							followers = resp['followers_count'],
+							friends = resp['friends_count'], 
+							listed = resp['listed_count'], 
+							statuses = resp['statuses_count'], 
+							gmean4=gmean([resp['favourites_count'],resp['followers_count'],resp['friends_count'], resp['statuses_count']]),
+							gmean5=gmean([resp['favourites_count'],resp['followers_count'],resp['friends_count'], resp['listed_count'], resp['statuses_count']]),
+							ln1p4=math.log1p(gmean([resp['favourites_count'],resp['followers_count'],resp['friends_count'], resp['statuses_count']])),
+							ln1p5=math.log1p(gmean([resp['favourites_count'],resp['followers_count'],resp['friends_count'], resp['listed_count'], resp['statuses_count']])))
 	accts = open(fname + ".txt", 'r')
 	for line in accts:
 		s = Search(using=client, index="usertest").query("match",id_str=line)
@@ -44,7 +52,15 @@ for file in names:
 			for resp in response:
 				print(fname + "," + resp['screen_name'])
 				sn = resp['screen_name']
-				DG.add_node(sn, faves = resp['favourites_count'], followers = resp['followers_count'],friends = resp['friends_count'], listed = resp['listed_count'], statuses = resp['statuses_count'],gmean=gmean(resp['favourites_count'],resp['followers_count'],resp['friends_count'], resp['listed_count'], resp['statuses_count']))
+				DG.add_node(sn, faves = resp['favourites_count'], 
+					followers = resp['followers_count'],
+					friends = resp['friends_count'], 
+					listed = resp['listed_count'], 
+					statuses = resp['statuses_count'],
+					gmean4=gmean([resp['favourites_count'],resp['followers_count'],resp['friends_count'], resp['statuses_count']]),
+					gmean5=gmean([resp['favourites_count'],resp['followers_count'],resp['friends_count'], resp['listed_count'], resp['statuses_count']]),
+					ln1p4=math.log1p(gmean([resp['favourites_count'],resp['followers_count'],resp['friends_count'], resp['statuses_count']])),
+					ln1p5=math.log1p(gmean([resp['favourites_count'],resp['followers_count'],resp['friends_count'], resp['listed_count'], resp['statuses_count']])))
 				DG.add_edge(fname,sn, weight=1)
 
-nx.write_gml(DG,names + ".gml")
+nx.write_gml(DG,sys.argv[1] + ".gml")
