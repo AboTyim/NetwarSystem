@@ -40,8 +40,8 @@ for file in names:
 							friends = resp['friends_count'], 
 							listed = resp['listed_count'], 
 							statuses = resp['statuses_count'], 
-							gmean4=gmean([resp['favourites_count'],resp['followers_count'],resp['friends_count'], resp['statuses_count']]),
-							gmean5=gmean([resp['favourites_count'],resp['followers_count'],resp['friends_count'], resp['listed_count'], resp['statuses_count']]),
+							gmean4=int(gmean([resp['favourites_count'],resp['followers_count'],resp['friends_count'], resp['statuses_count']])),
+							gmean5=int(gmean([resp['favourites_count'],resp['followers_count'],resp['friends_count'], resp['listed_count'], resp['statuses_count']])),
 							ln1p4=math.log1p(gmean([resp['favourites_count'],resp['followers_count'],resp['friends_count'], resp['statuses_count']])),
 							ln1p5=math.log1p(gmean([resp['favourites_count'],resp['followers_count'],resp['friends_count'], resp['listed_count'], resp['statuses_count']])))
 	accts = open(fname + ".txt", 'r')
@@ -57,8 +57,8 @@ for file in names:
 					friends = resp['friends_count'], 
 					listed = resp['listed_count'], 
 					statuses = resp['statuses_count'],
-					gmean4=gmean([resp['favourites_count'],resp['followers_count'],resp['friends_count'], resp['statuses_count']]),
-					gmean5=gmean([resp['favourites_count'],resp['followers_count'],resp['friends_count'], resp['listed_count'], resp['statuses_count']]),
+					gmean4=int(gmean([resp['favourites_count'],resp['followers_count'],resp['friends_count'], resp['statuses_count']])),
+					gmean5=int(gmean([resp['favourites_count'],resp['followers_count'],resp['friends_count'], resp['listed_count'], resp['statuses_count']])),
 					ln1p4=math.log1p(gmean([resp['favourites_count'],resp['followers_count'],resp['friends_count'], resp['statuses_count']])),
 					ln1p5=math.log1p(gmean([resp['favourites_count'],resp['followers_count'],resp['friends_count'], resp['listed_count'], resp['statuses_count']])))
 				DG.add_edge(fname,sn, weight=1)

@@ -62,6 +62,13 @@ twbod = ""
 cnt = 0
 cnt2 = 0
 popcnt = 0
+
+# clumsy guess on 300 here
+zod = api.rate_limit_status()
+if(zod['resources']['users']['/users/show/:id']['remaining'] < 300):
+	cnt2 = 800
+
+
 while(cnt2 < 800):
 	try:
 		k = tum.pop().decode('utf-8')
@@ -75,6 +82,7 @@ while(cnt2 < 800):
 			twbod = twbod + "{ \"index\" : { \"_index\" : \"campfollowers\", \"_type\" : \"userid\", \"_id\" : \"" + y.id_str + "\" }\n"
 			twbod = twbod + json.dumps(y._json) + "\n"
 			cnt = cnt + 1
+		# can we put back the item we popped if we fail?? NRR 2019-06-27
 	except (RuntimeError, TypeError, NameError, tweepy.error.TweepError):
 		perflog(config['API']['account'], "tweepy error " + str(tweepy.error.TweepError))
 		pass
@@ -96,4 +104,5 @@ while(cnt2 < 800):
 		# be enough cushion to keep them from failing.
 		if(zod['resources']['users']['/users/show/:id']['remaining'] < 100):
 			cnt2 = 800
+
 
