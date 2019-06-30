@@ -87,7 +87,7 @@ while(cnt2 < 800):
 		cnt2 = cnt2 + cnt
 		twbod = ""
 		cnt = 0
-		perflog(config['API']['account'],"test profiling " + str(cnt2) + " popcnt " + str(popcnt))
+		perflog(config['API']['account'],"profiling " + str(cnt2) + " of " + str(len(tum)))
 		zod = api.rate_limit_status()
 		# API provides 900 of these per every fifteen minutes. When we notice
 		# fewer than 100 calls left, we quit. The accounts used to do this
