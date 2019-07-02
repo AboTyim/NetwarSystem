@@ -6,21 +6,14 @@ from elasticsearch_dsl import Search
 from walrus import *
 import psutil, getpass, setproctitle, platform
 import logging, logging.handlers
-from time import gmtime, strftime
+from time import gmtime
 import ssl
 from elasticsearch.connection import create_ssl_context
-import squish2
+import squish2, requests
+from urllib3.exceptions import ProtocolError
 
-def perflog(scname,mesg):
-        mydate = str(datetime.datetime.utcnow())   
-        ebod = "{ \"index\" : { \"_index\" : \"perflog\", \"_type\" : \"perfdata\"} }\n"
-        ebod = ebod + "{\"host\" : \"" + platform.node() + "\", \"shell\" : \"" + getpass.getuser() + "\", \"screen_name\" : \""
-        ebod = ebod + scname + "\", \"event\" : \"" + mesg + "\" , \"date\" : \"" + mydate + "\"}\n"
-        #print(ebod)
-        try:
-                client.bulk(body=ebod)
-        except(RuntimeError, TypeError, NameError):
-                pass
+#urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+requests.packages.urllib3.disable_warnings()
 
 
 
@@ -32,7 +25,7 @@ def check_resources():
 	# perfect conditions.
 	for p in psutil.process_iter(attrs=['name', 'username']):
 		if (p.info['username'] == getpass.getuser()) and (p.info['name'] == "work" +getpass.getuser()):
-			perflog("FAIL", "already running")
+			squish2.perflog(client,"FAIL", "already running")
 			sys.exit()
 
 	setproctitle.setproctitle("work" + getpass.getuser())
@@ -49,7 +42,7 @@ def check_resources():
 	while (i < 30):
 		zcpu = psutil.cpu_percent(interval=None, percpu=False)
 		zmem = psutil.virtual_memory()[2]
-		if (zcpu < config['API']['maxcpu']) and (zmem < config['API']['maxmem']):
+		if (zcpu < float(config['API']['maxcpu'])) and (zmem < float(config['API']['maxmem'])):
 			i = 60
 		i = i + 2
 		time.sleep(2)
@@ -57,11 +50,11 @@ def check_resources():
 	#i < 60, don't have resources
 	if (i  < 60):
 		print()
-		perflog("FAIL","zcpu " + str(zcpu) + " zmem " + str(zmem))
+		squish2.perflog(client,"FAIL","zcpu " + str(zcpu) + " zmem " + str(zmem))
 		sys.exit()
 	else:
 		print("")
-		#perflog(getpass.getuser(),"sufficient resources to run")
+		#squish2.perflog(client,getpass.getuser(),"sufficient resources to run")
 
 ##########################################################
 # Because people scratch their heads over this algorithm.
@@ -122,10 +115,11 @@ def load_lists(myname):
 		seen.clear()
 	for list in lists:
 		print(list.slug)
-		if re.match("nsce-", list.slug):
+#		if re.match("nsce-", list.slug):
+		if re.match(config['STREAM']['redishost'], list.slug):
 			for member in tweepy.Cursor(api.list_members,myname,list.slug).items():
 				if(member.screen_name not in seen):
-					#print("adding " + list.slug + " " +  member.screen_name)
+					print("adding " + list.slug + " " +  member.screen_name)
 					seen.add(member.screen_name)
 					adds.add(member.screen_name)
 
@@ -209,7 +203,10 @@ if(config['STREAM']['elksg'][:5] == "https"):
 else:
 	client = Elasticsearch(config['STREAM']['elksg'])
 
-wal = Walrus(host='localhost', port=6379, db=0)
+client.indices.create(index='tw' + config['STREAM']['index'], ignore=400)
+client.indices.create(index='tu' + config['STREAM']['index'], ignore=400)
+
+wal = Walrus(host=config['STREAM']['redishost'],port=config['STREAM']['redisport'], db=0)
 adds = wal.Set(getpass.getuser() + "adds")
 work = wal.Set(getpass.getuser() + "work")
 seen = wal.Set(getpass.getuser() + "seen")
@@ -226,7 +223,7 @@ else:
 	print("work: " + str(nextid))
 
 get_all_tweets(nextid)
-perflog("monitoring",nextid)
+squish2.perflog(client,"monitoring",nextid)
 try:
 	y = api.get_user(nextid)
 	if y:

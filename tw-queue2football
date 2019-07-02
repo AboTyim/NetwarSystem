@@ -10,16 +10,6 @@ import ssl, requests
 from elasticsearch.connection import create_ssl_context
 import squish2
 
-def perflog(scname,mesg):
-	mydate = str(datetime.datetime.utcnow())
-	ebod = "{ \"index\" : { \"_index\" : \"perflog\", \"_type\" : \"perfdata\"} }\n"
-	ebod = ebod + "{\"host\" : \"" + platform.node() + "\", \"shell\" : \"" + getpass.getuser() + "\", \"screen_name\" : \"" 
-	ebod = ebod + str(scname) + "\", \"event\" : \"" + str(mesg) + "\" , \"date\" : \"" + mydate + "\"}\n"
-	#print(ebod)
-	try:
-		client.bulk(body=ebod)
-	except(RuntimeError, TypeError, NameError):
-		pass
 def check_resources():
 	# make sure prior instance has exited
 	for p in psutil.process_iter(attrs=['name', 'username']):
