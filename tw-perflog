@@ -24,7 +24,6 @@ config = configparser.ConfigParser()
 config.read(os.environ['HOME'] +'/.twitter')
 
 if(config['STREAM']['elksg'][:5] == "https"):
-	print(config['STREAM']['elksg'][:5])
 	try:
 		ssl_context = create_ssl_context(cafile='/home/root-ca.pem')
 		ssl_context.check_hostname = False

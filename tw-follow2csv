@@ -23,13 +23,15 @@ if(config['STREAM']['elksg'][:5] == "https"):
 else:
 	client = Elasticsearch(config['STREAM']['elksg'])
 
-accts = open(sys.argv[1] + ".txt", 'r')
-out = open(sys.argv[1] + ".ggg", 'w')
+fname = re.sub(".txt", "",sys.argv[1])
+
+accts = open(fname + ".txt", 'r')
+out = open(fname + ".ggg", 'w')
 for line in accts:
 	s = Search(using=client, index="usertest").query("match",id_str=line)
 	response = s.execute()
 	if(response):
 		for resp in response:
-			print(sys.argv[1] + "," + resp['screen_name'])
-			out.write(sys.argv[1] + "," + resp['screen_name'] + "\n")
+			print(fname + "," + resp['screen_name'])
+			out.write(fname + "," + resp['screen_name'] + "\n")
 

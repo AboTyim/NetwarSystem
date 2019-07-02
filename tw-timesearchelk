@@ -43,6 +43,7 @@ if(response):
 		blob = TextBlob(resp['text'])
 		for sentence in blob.sentences:
 			print(sentence.sentiment.polarity)
+		print("\n")
 
 	else:
 		print("LOLWUT")

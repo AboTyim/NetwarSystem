@@ -10,7 +10,7 @@ import squish2, requests
 requests.packages.urllib3.disable_warnings()
 
 config = configparser.ConfigParser()
-if len(sys.argv) == 2:
+if len(sys.argv) == 3:
 	cfile = sys.argv[2]
 else:
 	cfile = os.environ['HOME'] +'/.twitter'
