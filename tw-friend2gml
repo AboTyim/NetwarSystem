@@ -107,7 +107,7 @@ for file in names:
 							ln1p5=math.log1p(gmean([resp['favourites_count'],resp['followers_count'],resp['friends_count'], resp['listed_count'], resp['statuses_count']])))
 	accts = open(fname + ".txt", 'r')
 	for line in accts:
-		s = Search(using=client, index="usertest").query("match",id_str=line.rstrip())
+		s = Search(using=client, index="usertest").query("match",id_str=line)
 		response = s.execute()
 		if(response):
 			for resp in response:

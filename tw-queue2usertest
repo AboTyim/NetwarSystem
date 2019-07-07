@@ -14,7 +14,7 @@ def check_resources():
 	# make sure prior instance has exited
 	for p in psutil.process_iter(attrs=['name', 'username']):
 		if (p.info['username'] == getpass.getuser()) and (p.info['name'] == "usertest" +getpass.getuser()):
-			squish2.perflog(client, "FAIL", "already running")
+			squish2.squish2.perflog(client, "FAIL", "already running")
 			sys.exit()
 
 	setproctitle.setproctitle("work" + getpass.getuser())
@@ -64,10 +64,10 @@ while(cnt2 < 800):
 			twbod = twbod + json.dumps(y._json) + "\n"
 			cnt = cnt + 1
 	except (RuntimeError, TypeError, NameError, tweepy.error.TweepError):
-		perflog(client,config['API']['account'], "tweepy error " + str(tweepy.error.TweepError))
+		squish2.perflog(client,config['API']['account'], "tweepy error " + str(tweepy.error.TweepError))
 		pass
 	except(AttributeError):
-		perflog(client,config['API']['account'], "AttributeError " + str(id))
+		squish2.perflog(client,config['API']['account'], "AttributeError " + str(id))
 		cnt = 800
 	# stash every 200 userids collected.
 	if(cnt > 199):
@@ -76,7 +76,7 @@ while(cnt2 < 800):
 		cnt2 = cnt2 + cnt
 		twbod = ""
 		cnt = 0
-		perflog(client,config['API']['account'],"profiling " + str(cnt2) + " of " + str(len(tum)))
+		squish2.perflog(client,config['API']['account'],"profiling " + str(cnt2) + " of " + str(len(tum)))
 		zod = api.rate_limit_status()
 		# API provides 900 of these per every fifteen minutes. When we notice
 		# fewer than 100 calls left, we quit. The accounts used to do this

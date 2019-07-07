@@ -66,7 +66,7 @@ def get_all_tweets(screen_name):
 		try:
 			client.bulk(index="tw" + sys.argv[1],doc_type="tweets",body=bod)
 		except (RuntimeError, TypeError, NameError):
-			perflog(client,screen_name, "failed bulk add " + str(len(bod)))
+			squish2.perflog(client,screen_name, "failed bulk add " + str(len(bod)))
 			pass
 		bod = ""
 		oldest = new_tweets[-1].id - 1
@@ -80,7 +80,7 @@ def check_resources():
 	# make sure prior instance has exited
 	for p in psutil.process_iter(attrs=['name', 'username']):
 		if (p.info['username'] == getpass.getuser()) and (p.info['name'] == "work" +getpass.getuser()):
-			perflog(client,"FAIL", "already running")
+			squish2.perflog(client,"FAIL", "already running")
 			sys.exit()
 
 	setproctitle.setproctitle("work" + getpass.getuser())
@@ -97,11 +97,11 @@ def check_resources():
 	#i < 60, don't have resources
 	if (i  < 60):
 		print()
-		perflog(client, "FAIL","zcpu " + str(zcpu) + " zmem " + str(zmem))
+		squish2.perflog(client, "FAIL","zcpu " + str(zcpu) + " zmem " + str(zmem))
 		sys.exit()
 	else:
 		print("")
-		#perflog(client,getpass.getuser(),"sufficient resources to run")
+		#squish2.perflog(client,getpass.getuser(),"sufficient resources to run")
 
 # check_resources
 
@@ -130,13 +130,13 @@ api = tweepy.API(auth)
 my = api.verify_credentials()
 #listlim = api.rate_limit_status()[u'resources'][u'lists'][u'/lists/members'][u'remaining']
 #tweetlim = api.rate_limit_status()[u'resources'][u'statuses'][u'/statuses/user_timeline'][u'remaining']
-#perflog(client,"LIMITS"," tweetlim " + str(tweetlim) + " listlim " + str(listlim))
+#squish2.perflog(client,"LIMITS"," tweetlim " + str(tweetlim) + " listlim " + str(listlim))
 
 wal = Walrus(host=config['STREAM']['redishost'],port=config['STREAM']['redisport'], db=0)
 work = wal.Set("work")
 nextacct = work.pop().decode('utf-8')
 print("NEXT NEXT NEXT " + nextacct)
-perflog(client,nextacct," starting")
+squish2.perflog(client,nextacct," starting")
 get_all_tweets(nextacct)
 print("got all tweets")
 try:
@@ -145,15 +145,15 @@ try:
 		twbod = "{ \"index\" : { \"_index\" : \"tu" + sys.argv[1] + "\", \"_type\" : \"userid\", \"_id\" : \"" + y.id_str + "\"} }\n"
 		twbod = twbod + json.dumps(y._json)
 		client.bulk(index="tu" + sys.argv[1],doc_type="userid",body=twbod)
-		perflog(client,nextacct," tulogging")
+		squish2.perflog(client,nextacct," tulogging")
 
 		twbod = "{ \"index\" : { \"_index\" : \"usertest\", \"_type\" : \"userid\", \"_id\" : \"" + y.id_str + "\" }\n"
 		y = squish2.squishuser(y)
 		twbod = twbod + json.dumps(y._json)
 		client.bulk(index="usertest",doc_type="userid",body=twbod)
-		perflog(client,nextacct," usertest")
+		squish2.perflog(client,nextacct," usertest")
 except (RuntimeError, TypeError, NameError):
-	perflog(nextacct, " tulogging failed")
+	squish2.perflog(nextacct, " tulogging failed")
 	pass
 
 print("logged " + nextacct)

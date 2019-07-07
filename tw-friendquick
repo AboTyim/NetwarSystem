@@ -1,29 +1,37 @@
 #!/usr/bin/python
-
 #DESC: Save screen name, ID, some other stats for a screen name.
 import tweepy
 import os, sys, json, time
 import configparser
 from elasticsearch import Elasticsearch
 import squish2, requests
+
+#urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 requests.packages.urllib3.disable_warnings()
 
 config = configparser.ConfigParser()
-config.read(os.environ['HOME'] +'/.twitter')
+if len(sys.argv) == 3:
+	cfile = sys.argv[2]
+else:
+	cfile = os.environ['HOME'] +'/.twitter'
+config.read(cfile)
 
 
 auth = tweepy.OAuthHandler(config['API']['consumer_key'], config['API']['consumer_secret'])
 auth.set_access_token(config['API']['access_token_key'], config['API']['access_token_secret'])
 api = tweepy.API(auth)
 
+out = open(sys.argv[1] + ".txt", 'w')
 if True:
 	try:
 		for page in tweepy.Cursor(api.friends_ids, screen_name=sys.argv[1]).pages():
 			for derp in page:
 				print(derp)
+				out.write(str(derp) + "\n")
 			zod = api.rate_limit_status()
-			while(zod['resources']['friends']['/friends/ids']['remaining'] < 1):
+			while(zod['resources']['friends']['/friends/ids']['remaining'] < 2):
 				time.sleep(60)
 				zod = api.rate_limit_status()
 	except (RuntimeError, TypeError, NameError):
 		pass
+out.close()

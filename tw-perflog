@@ -8,18 +8,6 @@ import squish2, requests
 #urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 requests.packages.urllib3.disable_warnings()
 
-
-def perflog(scname,mesg):
-	mydate = str(datetime.datetime.utcnow())
-	ebod = "{ \"index\" : { \"_index\" : \"perflog\", \"_type\" : \"perfdata\"} }\n"
-	ebod = ebod + "{\"host\" : \"" + platform.node() + "\", \"shell\" : \"" + getpass.getuser() + "\", \"screen_name\" : \"" 
-	ebod = ebod + str(scname) + "\", \"event\" : \"" + str(mesg) + "\" , \"date\" : \"" + mydate + "\"}\n"
-	#print(ebod)
-	try:
-		client.bulk(body=ebod)
-	except(RuntimeError, TypeError, NameError):
-		pass
-
 config = configparser.ConfigParser()
 config.read(os.environ['HOME'] +'/.twitter')
 
@@ -34,4 +22,4 @@ if(config['STREAM']['elksg'][:5] == "https"):
 else:
 	client = Elasticsearch(config['STREAM']['elksg'])
 
-perflog("system", "some random stuff goes here")
+squish2.perflog(client, "system", "some random stuff goes here")
