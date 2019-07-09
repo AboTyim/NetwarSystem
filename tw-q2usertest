@@ -11,14 +11,15 @@ from elasticsearch.connection import create_ssl_context
 import squish2, requests
 
 def check_resources():
-	# make sure prior instance has exited
-	for p in psutil.process_iter(attrs=['name', 'username']):
-		if (p.info['username'] == getpass.getuser()) and (p.info['name'] == "usertest" +getpass.getuser()):
-			squish2.squish2.perflog(client, "FAIL", "already running")
-			sys.exit()
-
-	setproctitle.setproctitle("work" + getpass.getuser())
-
+	cnt = 0
+	for p in psutil.process_iter(attrs=['name', 'username', 'cmdline']):
+		if(p.info['username'] == getpass.getuser()):
+			for thing in p.info['cmdline']:
+				if re.search(sys.argv[0], thing):
+					cnt = cnt + 1
+	if(cnt == 2):
+		print("already running")
+		sys.exit(0)
 
 check_resources()
 
