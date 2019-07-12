@@ -28,6 +28,8 @@ check_resources()
 requests.packages.urllib3.disable_warnings()
 
 # If there isn't any work, pointless to set up
+config = configparser.ConfigParser()
+config.read(os.environ['HOME'] +'/.twitter')
 wal = Walrus(host=config['STREAM']['redishost'],port=config['STREAM']['redisport'], db=0)
 tum = wal.Set("usertest")
 if(len(tum) == 0):
@@ -37,8 +39,6 @@ if(len(tum) == 0):
 	sys.exit(0)
 
 
-config = configparser.ConfigParser()
-config.read(os.environ['HOME'] +'/.twitter')
 auth = tweepy.OAuthHandler(config['API']['consumer_key'], config['API']['consumer_secret'])
 auth.set_access_token(config['API']['access_token_key'], config['API']['access_token_secret'])
 api = tweepy.API(auth)
