@@ -28,6 +28,7 @@ check_resources()
 requests.packages.urllib3.disable_warnings()
 
 # If there isn't any work, pointless to set up
+wal = Walrus(host=config['STREAM']['redishost'],port=config['STREAM']['redisport'], db=0)
 tum = wal.Set("usertest")
 if(len(tum) == 0):
 	tum = wal.Set("trickle")
@@ -56,7 +57,6 @@ else:
 squish2.perflog(client,config['API']['account'], "tweepy error " + str(tweepy.error.TweepError))
 
 #client.indices.create(index='usertest', ignore=400)
-wal = Walrus(host=config['STREAM']['redishost'],port=config['STREAM']['redisport'], db=0)
 
 
 twbod = ""
