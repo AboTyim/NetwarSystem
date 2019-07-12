@@ -31,7 +31,7 @@ requests.packages.urllib3.disable_warnings()
 tum = wal.Set("usertest")
 if(len(tum) == 0):
 	tum = wal.Set("trickle")
-if(len(tum) == 0)
+if(len(tum) == 0):
 	print("no work found")
 	sys.exit(0)
 
