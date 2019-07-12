@@ -48,8 +48,10 @@ squish2.perflog(client,config['API']['account'], "tweepy error " + str(tweepy.er
 
 #client.indices.create(index='usertest', ignore=400)
 wal = Walrus(host=config['STREAM']['redishost'],port=config['STREAM']['redisport'], db=0)
-tum = wal.Set("usertest")
 
+tum = wal.Set("usertest")
+if(len(tum) == 0):
+	tum = wal.Set("trickle")
 
 twbod = ""
 cnt = 0
