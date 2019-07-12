@@ -11,17 +11,18 @@ from elasticsearch.connection import create_ssl_context
 import squish2, requests
 
 def check_resources():
-	# make sure prior instance has exited
-	for p in psutil.process_iter(attrs=['name', 'username']):
-		if (p.info['username'] == getpass.getuser()) and (p.info['name'] == "ebabkd" +getpass.getuser()):
-			squish2.perflog(client,"FAIL", "already running")
-			sys.exit()
 
-	setproctitle.setproctitle("work" + getpass.getuser())
-
+	cnt = 0
+	for p in psutil.process_iter(attrs=['name', 'username', 'cmdline']):
+		if(p.info['username'] == getpass.getuser()):
+			for thing in p.info['cmdline']:
+				if re.search("tw-q2usertest", thing):
+					cnt = cnt + 1
+	if(cnt > 1):
+		print("already running")
+		sys.exit(0)
 
 check_resources()
-
 
 # start here
 requests.packages.urllib3.disable_warnings()
@@ -43,9 +44,11 @@ if(config['STREAM']['elksg'][:5] == "https"):
 else:
 	client = Elasticsearch(config['STREAM']['elksg'])
 
-client.indices.create(index='ebabkd', ignore=400)
+squish2.perflog(client,config['API']['account'], "tweepy error " + str(tweepy.error.TweepError))
+
+#client.indices.create(index='usertest', ignore=400)
 wal = Walrus(host=config['STREAM']['redishost'],port=config['STREAM']['redisport'], db=0)
-tum = wal.Set("ebabkd")
+tum = wal.Set("usertest")
 
 
 twbod = ""
@@ -60,7 +63,7 @@ while(cnt2 < 800):
 			id = y._json.pop('id', None)
 			y = squish2.squishuser(y)
 			print(y.screen_name)
-			twbod = twbod + "{ \"index\" : { \"_index\" : \"ebabkd\", \"_type\" : \"userid\", \"_id\" : \"" + y.id_str + "\" }\n"
+			twbod = twbod + "{ \"index\" : { \"_index\" : \"usertest\", \"_type\" : \"userid\", \"_id\" : \"" + y.id_str + "\" }\n"
 			twbod = twbod + json.dumps(y._json) + "\n"
 			cnt = cnt + 1
 	except (RuntimeError, TypeError, NameError, tweepy.error.TweepError):
@@ -72,11 +75,11 @@ while(cnt2 < 800):
 	# stash every 200 userids collected.
 	if(cnt > 199):
 		print("cnt > 199")
-		client.bulk(index="ebabkd",doc_type="userid",body=twbod)
+		client.bulk(index="usertest",doc_type="userid",body=twbod)
 		cnt2 = cnt2 + cnt
 		twbod = ""
 		cnt = 0
-		squish2.perflog(client,config['API']['account'],"test profiling " + str(cnt2) + " popcnt " + str(popcnt))
+		squish2.perflog(client,config['API']['account'],"profiling " + str(cnt2) + " of " + str(len(tum)))
 		zod = api.rate_limit_status()
 		# API provides 900 of these per every fifteen minutes. When we notice
 		# fewer than 100 calls left, we quit. The accounts used to do this

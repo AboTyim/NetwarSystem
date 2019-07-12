@@ -11,18 +11,18 @@ from elasticsearch.connection import create_ssl_context
 import squish2, requests
 
 def check_resources():
+
 	cnt = 0
 	for p in psutil.process_iter(attrs=['name', 'username', 'cmdline']):
 		if(p.info['username'] == getpass.getuser()):
 			for thing in p.info['cmdline']:
-				if re.search(sys.argv[0], thing):
+				if re.search("tw-q2usertest", thing):
 					cnt = cnt + 1
-	if(cnt == 2):
+	if(cnt > 1):
 		print("already running")
 		sys.exit(0)
 
 check_resources()
-
 
 # start here
 requests.packages.urllib3.disable_warnings()
@@ -43,6 +43,8 @@ if(config['STREAM']['elksg'][:5] == "https"):
 		sys.exit()
 else:
 	client = Elasticsearch(config['STREAM']['elksg'])
+
+squish2.perflog(client,config['API']['account'], "tweepy error " + str(tweepy.error.TweepError))
 
 #client.indices.create(index='usertest', ignore=400)
 wal = Walrus(host=config['STREAM']['redishost'],port=config['STREAM']['redisport'], db=0)
