@@ -6,25 +6,27 @@ import os, sys, json, time, psutil, setproctitle
 import configparser, getpass, platform
 from elasticsearch import Elasticsearch
 from walrus import *
-import ssl, requests
+import ssl
 from elasticsearch.connection import create_ssl_context
-import squish2
+import squish2, requests
 
 def check_resources():
-	# make sure prior instance has exited
-	for p in psutil.process_iter(attrs=['name', 'username']):
-		if (p.info['username'] == getpass.getuser()) and (p.info['name'] == "campfollowers" +getpass.getuser()):
-			perflog("FAIL", "already running")
-			sys.exit()
 
-	setproctitle.setproctitle("work" + getpass.getuser())
+	cnt = 0
+	for p in psutil.process_iter(attrs=['name', 'username', 'cmdline']):
+		if(p.info['username'] == getpass.getuser()):
+			for thing in p.info['cmdline']:
+				if re.search("tw-q2usertest", thing):
+					cnt = cnt + 1
+	if(cnt > 1):
+		print("already running")
+		sys.exit(0)
 
+check_resources()
 
 # start here
 requests.packages.urllib3.disable_warnings()
 
-
-check_resources()
 config = configparser.ConfigParser()
 config.read(os.environ['HOME'] +'/.twitter')
 auth = tweepy.OAuthHandler(config['API']['consumer_key'], config['API']['consumer_secret'])
@@ -42,50 +44,42 @@ if(config['STREAM']['elksg'][:5] == "https"):
 else:
 	client = Elasticsearch(config['STREAM']['elksg'])
 
-client.indices.create(index='campfollowers', ignore=400)
+squish2.perflog(client,config['API']['account'], "tweepy error " + str(tweepy.error.TweepError))
+
+#client.indices.create(index='usertest', ignore=400)
 wal = Walrus(host=config['STREAM']['redishost'],port=config['STREAM']['redisport'], db=0)
-tum = wal.Set("camps")
+tum = wal.Set("usertest")
 
 
 twbod = ""
 cnt = 0
 cnt2 = 0
 popcnt = 0
-
-# clumsy guess on 300 here
-zod = api.rate_limit_status()
-if(zod['resources']['users']['/users/show/:id']['remaining'] < 300):
-	cnt2 = 800
-
-
 while(cnt2 < 800):
 	try:
-		k = tum.pop().decode('utf-8')
-		print(k)
-		y = api.get_user(k)
+		y = api.get_user(tum.pop().decode('utf-8'))
 		popcnt = popcnt + 1
 		if y:
 			id = y._json.pop('id', None)
 			y = squish2.squishuser(y)
 			print(y.screen_name)
-			twbod = twbod + "{ \"index\" : { \"_index\" : \"campfollowers\", \"_type\" : \"userid\", \"_id\" : \"" + y.id_str + "\" }\n"
+			twbod = twbod + "{ \"index\" : { \"_index\" : \"usertest\", \"_type\" : \"userid\", \"_id\" : \"" + y.id_str + "\" }\n"
 			twbod = twbod + json.dumps(y._json) + "\n"
 			cnt = cnt + 1
-		# can we put back the item we popped if we fail?? NRR 2019-06-27
 	except (RuntimeError, TypeError, NameError, tweepy.error.TweepError):
-		perflog(config['API']['account'], "tweepy error " + str(tweepy.error.TweepError))
+		squish2.perflog(client,config['API']['account'], "tweepy error " + str(tweepy.error.TweepError))
 		pass
 	except(AttributeError):
-		perflog(config['API']['account'], "AttributeError " + str(id))
+		squish2.perflog(client,config['API']['account'], "AttributeError " + str(id))
 		cnt = 800
 	# stash every 200 userids collected.
 	if(cnt > 199):
 		print("cnt > 199")
-		client.bulk(index="campfollowers",doc_type="userid",body=twbod)
+		client.bulk(index="usertest",doc_type="userid",body=twbod)
 		cnt2 = cnt2 + cnt
 		twbod = ""
 		cnt = 0
-		perflog(config['API']['account'],"test profiling " + str(cnt2) + " popcnt " + str(popcnt))
+		squish2.perflog(client,config['API']['account'],"profiling " + str(cnt2) + " of " + str(len(tum)))
 		zod = api.rate_limit_status()
 		# API provides 900 of these per every fifteen minutes. When we notice
 		# fewer than 100 calls left, we quit. The accounts used to do this
@@ -93,5 +87,3 @@ while(cnt2 < 800):
 		# be enough cushion to keep them from failing.
 		if(zod['resources']['users']['/users/show/:id']['remaining'] < 100):
 			cnt2 = 800
-
-

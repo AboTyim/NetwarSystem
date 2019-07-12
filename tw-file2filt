@@ -7,12 +7,12 @@ import sys
 import os
 
 head = '{ "query": { "bool": { "should": ['
-pre = '        { "match_phrase": { "entities.user_mentions.screen_name": "'
+pre = '        { "match_phrase": { "' + sys.argv[1] + '": "'
 post = '"}}'
 tail = '      ], "minimum_should_match": 1}}}'
 
 
-ff = open(sys.argv[1],'r')
+ff = open(sys.argv[2],'r')
 print(head)
 nuts = ff.readlines()
 for line in nuts[:-1]:
