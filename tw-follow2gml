@@ -105,6 +105,8 @@ for file in names:
 							gmean5=int(gmean([resp['favourites_count'],resp['followers_count'],resp['friends_count'], resp['listed_count'], resp['statuses_count']])),
 							ln1p4=math.log1p(gmean([resp['favourites_count'],resp['followers_count'],resp['friends_count'], resp['statuses_count']])),
 							ln1p5=math.log1p(gmean([resp['favourites_count'],resp['followers_count'],resp['friends_count'], resp['listed_count'], resp['statuses_count']])))
+	nx.write_gml(DG,sys.argv[1] + ".gml")
+	print("opening " + fname + "!")
 	accts = open(fname + ".txt", 'r')
 	for line in accts:
 		s = Search(using=client, index="usertest").query("match",id_str=line)
@@ -165,3 +167,4 @@ remove = [node for node,degree in DG.degree().items() if degree < 2]
 DG.remove_nodes_from(remove)
 
 nx.write_gml(DG,sys.argv[1] + ".gml")
+
