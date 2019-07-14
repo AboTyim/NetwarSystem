@@ -12,7 +12,9 @@ do
     echo
     ps aux | grep "stream" | grep "2gml" | sort | awk -F " " {'print $1 " " $12 " " $13 " " $14'}
     echo
+    elg usert | awk {'print $7'}
     tw-showwork usertest
+    tw-showwork trickle
     tw-showwork friends
     tw-showwork follows
     zoot
