@@ -1,0 +1,13 @@
+#!/usr/bin/python3
+#  1 bit  sign?
+# 41 bits milliseconds since epoch
+#  5 bits data center ID
+#  5 bits machine ID
+# 12 bits sequence number
+import sys
+
+f = open(sys.argv[1],'r')
+for line in f:
+	bits = bin(int(line.rstrip()))
+	if(len(bits) == 62):
+		print(bits[41:46]) 

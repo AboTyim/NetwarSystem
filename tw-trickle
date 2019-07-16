@@ -32,23 +32,25 @@ else:
 
 
 wal = Walrus(host=config['STREAM']['redishost'],port=config['STREAM']['redisport'], db=0)
-qq = wal.Set("usertest")
+qq = wal.Set("trickle")
 
 
 found = open(sys.argv[1] + "-found.txt", 'w')
 missd = open(sys.argv[1] + "-missed.txt", 'w')
 accts = open(sys.argv[1], 'r')
+cnt1 = 1
+cnt2 = 1
 for acct in accts:
 	acct = acct.rstrip()
 	s = Search(using=client, index="usertest").query("match",id_str=acct)
 	response = s.execute()
 	if(response):
 		for resp in response:
-			#print(resp['screen_name'])
+			#print(str(cnt) + " " + resp['screen_name'])
 			found.write(resp['id_str'] + "\n")
 	else:
-		print(acct)
+		print(str(cnt1) + " " + str(cnt2) + " " + acct)
 		missd.write(str(acct) + "\n")
 		qq.add(str(acct))
-		time.sleep(.1)
-
+		cnt1 = cnt1 + 1
+	cnt2 = cnt2 + 1
