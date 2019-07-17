@@ -1,0 +1,9 @@
+#!/bin/bash
+clear
+echo
+ps aux | grep "stream" | grep "tw-[2-9]neo" | sort | awk -F " " {'print $1 " " $12 " " $13 " " $14'} | column
+echo
+tw-showwork usertest
+tw-showwork trickle
+tw-showwork friends
+tw-showwork follows
