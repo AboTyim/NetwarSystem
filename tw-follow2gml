@@ -157,15 +157,15 @@ for file in names:
 					ln1p5=math.log1p(gmean([resp['favourites_count'],resp['followers_count'],resp['friends_count'], resp['listed_count'], resp['statuses_count']])),
 					seed	  = int(2 ** math.log1p(gmean([resp['favourites_count'],resp['followers_count'],resp['friends_count'], resp['listed_count'], resp['statuses_count']]))),
 					iseed	 = 16384 - int(2 ** math.log1p(gmean([resp['favourites_count'],resp['followers_count'],resp['friends_count'], resp['listed_count'], resp['statuses_count']]))))
-				DG.add_edge(fname,sn, weight=1)
+				DG.add_edge(sn, fname, weight=1)
 
 for seed in seeds:
 	DG.add_node(seed.decode('utf-8'), seed=16384, iseed=16384, namequal=20.0)
 
-nx.write_gml(DG,sys.argv[1] + "-full.gml")
+nx.write_gml(DG,"fo" + sys.argv[1] + "-full.gml")
 
 remove = [node for node,degree in DG.degree().items() if degree < 2]
 DG.remove_nodes_from(remove)
 
-nx.write_gml(DG,sys.argv[1] + ".gml")
+nx.write_gml(DG,"fo" + sys.argv[1] + ".gml")
 

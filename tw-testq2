@@ -1,0 +1,104 @@
+#!/usr/bin/python
+# drain Redis queue of numeric IDs, populating
+# usertest index.
+import tweepy
+import os, sys, json, time, psutil, setproctitle
+import configparser, getpass, platform
+from elasticsearch import Elasticsearch
+from walrus import *
+import ssl
+from elasticsearch.connection import create_ssl_context
+import squish2, requests
+
+def check_resources():
+
+	cnt = 0
+	for p in psutil.process_iter(attrs=['name', 'username', 'cmdline']):
+		if(p.info['username'] == getpass.getuser()):
+			for thing in p.info['cmdline']:
+				if re.search("tw-q2usertestv2", thing):
+					cnt = cnt + 1
+	if(cnt > 1):
+		print("already running")
+		sys.exit(0)
+
+check_resources()
+
+# start here
+requests.packages.urllib3.disable_warnings()
+
+# If there isn't any work, pointless to set up
+config = configparser.ConfigParser()
+config.read(os.environ['HOME'] +'/.twitter')
+
+#squish2.perflog(client,config['API']['account'], "entering Redis queue selection")
+
+wal = Walrus(host=config['STREAM']['redishost'],port=config['STREAM']['redisport'], db=0)
+tum = wal.Set("usertest")
+tumname = "usertest"
+if(len(tum) < 801):
+	tum = wal.Set("trickle")
+	tumname = "trickle"
+if(len(tum) == 0):
+	print("no work found")
+	sys.exit(0)
+
+
+
+auth = tweepy.OAuthHandler(config['API']['consumer_key'], config['API']['consumer_secret'])
+auth.set_access_token(config['API']['access_token_key'], config['API']['access_token_secret'])
+api = tweepy.API(auth)
+
+if(config['STREAM']['elksg'][:5] == "https"):
+	try:
+		ssl_context = create_ssl_context(cafile='/home/root-ca.pem')
+		ssl_context.check_hostname = False
+		ssl_context.verify_mode = ssl.CERT_NONE
+		client = Elasticsearch(config['STREAM']['elksg'], ssl_context=ssl_context, timeout=60, http_auth=(config['STREAM']['elksguser'], config['STREAM']['elksgpass']))
+	except:
+		sys.exit()
+else:
+	client = Elasticsearch(config['STREAM']['elksg'])
+
+squish2.perflog(client,config['API']['account'], "selected " + tumname)
+
+#client.indices.create(index='usertest', ignore=400)
+
+
+
+twbod = ""
+cnt = 0
+cnt2 = 0
+popcnt = 0
+while(cnt2 < 800):
+	try:
+		y = api.get_user(tum.pop().decode('utf-8'))
+		popcnt = popcnt + 1
+		if y:
+			id = y._json.pop('id', None)
+			y = squish2.squishuser(y)
+			print(y.screen_name)
+			twbod = twbod + "{ \"index\" : { \"_index\" : \"usertest\", \"_type\" : \"userid\", \"_id\" : \"" + y.id_str + "\" }\n"
+			twbod = twbod + json.dumps(y._json) + "\n"
+			cnt = cnt + 1
+	except (RuntimeError, TypeError, NameError, tweepy.error.TweepError):
+		squish2.perflog(client,config['API']['account'], "tweepy error " + str(tweepy.error.TweepError))
+		pass
+	except(AttributeError):
+		squish2.perflog(client,config['API']['account'], "AttributeError " + str(id))
+		cnt = 800
+	# stash every 200 userids collected.
+	if(cnt > 199):
+		print("cnt > 199")
+		client.bulk(index="usertest",doc_type="userid",body=twbod)
+		cnt2 = cnt2 + cnt
+		twbod = ""
+		cnt = 0
+		squish2.perflog(client,config['API']['account'],"profiling " + str(cnt2) + " of " + str(len(tum)))
+		zod = api.rate_limit_status()
+		# API provides 900 of these per every fifteen minutes. When we notice
+		# fewer than 100 calls left, we quit. The accounts used to do this
+		# may be doing other things where they need some calls, this seems to
+		# be enough cushion to keep them from failing.
+		if(zod['resources']['users']['/users/show/:id']['remaining'] < 100):
+			cnt2 = 800
