@@ -161,7 +161,8 @@ for file in names:
 for seed in seeds:
 	DG.add_node(seed.decode('utf-8'), seed=16384, iseed=16384, namequal=20.0)
 
+nx.write_gml(DG,"fr" + sys.argv[1] + "-full.gml")
 remove = [node for node,degree in DG.degree().items() if degree < 2]
 DG.remove_nodes_from(remove)
 
-nx.write_gml(DG,sys.argv[1] + ".gml")
+nx.write_gml(DG,"fr" + sys.argv[1] + ".gml")

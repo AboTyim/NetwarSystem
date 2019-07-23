@@ -27,7 +27,7 @@ try:
     auth.set_access_token(config['API']['access_token_key'], config['API']['access_token_secret'])
     api = tweepy.API(auth)
     y = api.verify_credentials()
-    print(getpass.getuser() + " " +  y.screen_name + " " + idx)
+    print(getpass.getuser() + " " +  y.screen_name + " " myconf + " " + idx)
 except tweepy.error.TweepError:
     print(sys.argv[1] + " " + config[API].account)
     exit(1)
