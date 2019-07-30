@@ -112,7 +112,7 @@ for file in names:
 		response = s.execute()
 		if(response):
 			for resp in response:
-				print(fname + "," + resp['screen_name'])
+				print(resp['screen_name'] + "," + fname)
 				sn = resp['screen_name']
 				sum = 0
 
