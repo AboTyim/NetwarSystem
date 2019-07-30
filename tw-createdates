@@ -5,7 +5,6 @@ from elasticsearch import Elasticsearch
 from elasticsearch_dsl import Search
 import ssl
 from elasticsearch.connection import create_ssl_context
-from textblob import TextBlob
 import squish2, requests
 
 #urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
@@ -25,17 +24,20 @@ if(config['STREAM']['elksg'][:5] == "https"):
 else:
 	client = Elasticsearch(config['STREAM']['elksg'])
 
-
-s = Search(using=client, index=sys.argv[1]).query("match",id_str=sys.argv[2])
-response = s.execute()
-if(response):
-	for resp in response:
-		print(resp['text'])
-#		blob = TextBlob(resp['text'])
-#		print(blob.tags)
-#		print(blob.noun_phrases)
-#		for sentence in blob.sentences:
-#			print(sentence.sentiment.polarity)
-
-else:
-	print(sys.argv[2] + " not found")
+f = open(sys.argv[1],'r')
+o = open(sys.argv[1] + "-open.txt", 'w')
+p = open(sys.argv[1] + "-locked.txt", 'w')
+for line in f:
+	s = Search(using=client, index="usertest").query("match",id_str=line.rstrip())
+	response = s.execute()
+	if(response):
+		for resp in response:
+			if(not resp['protected']):
+				print(resp['screen_name'] + " " + resp['id_str'] + " " + resp['status_at'])
+				o.write(resp['screen_name'] + " " + resp['id_str'] + " " + resp['status_at'] + "\n")
+			if(resp['protected']):
+				print(resp['screen_name'] + " " + resp['id_str'] + " " + resp['status_at'])
+				p.write(resp['screen_name'] + " " + resp['id_str'] + " " + resp['status_at'] + "\n")
+f.close()
+o.close()
+p.close()

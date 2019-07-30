@@ -1,5 +1,5 @@
 #!/usr/bin/python
-import csv, json, os, random, re, sys, time, redis, tweepy, getpass
+import csv, json, os, random, re, sys, time, redis, tweepy, getpass, datetime
 import configparser
 from elasticsearch import Elasticsearch
 from elasticsearch_dsl import Search
@@ -24,18 +24,14 @@ if(config['STREAM']['elksg'][:5] == "https"):
 		sys.exit()
 else:
 	client = Elasticsearch(config['STREAM']['elksg'])
+mv10 = Elasticsearch(config['STREAM']['vm10'])
+
+s = Search(using=client, index="usertest").filter('range', status_at={"gte": "now-20y", "lt": "now-19y"})
+
+for response in s.scan():
+	print(dir(response))
+#	if(not response['protected']):
+#		print(response['id_str'] + " " + response['screen_name'] + " " + str(response['statuses_count']) + " " + response['created_at'])
 
 
-s = Search(using=client, index=sys.argv[1]).query("match",id_str=sys.argv[2])
-response = s.execute()
-if(response):
-	for resp in response:
-		print(resp['text'])
-#		blob = TextBlob(resp['text'])
-#		print(blob.tags)
-#		print(blob.noun_phrases)
-#		for sentence in blob.sentences:
-#			print(sentence.sentiment.polarity)
 
-else:
-	print(sys.argv[2] + " not found")
