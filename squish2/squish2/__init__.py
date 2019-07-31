@@ -35,13 +35,13 @@ def squishuser(y):
 	y._json.pop('translator_type', None)
 #	y._json.pop('time_zone')
 #	y._json.pop('utc_offset')
+	now = datetime.datetime.now()
+	y._json['collected_at'] = now.strftime("%a %b %d %X +0000 %Y")
 	try:
 		status = y._json.pop('status', None)
 		y._json['status_at'] = status['created_at']
 	except:
 		y._json['status_at'] = "Sun Jan 01 00:00:00 +0000 2006"
-	now = datetime.datetime.now()
-	y._json['collected_at'] = now.strftime("%a %b %d %X +0000 %Y")
 	return(y)
 
 import datetime, platform, getpass

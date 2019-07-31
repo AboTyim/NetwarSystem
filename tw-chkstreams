@@ -14,9 +14,8 @@ do
     echo
     #elg usert | awk {'print $7'}
     tw-showwork usertest
-    tw-showwork trickle
-    #tw-showwork friends
-    #tw-showwork follows
+    tw-showwork batch
+    tw-showwork trump
     zoot
 done
     
