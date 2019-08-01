@@ -79,7 +79,7 @@ while(cnt2 < 800):
 		cnt2 = cnt2 + cnt
 		twbod = ""
 		cnt = 0
-		squish2.perflog(client,config['API']['account'],"profiling " + str(cnt2) + " of " + str(len(tum)))
+		squish2.perflog(client,config['API']['account'],"profiled " + str(cnt2) + " of " + str(len(tum)))
 		zod = api.rate_limit_status()
 		# API provides 900 of these per every fifteen minutes. When we notice
 		# fewer than 100 calls left, we quit. The accounts used to do this
