@@ -1,7 +1,7 @@
 import datetime, platform, getpass
 def perflog(client, scname,mesg):
 	mydate = str(datetime.datetime.utcnow())
-	ebod = "{ \"index\" : { \"_index\" : \"perflog\", \"_type\" : \"perfdata\"} }\n"
+	ebod = "{ \"index\" : { \"_index\" : \"perflog\" + platform.node(), \"_type\" : \"perfdata\"} }\n"
 	ebod = ebod + "{\"host\" : \"" + platform.node() + "\", \"shell\" : \"" + getpass.getuser() + "\", \"screen_name\" : \""
 	ebod = ebod + scname + "\", \"event\" : \"" + mesg + "\" , \"date\" : \"" + mydate + "\"}\n"
 	#print(ebod)
