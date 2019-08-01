@@ -44,7 +44,7 @@ if(config['STREAM']['elksg'][:5] == "https"):
 else:
 	client = Elasticsearch(config['STREAM']['elksg'])
 
-client.indices.create(index='batchusers', ignore=400)
+client.indices.create(index='collectusers', ignore=400)
 wal = Walrus(host=config['STREAM']['redishost'],port=config['STREAM']['redisport'], db=0)
 tum = wal.Set("batch")
 
@@ -61,7 +61,7 @@ while(cnt2 < 800):
 			id = y._json.pop('id', None)
 			y = squish2.squishuser(y)
 			print(y.screen_name)
-			twbod = twbod + "{ \"index\" : { \"_index\" : \"batchusers\", \"_type\" : \"userid\", \"_id\" : \"" + y.id_str + "\" }\n"
+			twbod = twbod + "{ \"index\" : { \"_index\" : \"collectusers\", \"_type\" : \"userid\", \"_id\" : \"" + y.id_str + "\" }\n"
 			twbod = twbod + json.dumps(y._json) + "\n"
 			cnt = cnt + 1
 	except (RuntimeError, TypeError, NameError, tweepy.error.TweepError):
@@ -73,11 +73,10 @@ while(cnt2 < 800):
 	# stash every 200 userids collected.
 	if(cnt > 199):
 		print("cnt > 199")
-		client.bulk(index="batchusers",doc_type="userid",body=twbod)
+		client.bulk(index="collectusers",doc_type="userid",body=twbod)
 		cnt2 = cnt2 + cnt
 		twbod = ""
 		cnt = 0
-		squish2.perflog(client,config['API']['account'],"profiling " + str(cnt2) + " of " + str(len(tum)))
 		zod = api.rate_limit_status()
 		# API provides 900 of these per every fifteen minutes. When we notice
 		# fewer than 100 calls left, we quit. The accounts used to do this
@@ -85,3 +84,6 @@ while(cnt2 < 800):
 		# be enough cushion to keep them from failing.
 		if(zod['resources']['users']['/users/show/:id']['remaining'] < 100):
 			cnt2 = 800
+
+squish2.perflog(client,config['API']['account'],"profiled " + str(cnt2) + " of " + str(len(tum)))
+
