@@ -22,7 +22,7 @@ def check_resources():
 		print("already running")
 		sys.exit(0)
 
-check_resources()
+#check_resources()
 
 # start here
 requests.packages.urllib3.disable_warnings()
@@ -92,7 +92,6 @@ while(cnt2 < 800):
 		cnt2 = cnt2 + cnt
 		twbod = ""
 		cnt = 0
-		squish2.perflog(client,config['API']['account'],"profiling " + str(cnt2) + " of " + str(len(tum)))
 		zod = api.rate_limit_status()
 		# API provides 900 of these per every fifteen minutes. When we notice
 		# fewer than 100 calls left, we quit. The accounts used to do this
@@ -100,3 +99,6 @@ while(cnt2 < 800):
 		# be enough cushion to keep them from failing.
 		if(zod['resources']['users']['/users/show/:id']['remaining'] < 100):
 			cnt2 = 800
+
+squish2.perflog(client,config['API']['account'],"profiling " + str(cnt2) + " of " + str(len(tum)))
+
