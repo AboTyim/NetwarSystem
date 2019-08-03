@@ -18,7 +18,7 @@ requests.packages.urllib3.disable_warnings()
 config = configparser.ConfigParser()
 config.read(os.environ['HOME'] +'/.twitter')
 
-max = 100
+max = 50
 if(len(sys.argv) > 2):
 	max = int(sys.argv[2])
 
@@ -99,40 +99,6 @@ class StreamApi(tweepy.StreamListener):
 
 		twbod = twbod + "{ \"index\" : { \"_index\" : \"tw" + config['STREAM']['index'] + "\", \"_type\" : \"tweets\", \"_id\" : \"" + status.id_str + "\"} }\n"
 		twbod = twbod + json.dumps(status._json) + "\n"
-		#print(status.user.screen_name + " " + str(status.created_at))
-# end twbod type tweets
-#		aneo = neom.match("user", screen_name=status.user.screen_name).first()
-#		if(not aneo):
-#			#how often do we refresh attributes?
-#			aneo = Node("user",screen_name=status.user.screen_name,id_str=status.user.id_str)
-#			aneo['created_at'] = re.sub(" ", "T",str(status.user.created_at))
-#			aneo['followers_count'] = status.user.followers_count
-#			aneo['friends_count'] = status.user.friends_count
-#			aneo['listed_count'] = status.user.listed_count
-#			aneo['statuses_count'] = status.user.statuses_count
-#		tsource = neom.match("source", source=status.source).first()
-#		if(not tsource):
-#			tsource = Node("source",source=status.source)
-#			tsource[config['STREAM']['index']] = 1
-#		neog.create(Relationship(aneo, "USES", tsource))
-#
-#		if(len(status._json['entities']['user_mentions']) > 0):
-#			for derp in status._json['entities']['user_mentions']:
-#				bneo = neom.match("user", screen_name=derp['screen_name']).first()
-#				if(not bneo):
-#					bneo = Node("user",screen_name=derp['screen_name'],id_str=derp['id_str'])
-#
-#				aneo[config['STREAM']['index']] = 1
-#				bneo[config['STREAM']['index']] = 1
-#				neog.create(Relationship(aneo, "MENTIONS", bneo, created_at=re.sub(" ", "T",str(status.created_at))))
-#				cnt = cnt + 1
-#		if(len(status._json['entities']['urls']) > 0):
-#			if not (re.search("twitter.com",status._json['entities']['urls'][0]['expanded_url'])):			
-#				print(status._json['entities']['urls'][0]['expanded_url'])
-#				aurl = Node("url",expurl=status._json['entities']['urls'][0]['expanded_url'],status=status.id_str)
-#				aurl[config['STREAM']['index']] = 1
-#				neog.create(Relationship(aneo, "TWEETS", aurl, created_at=re.sub(" ", "T",str(status.created_at))))
-# end tmbod type mention
 		tubod = tubod + "{ \"index\" : { \"_index\" : \"tu" + config['STREAM']['index'] + "\", \"_type\" : \"userid\", \"_id\" : \"" + status.user.id_str + "\" }\n"
 		smuser = squish2.squishuser(status.user)
 		tubod = tubod + json.dumps(smuser._json) + "\n"
@@ -147,14 +113,6 @@ class StreamApi(tweepy.StreamListener):
 			tubod = tubod + "{ \"index\" : { \"_index\" : \"tu" + config['STREAM']['index'] + "\", \"_type\" : \"userid\", \"_id\" : \"" + status.retweeted_status.user.id_str + "\" }\n"
 			tubod = tubod + json.dumps(rtuser._json) + "\n"
 			cnt = cnt + 1
-
-#			bneo = neom.match("user", screen_name=status.retweeted_status.user.screen_name).first()
-#			if(not bneo):
-#				bneo = Node("user",screen_name=status.retweeted_status.user.screen_name,id_str=status.retweeted_status.user.id_str)
-#			bneo[config['STREAM']['index']] = 1
-#			neog.create(Relationship(aneo, "RTS", bneo, created_at=re.sub(" ", "T",str(status.created_at))))
-			cnt = cnt + 1
-# end trbod type retweet
 			if(cnt > max):
 				# Yes, adding tweet count and users spotted count together
 				# here is intentional. Production use revealed a 4:1 or 5:1
@@ -202,7 +160,8 @@ while True:
 		else:
 			print("Following " + str(len(terms)) + " accounts")
 			streamer.filter(follow=terms)
-	except (ProtocolError, AttributeError) as prob:
-		squish2.perflog(client, "stream error " + config['STREAM']['index'], str(prob))
-		print("big ass error!!!!")
-		print(prob)
+	except (ProtocolError, AttributeError, tweepy.error.TweepError) as prob:
+		squish2.perflog(client, "stream error " + config['STREAM']['index'], str(prob.args[0][0]['code']) + " " + str(prob.args[0][0]['message']))
+		print("################### ERROR #####################")
+		print(str(prob.args[0][0]['code']) + " " + str(prob.args[0][0]['message']))
+		print("################### ERROR #####################")
