@@ -64,8 +64,10 @@ while(cnt2 < 800):
 			twbod = twbod + "{ \"index\" : { \"_index\" : \"collectusers\", \"_type\" : \"userid\", \"_id\" : \"" + y.id_str + "\" }\n"
 			twbod = twbod + json.dumps(y._json) + "\n"
 			cnt = cnt + 1
-	except (RuntimeError, TypeError, NameError, tweepy.error.TweepError):
-		squish2.perflog(client,config['API']['account'], "tweepy error " + str(tweepy.error.TweepError))
+	except (RuntimeError, TypeError, NameError, tweepy.error.TweepError) as prob:
+		squish2.perflog(client,config['API']['account'], "tweepy error " + str(prob.args[0][0]['code']) + " " + str(prob.args[0][0]['message']))
+		if(prob.args[0][0]['code'] == 88):
+			cnt = 800
 		pass
 	except(AttributeError):
 		squish2.perflog(client,config['API']['account'], "AttributeError " + str(id))
@@ -86,4 +88,3 @@ while(cnt2 < 800):
 			cnt2 = 800
 
 squish2.perflog(client,config['API']['account'],"profiled " + str(cnt2) + " of " + str(len(tum)))
-
