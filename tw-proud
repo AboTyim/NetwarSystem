@@ -34,8 +34,8 @@ config.read(os.environ['HOME'] +'/.twitter')
 #squish2.perflog(client,config['API']['account'], "entering Redis queue selection")
 
 wal = Walrus(host=config['STREAM']['redishost'],port=config['STREAM']['redisport'], db=0)
-tum = wal.Set("trump")
-tumname = "trump"
+tum = wal.Set("proud")
+tumname = "proud"
 if(len(tum) == 0):
 	print("no work found")
 	sys.exit(0)
@@ -59,7 +59,7 @@ else:
 
 squish2.perflog(client,config['API']['account'], "selected " + tumname)
 
-client.indices.create(index='bothunt', ignore=400)
+client.indices.create(index='proudboys', ignore=400)
 
 
 
@@ -69,13 +69,14 @@ cnt2 = 0
 popcnt = 0
 while(cnt2 < 800):
 	try:
-		y = api.get_user(tum.pop().decode('utf-8'))
+		theid = tum.pop().decode('utf-8')
+		y = api.get_user(theid)
 		popcnt = popcnt + 1
 		if y:
 			id = y._json.pop('id', None)
 			y = squish2.squishuser(y)
 			print(y.screen_name)
-			twbod = twbod + "{ \"index\" : { \"_index\" : \"bothunt\", \"_type\" : \"userid\", \"_id\" : \"" + y.id_str + "\" }\n"
+			twbod = twbod + "{ \"index\" : { \"_index\" : \"proudboys\", \"_type\" : \"userid\", \"_id\" : \"" + y.id_str + "\" }\n"
 			twbod = twbod + json.dumps(y._json) + "\n"
 			cnt = cnt + 1
 	except (RuntimeError, TypeError, NameError, tweepy.error.TweepError) as prob:
@@ -83,13 +84,14 @@ while(cnt2 < 800):
 		print("tweepy error " + str(theid) + " " + str(prob.args[0][0]['code']) + " " + str(prob.args[0][0]['message']))
 		if(prob.args[0][0]['code'] == 88):
 			cnt = 800
+		pass
 	except(AttributeError):
 		squish2.perflog(client,config['API']['account'], "AttributeError " + str(id))
 		cnt = 800
 	# stash every 800 userids collected.
 	if(cnt > 199):
 		print("cnt > 199")
-		res = client.bulk(index="bothunt",doc_type="userid",body=twbod)
+		res = client.bulk(index="proudboys",doc_type="userid",body=twbod)
 		#print(res)
 		cnt2 = cnt2 + cnt
 		twbod = ""
