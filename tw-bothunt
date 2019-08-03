@@ -79,14 +79,13 @@ while(cnt2 < 800):
 			twbod = twbod + json.dumps(y._json) + "\n"
 			cnt = cnt + 1
 	except (RuntimeError, TypeError, NameError, tweepy.error.TweepError) as prob:
-                if( (prob.args[0][0]['code'] == 50) or (prob.args[0][0]['code'] == 63)):
-                        print("don't need to log every renamed/suspended user")
-                        pass
-                if(prob.args[0][0]['code'] == 88):
-                        cnt = 800
-                        pass
-		squish2.perflog(client,config['API']['account'], "tweepy error " + str(prob.args[0][0]['code']) + " " + str(prob.args[0][0]['message']))
-		print("tweepy error " +  str(prob.args[0][0]['code']) + " " + str(prob.args[0][0]['message']))
+		if( (prob.args[0][0]['code'] == 50) or (prob.args[0][0]['code'] == 63)):
+			print("don't need to log every renamed/suspended user")
+		elif(prob.args[0][0]['code'] == 88):
+			cnt = 800
+		else:
+			squish2.perflog(client,config['API']['account'], "tweepy error " + str(prob.args[0][0]['code']) + " " + str(prob.args[0][0]['message']))
+			print("tweepy error " +  str(prob.args[0][0]['code']) + " " + str(prob.args[0][0]['message']))
 		pass
 	except(AttributeError):
 		squish2.perflog(client,config['API']['account'], "AttributeError " + str(id))
