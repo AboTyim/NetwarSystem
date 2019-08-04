@@ -1,0 +1,13 @@
+#!/usr/bin/python
+# twitter account dispatcher
+import csv, json, os, random, re, sys, time, hashlib
+import redis, configparser
+from walrus import *
+
+config = configparser.ConfigParser()
+config.read(os.environ['HOME'] +'/.twitter')
+
+
+wal = Walrus(host=config['STREAM']['redishost'],port=config['STREAM']['redisport'], db=0)
+qq = wal.Set("batch")
+qq.clear()
