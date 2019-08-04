@@ -1,5 +1,4 @@
 #!/usr/bin/python
-#urllib3.exceptions.ReadTimeoutError: HTTPSConnectionPool(
 import datetime, platform, getpass
 import csv, json, pprint, os, random, re, sys, time, datetime
 import redis, walrus, tweepy, configparser, ssl
@@ -9,22 +8,20 @@ from elasticsearch import Elasticsearch
 from elasticsearch_dsl import Search
 from elasticsearch.connection import create_ssl_context
 from urllib3.exceptions import ProtocolError
-from py2neo import Graph, Node, Relationship, NodeMatcher, RelationshipMatcher
 import squish2, requests
 
-#urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 requests.packages.urllib3.disable_warnings()
 
 config = configparser.ConfigParser()
 config.read(os.environ['HOME'] +'/.twitter')
+sysconf = configparser.ConfigParser()
+sysconf.read('/etc/netwar/netwar.conf')
+print(sysconf)
 
-max = 100
+# set buffer size
+max = 50
 if(len(sys.argv) > 2):
 	max = int(sys.argv[2])
-
-#neog = Graph(config['STREAM']['neo4j'], user=config['STREAM']['neo4juser'], password=config['STREAM']['neo4jpass'])
-#neom = NodeMatcher(neog)
-
 
 try:
 	auth = tweepy.OAuthHandler(config['API']['consumer_key'], config['API']['consumer_secret'])
@@ -36,26 +33,36 @@ except tweepy.error.TweepError:
 	print(sys.argv[1] + " " + config[API].account)
 	exit(1)
 
-if(config['STREAM']['elksg'][:5] == "https"):
+if(sysconf['SYSTEM']['elksg'][:5] == "https"):
 	try:
 		ssl_context = create_ssl_context(cafile='/home/root-ca.pem')
 		ssl_context.check_hostname = False
 		ssl_context.verify_mode = ssl.CERT_NONE
 		# timeout bumped from 60 to 120 - userid based streams are fine,
-		# high volume hashtag based streams timeout.
-		client = Elasticsearch(config['STREAM']['elksg'], ssl_context=ssl_context, timeout=120, http_auth=(config['STREAM']['elksguser'], config['STREAM']['elksgpass']))
-	except:
+		# high volume hashtag based streams timeout. 
+		# 2019-08-03 timeouts were probably Neo4j performance issues, now corrected.
+		client = Elasticsearch(sysconf['SYSTEM']['elksg'], ssl_context=ssl_context, timeout=120, http_auth=(sysconf['SYSTEM']['elksguser'], sysconf['SYSTEM']['elksgpass']))
+	except() as prob:
+		print(prob)
 		sys.exit()
 else:
-	client = Elasticsearch(config['STREAM']['elksg'])
+	client = Elasticsearch(sysconf['SYSTEM']['elksg'])
 
-client.indices.create(index='tw' + config['STREAM']['index'], ignore=400)
-client.indices.create(index='tu' + config['STREAM']['index'], ignore=400)
+# set index name
+
+myfile = sys.argv[1]
+myidx = sys.argv[1].lower()
+myidx = re.sub(".txt", "",myidx)
+myidx = re.sub(".csv", "",myidx)
+
+client.indices.create(index='tw' + myidx, ignore=400)
+client.indices.create(index='tu' + myidx, ignore=400)
 
 class StreamApi(tweepy.StreamListener):
 	def on_status(self, status):
 		global twbod
 		global tubod
+		global myidx
 		global cnt
 		global config
 		status._json.pop('coordinates', None)
@@ -95,10 +102,9 @@ class StreamApi(tweepy.StreamListener):
 		status._json['source'] = re.sub("<.*?>", "",status._json['source'])
 		status._json['source'] = re.sub("\"", "",status._json['source'])
 
-		twbod = twbod + "{ \"index\" : { \"_index\" : \"tw" + config['STREAM']['index'] + "\", \"_type\" : \"tweets\", \"_id\" : \"" + status.id_str + "\"} }\n"
+		twbod = twbod + "{ \"index\" : { \"_index\" : \"tw" + myidx + "\", \"_type\" : \"tweets\", \"_id\" : \"" + status.id_str + "\"} }\n"
 		twbod = twbod + json.dumps(status._json) + "\n"
-		#print(status.user.screen_name + " " + str(status.created_at))
-		tubod = tubod + "{ \"index\" : { \"_index\" : \"tu" + config['STREAM']['index'] + "\", \"_type\" : \"userid\", \"_id\" : \"" + status.user.id_str + "\" }\n"
+		tubod = tubod + "{ \"index\" : { \"_index\" : \"tu" + myidx + "\", \"_type\" : \"userid\", \"_id\" : \"" + status.user.id_str + "\" }\n"
 		smuser = squish2.squishuser(status.user)
 		tubod = tubod + json.dumps(smuser._json) + "\n"
 		cnt = cnt + 1
@@ -109,22 +115,19 @@ class StreamApi(tweepy.StreamListener):
 			cnt = cnt
 		else:
 			rtuser = squish2.squishuser(status.retweeted_status.user)
-			tubod = tubod + "{ \"index\" : { \"_index\" : \"tu" + config['STREAM']['index'] + "\", \"_type\" : \"userid\", \"_id\" : \"" + status.retweeted_status.user.id_str + "\" }\n"
+			tubod = tubod + "{ \"index\" : { \"_index\" : \"tu" + myidx + "\", \"_type\" : \"userid\", \"_id\" : \"" + status.retweeted_status.user.id_str + "\" }\n"
 			tubod = tubod + json.dumps(rtuser._json) + "\n"
 			cnt = cnt + 1
-
-			cnt = cnt + 1
-# end trbod type retweet
 			if(cnt > max):
 				# Yes, adding tweet count and users spotted count together
 				# here is intentional. Production use revealed a 4:1 or 5:1
 				# tweets to user data ratio, so this avoids annoying Elastic
 				# without requiring tracking two different variable states.
-				print("max " + str(max) + " count reached - loading to Elastic")
-				client.bulk(index="tw" + config['STREAM']['index'],doc_type="tweets",body=twbod)
-				k = client.bulk(index="tu" + config['STREAM']['index'],doc_type="userid",body=tubod)
-				squish2.perflog(client, "streaming " + config['STREAM']['index'], str(len(twbod)) + " " + str(len(tubod)))
-				print(str(len(twbod)) + " " + str(len(tubod)))
+				now = datetime.datetime.now()
+				print(now.strftime("%a %b %d %X +0000 %Y") + " max " + str(max) + " count reached.")
+				client.bulk(index="tw" + myidx,doc_type="tweets",body=twbod)
+				k = client.bulk(index="tu" + myidx,doc_type="userid",body=tubod)
+				squish2.perflog(client, "streaming " + myidx, str(len(twbod)) + " " + str(len(tubod)))
 				twbod = ""
 				tubod = ""
 				cnt = 0
@@ -162,7 +165,8 @@ while True:
 		else:
 			print("Following " + str(len(terms)) + " accounts")
 			streamer.filter(follow=terms)
-	except (ProtocolError, AttributeError) as prob:
-		squish2.perflog(client, "stream error " + config['STREAM']['index'], str(prob))
-		print("big ass error!!!!")
-		print(prob)
+	except (ProtocolError, AttributeError, tweepy.error.TweepError) as prob:
+		squish2.perflog(client, "stream error " + myidx, str(prob.args[0][0]['code']) + " " + str(prob.args[0][0]['message']))
+		print("################### ERROR #####################")
+		print(str(prob.args[0][0]['code']) + " " + str(prob.args[0][0]['message']))
+		print("################### ERROR #####################")
