@@ -2,6 +2,6 @@
 import getpass
 from walrus import *
 
-wal = Walrus(host=config['STREAM']['redishost'],port=config['STREAM']['redisport'], db=0)
+wal = Walrus(host=config['SYSTEM']['redishost'],port=config['SYSTEM']['redisport'], db=0)
 work = wal.Set("work")
 work.clear()

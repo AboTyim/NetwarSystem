@@ -16,7 +16,7 @@ else:
 	cfile = os.environ['HOME'] +'/.twitter'
 config.read(cfile)
 
-wal = Walrus(host=config['STREAM']['redishost'],port=config['STREAM']['redisport'], db=0)
+wal = Walrus(host=config['SYSTEM']['redishost'],port=config['SYSTEM']['redisport'], db=0)
 tum = wal.Set("friends")
 if(len(tum)>0):
 	

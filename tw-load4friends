@@ -7,7 +7,7 @@ from walrus import *
 config = configparser.ConfigParser()
 config.read(os.environ['HOME'] +'/.twitter')
 
-wal = Walrus(host=config['STREAM']['redishost'],port=config['STREAM']['redisport'], db=0)
+wal = Walrus(host=config['SYSTEM']['redishost'],port=config['SYSTEM']['redisport'], db=0)
 qq = wal.Set("friends")
 
 accts = open(sys.argv[1], 'r')

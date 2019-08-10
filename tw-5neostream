@@ -17,12 +17,14 @@ requests.packages.urllib3.disable_warnings()
 
 config = configparser.ConfigParser()
 config.read(os.environ['HOME'] +'/.twitter')
+sysconf = configparser.ConfigParser()
+sysconf.read('/etc/netwar/netwar.conf')
 
 max = 100
 if(len(sys.argv) > 2):
 	max = int(sys.argv[2])
 
-#neog = Graph(config['STREAM']['neo4j'], user=config['STREAM']['neo4juser'], password=config['STREAM']['neo4jpass'])
+#neog = Graph(config['SYSTEM']['neo4j'], user=config['SYSTEM']['neo4juser'], password=config['SYSTEM']['neo4jpass'])
 #neom = NodeMatcher(neog)
 
 
@@ -36,25 +38,25 @@ except tweepy.error.TweepError:
 	print(sys.argv[1] + " " + config[API].account)
 	exit(1)
 
-if(config['STREAM']['elksg'][:5] == "https"):
+if(config['SYSTEM']['elksg'][:5] == "https"):
 	try:
 		ssl_context = create_ssl_context(cafile='/home/root-ca.pem')
 		ssl_context.check_hostname = False
 		ssl_context.verify_mode = ssl.CERT_NONE
-		# timeout bumped from 60 to 120 - userid based streams are fine,
-		# high volume hashtag based streams timeout.
-		client = Elasticsearch(config['STREAM']['elksg'], ssl_context=ssl_context, timeout=120, http_auth=(config['STREAM']['elksguser'], config['STREAM']['elksgpass']))
+		# timeout bumped from 60 to 120 - userid based SYSTEMs are fine,
+		# high volume hashtag based SYSTEMs timeout.
+		client = Elasticsearch(config['SYSTEM']['elksg'], ssl_context=ssl_context, timeout=120, http_auth=(config['SYSTEM']['elksguser'], config['SYSTEM']['elksgpass']))
 	except:
 		sys.exit()
 else:
-	client = Elasticsearch(config['STREAM']['elksg'])
+	client = Elasticsearch(config['SYSTEM']['elksg'])
 
 #squish2.perflog(client, "squish", "Just testing")
 
-client.indices.create(index='tw' + config['STREAM']['index'], ignore=400)
-client.indices.create(index='tu' + config['STREAM']['index'], ignore=400)
+client.indices.create(index='tw' + config['SYSTEM']['index'], ignore=400)
+client.indices.create(index='tu' + config['SYSTEM']['index'], ignore=400)
 
-class StreamApi(tweepy.StreamListener):
+class SYSTEMApi(tweepy.SYSTEMListener):
 	def on_status(self, status):
 		global twbod
 		global tubod
@@ -97,7 +99,7 @@ class StreamApi(tweepy.StreamListener):
 		status._json['source'] = re.sub("<.*?>", "",status._json['source'])
 		status._json['source'] = re.sub("\"", "",status._json['source'])
 
-		twbod = twbod + "{ \"index\" : { \"_index\" : \"tw" + config['STREAM']['index'] + "\", \"_type\" : \"tweets\", \"_id\" : \"" + status.id_str + "\"} }\n"
+		twbod = twbod + "{ \"index\" : { \"_index\" : \"tw" + config['SYSTEM']['index'] + "\", \"_type\" : \"tweets\", \"_id\" : \"" + status.id_str + "\"} }\n"
 		twbod = twbod + json.dumps(status._json) + "\n"
 		#print(status.user.screen_name + " " + str(status.created_at))
 # end twbod type tweets
@@ -113,7 +115,7 @@ class StreamApi(tweepy.StreamListener):
 #		tsource = neom.match("source", source=status.source).first()
 #		if(not tsource):
 #			tsource = Node("source",source=status.source)
-#			tsource[config['STREAM']['index']] = 1
+#			tsource[config['SYSTEM']['index']] = 1
 #		neog.create(Relationship(aneo, "USES", tsource))
 #
 #		if(len(status._json['entities']['user_mentions']) > 0):
@@ -122,18 +124,18 @@ class StreamApi(tweepy.StreamListener):
 #				if(not bneo):
 #					bneo = Node("user",screen_name=derp['screen_name'],id_str=derp['id_str'])
 #
-#				aneo[config['STREAM']['index']] = 1
-#				bneo[config['STREAM']['index']] = 1
+#				aneo[config['SYSTEM']['index']] = 1
+#				bneo[config['SYSTEM']['index']] = 1
 #				neog.create(Relationship(aneo, "MENTIONS", bneo, created_at=re.sub(" ", "T",str(status.created_at))))
 #				cnt = cnt + 1
 #		if(len(status._json['entities']['urls']) > 0):
 #			if not (re.search("twitter.com",status._json['entities']['urls'][0]['expanded_url'])):			
 #				print(status._json['entities']['urls'][0]['expanded_url'])
 #				aurl = Node("url",expurl=status._json['entities']['urls'][0]['expanded_url'],status=status.id_str)
-#				aurl[config['STREAM']['index']] = 1
+#				aurl[config['SYSTEM']['index']] = 1
 #				neog.create(Relationship(aneo, "TWEETS", aurl, created_at=re.sub(" ", "T",str(status.created_at))))
 # end tmbod type mention
-		tubod = tubod + "{ \"index\" : { \"_index\" : \"tu" + config['STREAM']['index'] + "\", \"_type\" : \"userid\", \"_id\" : \"" + status.user.id_str + "\" }\n"
+		tubod = tubod + "{ \"index\" : { \"_index\" : \"tu" + config['SYSTEM']['index'] + "\", \"_type\" : \"userid\", \"_id\" : \"" + status.user.id_str + "\" }\n"
 		smuser = squish2.squishuser(status.user)
 		tubod = tubod + json.dumps(smuser._json) + "\n"
 		cnt = cnt + 1
@@ -144,14 +146,14 @@ class StreamApi(tweepy.StreamListener):
 			cnt = cnt
 		else:
 			rtuser = squish2.squishuser(status.retweeted_status.user)
-			tubod = tubod + "{ \"index\" : { \"_index\" : \"tu" + config['STREAM']['index'] + "\", \"_type\" : \"userid\", \"_id\" : \"" + status.retweeted_status.user.id_str + "\" }\n"
+			tubod = tubod + "{ \"index\" : { \"_index\" : \"tu" + config['SYSTEM']['index'] + "\", \"_type\" : \"userid\", \"_id\" : \"" + status.retweeted_status.user.id_str + "\" }\n"
 			tubod = tubod + json.dumps(rtuser._json) + "\n"
 			cnt = cnt + 1
 
 #			bneo = neom.match("user", screen_name=status.retweeted_status.user.screen_name).first()
 #			if(not bneo):
 #				bneo = Node("user",screen_name=status.retweeted_status.user.screen_name,id_str=status.retweeted_status.user.id_str)
-#			bneo[config['STREAM']['index']] = 1
+#			bneo[config['SYSTEM']['index']] = 1
 #			neog.create(Relationship(aneo, "RTS", bneo, created_at=re.sub(" ", "T",str(status.created_at))))
 			cnt = cnt + 1
 # end trbod type retweet
@@ -162,9 +164,9 @@ class StreamApi(tweepy.StreamListener):
 				# without requiring tracking two different variable states.
 				now = datetime.datetime.now()
 				print(now.strftime("%a %b %d %X +0000 %Y") + " max " + str(max) + " count reached.")
-				client.bulk(index="tw" + config['STREAM']['index'],doc_type="tweets",body=twbod)
-				k = client.bulk(index="tu" + config['STREAM']['index'],doc_type="userid",body=tubod)
-				squish2.perflog(client, "streaming " + config['STREAM']['index'], str(len(twbod)) + " " + str(len(tubod)))
+				client.bulk(index="tw" + config['SYSTEM']['index'],doc_type="tweets",body=twbod)
+				k = client.bulk(index="tu" + config['SYSTEM']['index'],doc_type="userid",body=tubod)
+				squish2.perflog(client, "SYSTEMing " + config['SYSTEM']['index'], str(len(twbod)) + " " + str(len(tubod)))
 				twbod = ""
 				tubod = ""
 				cnt = 0
@@ -179,12 +181,12 @@ def on_error(self, status):
 		return True
 
 	
-streamer = tweepy.Stream(auth=auth, listener=StreamApi(), timeout=30)
+SYSTEMer = tweepy.SYSTEM(auth=auth, listener=SYSTEMApi(), timeout=30)
 
 tfile = open(sys.argv[1], 'r')
 terms = []
 text = False
-# one letter anywhere indicates text filter stream
+# one letter anywhere indicates text filter SYSTEM
 # otherwise all numeric is userids
 for thing in tfile:
 	if(re.search("[a-zA-Z]",thing)):
@@ -198,11 +200,11 @@ while True:
 	try:
 		if(text):
 			print("Following " + str(len(terms)) + " terms")
-			streamer.filter(None, terms)
+			SYSTEMer.filter(None, terms)
 		else:
 			print("Following " + str(len(terms)) + " accounts")
-			streamer.filter(follow=terms)
+			SYSTEMer.filter(follow=terms)
 	except (ProtocolError, AttributeError) as prob:
-		squish2.perflog(client, "stream error " + config['STREAM']['index'], str(prob))
+		squish2.perflog(client, "SYSTEM error " + config['SYSTEM']['index'], str(prob))
 		print("big ass error!!!!")
 		print(prob)

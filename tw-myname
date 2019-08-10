@@ -17,7 +17,7 @@ if len(sys.argv) == 2:
 config.read(myconf)
 
 try:
-    idx = config['STREAM']['index']
+    idx = config['SYSTEM']['index']
 except:
     idx = ""
     pass

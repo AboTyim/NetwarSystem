@@ -9,7 +9,8 @@ requests.packages.urllib3.disable_warnings()
 
 config = configparser.ConfigParser()
 config.read(os.environ['HOME'] +'/.twitter')
-
+sysconf = configparser.ConfigParser()
+sysconf.read('/etc/netwar/netwar.conf')
 
 auth = tweepy.OAuthHandler(config['API']['consumer_key'], config['API']['consumer_secret'])
 auth.set_access_token(config['API']['access_token_key'], config['API']['access_token_secret'])

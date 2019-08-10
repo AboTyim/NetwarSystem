@@ -12,17 +12,19 @@ requests.packages.urllib3.disable_warnings()
 
 config = configparser.ConfigParser()
 config.read(os.environ['HOME'] +'/.twitter')
+sysconf = configparser.ConfigParser()
+sysconf.read('/etc/netwar/netwar.conf')
 
-if(config['STREAM']['elksg'][:5] == "https"):
+if(config['SYSTEM']['elksg'][:5] == "https"):
 	try:
 		ssl_context = create_ssl_context(cafile='/home/root-ca.pem')
 		ssl_context.check_hostname = False
 		ssl_context.verify_mode = ssl.CERT_NONE
-		client = Elasticsearch(config['STREAM']['elksg'], ssl_context=ssl_context, timeout=60, http_auth=(config['STREAM']['elksguser'], config['STREAM']['elksgpass']))
+		client = Elasticsearch(config['SYSTEM']['elksg'], ssl_context=ssl_context, timeout=60, http_auth=(config['SYSTEM']['elksguser'], config['SYSTEM']['elksgpass']))
 	except:
 		sys.exit()
 else:
-	client = Elasticsearch(config['STREAM']['elksg'])
+	client = Elasticsearch(config['SYSTEM']['elksg'])
 
 
 s = Search(using=client, index="usertest").query("match",id_str=sys.argv[1])
