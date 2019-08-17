@@ -11,20 +11,20 @@ The following are the major Python dependencies:
 
 * This software requires Python 3.
 * [Walrus](https://walrus.readthedocs.io/en/latest/) - provides a Python objects layer over Redis.
-* Elasticsearch 6.3.1 for Python (yes, 6.3.1 of this software, not 6.5.4)
+* Elasticsearch 7.0.2 for Python (yes, 7.0.2 of this software, not 6.8.2)
 * Py2neo Neo4j client.
 * [Tweepy](http://www.tweepy.org/) Twitter API access for Python.
 
 The following are infrastructure dependencies.
 
 * [Redis](http://redis.io) - provides shared Python objects, used for various work queues.
-* [Elasticsearch](http://elastic.co) 6.5.4 - searchable archive of text data.
+* [Elasticsearch](http://elastic.co) 6.8.2 - searchable archive of text data.
 * [Neo4j](http://neo4j.com) - graph database for storing Twitter interactions, new as of 3/2019.
 * [Netdata](https://github.com/netdata/netdata) - system monitor, which with you will become familiar.
 * [Search Guard](http://search-guard.com) - Elasticsearch security, needed for teams and/or public access.
 
 
-Elasticsearch and Redis/Walrus were the first things implemented, then Search Guard, and we have barely scratched the surface with Neo4j. There are significant changes from Elasticsearch 6.5.4 to 6.7.0, and even more dramatic changes to 7.x. We have a ELK7 prototype, but it's nowhere near ready. We can not support this software on anything but 6.5.x at this time.
+Elasticsearch and Redis/Walrus were the first things implemented, then Search Guard, and we have barely scratched the surface with Neo4j. There are significant changes from Elasticsearch 6.x to 7.x. We have a ELK7 prototype, but it's nowhere near ready. We can not support this software on anything but 6.8.2 at this time.
 
 # System Requirements
 
@@ -43,11 +43,11 @@ Our current setup is a pair of machines with these specs:
 * Dual Xeon E5-2680v1 eight core processors - combined cpumark 25,000 on each.
 * 192 gig of ram.
 * 500 gig SSD, half for OS, half for ZFS cache.
-* Pairs of Seagate IronWolf 2TB NAS drives.
+* A mixture of Seagate IronWolf drives.
 
-This configuration has supported sixty four accounts doing bulk collection of tweets or users, while simultaneously running 16 stream captures. Each machine runs three VMs that store the data. This requires a bit of hand waving to explain, but it positions us to grow beyond two physical machines when we need to do so.
+This configuration has supported sixty four accounts doing simultaneous stream captures while other processes do bulk user looks and tweet captures. Each machine runs three VMs that store the data. This requires a bit of hand waving to explain, but it positions us to grow beyond two physical machines when we need to do so.
 
-Note the qualifier 'successfully' up there. We had a couple of VPS environments and what we've found is that Elasticsearch will always find a way to misbehave unless you have positive control over drive channel tuning. Our VM configuration works because we don't oversubscribe memory or processors, and we have a rockin' disk subsystem. If you post a question about performance troubles in a cloud implementation, we're just going to thank you for confirming our early experiences.
+Note the qualifier 'successfully' up there. We had a couple of VPS environments and what we've found is that Elasticsearch will always find a way to misbehave unless you have positive control over drive channel tuning. Our VM configuration works because we don't oversubscribe memory or processors, and we have a rockin' disk subsystem. Clouds are suitable for low volume experiments, but any serious work requires hardware under your control.
 
 # Installation
 
@@ -56,7 +56,7 @@ Note the qualifier 'successfully' up there. We had a couple of VPS environments 
 * Look at pipfreeze.txt to see what was actually running on 13 Apr 2019.
 * Clone [TwitterUtils](https://github.com/NetwarSystem/TwitterUtils, which has some useful bits from our pre-Elastic software.
 * Do a git clone of the [ELKSG](https://github.com/NetwarSystem/ELKSG) archive, which has Elastic setup/tuning stuff in it.
-* Install Elasticsearch 6.5.4.
+* Install Elasticsearch 6.8.2.
 * Install Redis.
 * Install Neo4j.
 * Install Netdata monitoring software.
@@ -141,5 +141,5 @@ We looked at a variety of tools for visualizing graph data, and we are amazed an
 
 * If it should run but doesn't, post an [issue](https://github.com/NetwarSystem/TwitterRecorder/issues), bonus points awarded for logs, stack traces, etc.
 
-* If you think it should run, but you aren't precisely sure, the [NetwarSystem](http://netwarsystem.slack.com) Slack server is the best route
+* If you think it should run, but you aren't precisely sure, the #netwarsystem_tool channel on the [OSINT team](http://osint.team) Rocketchat server is our secret lair.
 

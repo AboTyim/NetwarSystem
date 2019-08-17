@@ -1,17 +1,20 @@
 #!/usr/bin/python
-import csv, json, os, random, re, sys, time, redis, tweepy, getpass
+import csv, json, os, random, re, sys, time, redis, tweepy, getpass, datetime
 import configparser
 from elasticsearch import Elasticsearch
 from elasticsearch_dsl import Search
 import ssl
 from elasticsearch.connection import create_ssl_context
+from textblob import TextBlob
 import squish2, requests
 
 #urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 requests.packages.urllib3.disable_warnings()
-
 sysconf = configparser.ConfigParser()
 sysconf.read('/etc/netwar/netwar.conf')
+
+config = configparser.ConfigParser()
+config.read(os.environ['HOME'] +'/.twitter')
 
 if(sysconf['SYSTEM']['elksg'][:5] == "https"):
 	try:
@@ -25,10 +28,10 @@ else:
 	client = Elasticsearch(sysconf['SYSTEM']['elksg'])
 
 
-s = Search(using=client, index=sys.argv[1]).query("match",id_str=sys.argv[2])
-response = s.execute()
-if(response):
-	for resp in response:
-		print(resp['screen_name'] + " " + resp['id_str'])
-else:
-	print(sys.argv[1] + " not found")
+s = Search(using=client, index="proudboys").filter('range', created_at={"gte": "now-20y", "lt": "now"})
+
+for response in s.scan():
+	if(not response['protected']):
+		print(response['id_str'])
+
+

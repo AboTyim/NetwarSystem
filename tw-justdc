@@ -1,4 +1,20 @@
 #!/usr/bin/python3
+# This funny little script takes a file
+# of Twitter userids or other numbers
+# created by the Snowflake Service and
+# extracts the five bit datacenter ID
+# from the binary representation of the
+# ID. This worked as of 2019-07-25 or so
+# and there are four known datacenters.
+# The original is in Sacramento, there
+# is one in Atlanta, one in Ashburn VA,
+# and one in Salt Lake City.
+#
+# The idea behind this was obtaining
+# some idea of geographic area based on
+# datacenter ID. This does not work.
+
+# Snowflake ID structure.
 #  1 bit  sign?
 # 41 bits milliseconds since epoch
 #  5 bits data center ID

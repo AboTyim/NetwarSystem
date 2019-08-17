@@ -27,12 +27,11 @@ if(sysconf['SYSTEM']['elksg'][:5] == "https"):
 else:
 	client = Elasticsearch(sysconf['SYSTEM']['elksg'])
 
-s = Search(using=client, index="usertest").filter('range', status_at={"gte": "now-20y", "lt": "now-19y"})
+
+s = Search(using=client, index="proudboys").filter('range', created_at={"gte": "now-20y", "lt": "now"})
 
 for response in s.scan():
-	print(dir(response))
-#	if(not response['protected']):
-#		print(response['id_str'] + " " + response['screen_name'] + " " + str(response['statuses_count']) + " " + response['created_at'])
-
+	if(not response['protected']):
+		print(response['name'] + ","  + response['screen_name'] + "," + response['id_str'] + "," + response['location'] + "," + response['description'] + "," + response['created_at'] + "," + str(response['followers_count']) + "," + str(response['friends_count']) + "," + str(response['statuses_count']) + "," + str(response['favourites_count']) + "," + str(response['url']) + "," + str(response['time_zone']) + "," + str(response['verified']) + "," + str(response['lang']) + "," + str(response['protected']))
 
 

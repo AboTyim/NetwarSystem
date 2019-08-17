@@ -18,31 +18,31 @@ config.read(os.environ['HOME'] +'/.twitter')
 sysconf = configparser.ConfigParser()
 sysconf.read('/etc/netwar/netwar.conf')
 
-if(config['SYSTEM']['elksg'][:5] == "https"):
+if(sysconf['SYSTEM']['elksg'][:5] == "https"):
 	try:
 		ssl_context = create_ssl_context(cafile='/home/root-ca.pem')
 		ssl_context.check_hostname = False
 		ssl_context.verify_mode = ssl.CERT_NONE
-		client = Elasticsearch(config['SYSTEM']['elksg'], ssl_context=ssl_context, timeout=60, http_auth=(config['SYSTEM']['elksguser'], config['SYSTEM']['elksgpass']))
+		client = Elasticsearch(sysconf['SYSTEM']['elksg'], ssl_context=ssl_context, timeout=60, http_auth=(sysconf['SYSTEM']['elksguser'], sysconf['SYSTEM']['elksgpass']))
 	except:
 		sys.exit()
 else:
-	client = Elasticsearch(config['SYSTEM']['elksg'])
+	client = Elasticsearch(sysconf['SYSTEM']['elksg'])
 
 
 
 
 
-wal = Walrus(host=config['SYSTEM']['redishost'],port=config['SYSTEM']['redisport'], db=0)
-qq = wal.Set("campfollowers")
+wal = Walrus(host=sysconf['SYSTEM']['redishost'],port=sysconf['SYSTEM']['redisport'], db=0)
+qq = wal.Set(sys.argv[1])
 
 
-found = open(sys.argv[1] + "-found.txt", 'w')
-missd = open(sys.argv[1] + "-missed.txt", 'w')
-accts = open(sys.argv[1], 'r')
+found = open(sys.argv[2] + "-found.txt", 'w')
+missd = open(sys.argv[2] + "-missed.txt", 'w')
+accts = open(sys.argv[2], 'r')
 for acct in accts:
 	acct = acct.rstrip()
-	s = Search(using=client, index="campfollowers").query("match",id_str=acct)
+	s = Search(using=client, index=sys.argv[1]).query("match",id_str=acct)
 	response = s.execute()
 	if(response):
 		for resp in response:
@@ -52,4 +52,3 @@ for acct in accts:
 		print(acct)
 		missd.write(str(acct) + "\n")
 		qq.add(str(acct))
-
