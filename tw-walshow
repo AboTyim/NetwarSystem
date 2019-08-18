@@ -2,11 +2,11 @@
 import getpass, sys, os, configparser
 from walrus import *
 
-config = configparser.ConfigParser()
-config.read(os.environ['HOME'] +'/.twitter')
+sysconf = configparser.ConfigParser()
+sysconf.read('/etc/netwar/netwar.conf')
 
 
 
-wal = Walrus(host=config['SYSTEM']['redishost'],port=config['SYSTEM']['redisport'], db=0)
+wal = Walrus(host=sysconf['SYSTEM']['redishost'],port=sysconf['SYSTEM']['redisport'], db=0)
 tum = wal.Set(sys.argv[1].rstrip())
 print(tum)

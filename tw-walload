@@ -7,7 +7,7 @@ sysconf = configparser.ConfigParser()
 sysconf.read('/etc/netwar/netwar.conf')
 
 
-wal = Walrus(host=sysconf['SYSTEM']['redishost'],port=config['SYSTEM']['redisport'], db=0)
+wal = Walrus(host=sysconf['SYSTEM']['redishost'],port=sysconf['SYSTEM']['redisport'], db=0)
 qq = wal.Set(sys.argv[1])
 
 accts = open(sys.argv[2], 'r')

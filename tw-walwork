@@ -65,8 +65,8 @@ while(cnt2 < 800):
 			id = y._json.pop('id', None)
 			y = squish2.squishuser(y)
 			print(y.screen_name)
-			twbod = twbod + "{ \"index\" : { \"_index\" : \"" + sys.argv[1] + "\", \"_type\" : \"userid\", \"_id\" : \"" + y.id_str + "\" }\n"
-			twbod = twbod + json.dumps(y._json) + "\n"
+			tubod = tubod + "{ \"index\" : { \"_index\" : \"" + sys.argv[1] + "\", \"_type\" : \"userid\", \"_id\" : \"" + y.id_str + "\" }\n"
+			tubod = tubod + json.dumps(y._json) + "\n"
 			cnt = cnt + 1
 	except (RuntimeError, TypeError, NameError, tweepy.error.TweepError) as prob:
 		if( (prob.args[0][0]['code'] == 50) or (prob.args[0][0]['code'] == 63)):
@@ -82,9 +82,9 @@ while(cnt2 < 800):
 	# stash every 200 userids collected.
 	if(cnt > 199):
 		print("cnt > 199")
-		client.bulk(index=sys.argv[1],doc_type="userid",body=twbod)
+		client.bulk(index=sys.argv[1],doc_type="userid",body=tubod)
 		cnt2 = cnt2 + cnt
-		twbod = ""
+		tubod = ""
 		cnt = 0
 		zod = api.rate_limit_status()
 		# API provides 900 of these per every fifteen minutes. When we notice
