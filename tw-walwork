@@ -53,7 +53,7 @@ wal = Walrus(host=sysconf['SYSTEM']['redishost'],port=sysconf['SYSTEM']['redispo
 tum = wal.Set(sys.argv[1])
 
 
-twbod = ""
+tubod = ""
 cnt = 0
 cnt2 = 0
 popcnt = 0
