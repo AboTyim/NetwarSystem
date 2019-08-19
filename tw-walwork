@@ -33,6 +33,13 @@ config.read(os.environ['HOME'] +'/.twitter')
 sysconf = configparser.ConfigParser()
 sysconf.read('/etc/netwar/netwar.conf')
 
+wal = Walrus(host=sysconf['SYSTEM']['redishost'],port=sysconf['SYSTEM']['redisport'], db=0)
+tum = wal.Set(sys.argv[1])
+
+if(len(tum) == 0):
+	squish2.perflog(client,sysconf['API']['account'], "efficient as af, nothing left to do.")
+	sys.exit()
+
 auth = tweepy.OAuthHandler(config['API']['consumer_key'], config['API']['consumer_secret'])
 auth.set_access_token(config['API']['access_token_key'], config['API']['access_token_secret'])
 api = tweepy.API(auth)
@@ -49,8 +56,6 @@ else:
 	client = Elasticsearch(sysconf['SYSTEM']['elksg'])
 
 client.indices.create(index=sys.argv[1], ignore=400)
-wal = Walrus(host=sysconf['SYSTEM']['redishost'],port=sysconf['SYSTEM']['redisport'], db=0)
-tum = wal.Set(sys.argv[1])
 
 
 tubod = ""

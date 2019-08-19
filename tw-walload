@@ -3,6 +3,10 @@
 import redis, configparser, sys
 from walrus import *
 
+if(len(sys.argv) < 3):
+	print("Load what where, pardnah?")
+	sys.exit()
+
 sysconf = configparser.ConfigParser()
 sysconf.read('/etc/netwar/netwar.conf')
 
