@@ -5,6 +5,8 @@ from walrus import *
 sysconf = configparser.ConfigParser()
 sysconf.read('/etc/netwar/netwar.conf')
 
+if(len(sys.argv) < 2):
+	sys.exit()
 
 
 wal = Walrus(host=sysconf['SYSTEM']['redishost'],port=sysconf['SYSTEM']['redisport'], db=0)

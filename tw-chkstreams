@@ -4,18 +4,8 @@ do
     clear
     ps aux | grep "stream" | grep "tw-[2-9]neo" | sort | awk -F " " {'print $1 " " $12 " " $13 " " $14'} | column
     echo
-    ps aux | grep "stream" | grep "tw-usersearchadd" | sort | awk -F " " {'print $1 " " $12 " " $13 " " $14'} | column
-    ps aux | grep "stream" | grep "tw-trickle" | sort | awk -F " " {'print $1 " " $12 " " $13 " " $14'} | column
-    echo
-    ps aux | grep "stream" | grep "quick" | sort | awk -F " " {'print $1 " " $12 " " $13 " " $14'} | column
 
-    echo
-    ps aux | grep "stream" | grep "2gml" | sort | awk -F " " {'print $1 " " $12 " " $13 " " $14'} | column
-    echo
-    #elg usert | awk {'print $7'}
-    tw-showwork usertest
-    tw-showwork batch
-    tw-showwork trump
+    tw-walshow $1
     zoot
 done
     
