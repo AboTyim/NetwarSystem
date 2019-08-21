@@ -54,7 +54,7 @@ Note the qualifier 'successfully' up there. We had a couple of VPS environments 
 * Do a git clone of this archive.
 * Try pip install -r requirements.txt
 * Look at the pipfreeze file to see what was actually running after an install.
-* Clone [TwitterUtils](https://github.com/NetwarSystem/TwitterUtils, which has some useful bits from our pre-Elastic software.
+* Clone [TwitterUtils](https://github.com/NetwarSystem/TwitterUtils), which has some useful bits from our pre-Elastic software.
 * Do a git clone of the [ELKSG](https://github.com/NetwarSystem/ELKSG) archive, which has Elastic setup/tuning stuff in it.
 * Install Elasticsearch 6.8.2.
 * Install Redis.
