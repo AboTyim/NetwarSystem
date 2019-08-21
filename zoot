@@ -1,0 +1,6 @@
+#!/bin/bash
+BAR='############################################################'   # this is full bar, mine is 20 chars
+for i in {1..60}; do
+    echo -ne "\r${BAR:0:$i}" # print $i chars of $BAR from 0 position
+    sleep .25
+done

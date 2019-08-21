@@ -24,12 +24,12 @@ if(config['SYSTEM']['elksg'][:5] == "https"):
 else:
 	client = Elasticsearch(config['SYSTEM']['elksg'])
 
-found = open(sys.argv[1] + "-found.txt", 'w')
-missd = open(sys.argv[1] + "-missed.txt", 'w')
-accts = open(sys.argv[1], 'r')
+found = open(sys.argv[2] + "-found.txt", 'w')
+missd = open(sys.argv[2] + "-missed.txt", 'w')
+accts = open(sys.argv[2], 'r')
 for acct in accts:
 	acct = acct.rstrip()
-	s = Search(using=client, index="usertest").query("match",screen_name=acct)
+	s = Search(using=client, index=sys.argv[1]).query("match",screen_name=acct)
 	response = s.execute()
 	if(response):
 		for resp in response:
@@ -38,5 +38,3 @@ for acct in accts:
 	else:
 		print(acct)
 		missd.write(str(acct) + "\n")
-
-

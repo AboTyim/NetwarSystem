@@ -24,6 +24,9 @@ if(sysconf['SYSTEM']['elksg'][:5] == "https"):
 else:
 	client = Elasticsearch(sysconf['SYSTEM']['elksg'])
 
+if(len(sys.argv) < 3):
+        print("tw-1name <index> <screen_name>")
+        sys.exit()
 
 s = Search(using=client, index=sys.argv[1]).query("match",screen_name=sys.argv[2])
 response = s.execute()

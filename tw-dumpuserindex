@@ -28,7 +28,7 @@ else:
 	client = Elasticsearch(sysconf['SYSTEM']['elksg'])
 
 
-s = Search(using=client, index="proudboys").filter('range', created_at={"gte": "now-20y", "lt": "now"})
+s = Search(using=client, index=sys.argv[1]).filter('range', created_at={"gte": "now-20y", "lt": "now"})
 
 for response in s.scan():
 	if(not response['protected']):

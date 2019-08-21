@@ -24,6 +24,10 @@ if(sysconf['SYSTEM']['elksg'][:5] == "https"):
 else:
 	client = Elasticsearch(sysconf['SYSTEM']['elksg'])
 
+if(len(sys.argv) < 3):
+        print("tw-walgetfollowers <index> <id_str>")
+        sys.exit()
+
 
 s = Search(using=client, index=sys.argv[1]).query("match",id_str=sys.argv[2])
 response = s.execute()

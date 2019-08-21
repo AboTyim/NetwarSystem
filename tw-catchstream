@@ -17,6 +17,7 @@ config.read(os.environ['HOME'] +'/.twitter')
 sysconf = configparser.ConfigParser()
 sysconf.read('/etc/netwar/netwar.conf')
 
+
 # set buffer size
 max = 50
 if(len(sys.argv) > 2):

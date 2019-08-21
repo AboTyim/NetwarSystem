@@ -1,0 +1,60 @@
+#!/usr/bin/python
+import tweepy
+import os, sys, json, time, configparser
+import csv, random, re, getpass
+from elasticsearch import Elasticsearch
+from elasticsearch_dsl import Search
+import ssl
+from elasticsearch.connection import create_ssl_context
+import redis
+from walrus import *
+import squish2, requests
+
+requests.packages.urllib3.disable_warnings()
+
+config = configparser.ConfigParser()
+config.read(os.environ['HOME'] +'/.twitter')
+sysconf = configparser.ConfigParser()
+sysconf.read('/etc/netwar/netwar.conf')
+
+if(sysconf['SYSTEM']['elksg'][:5] == "https"):
+        try:
+                ssl_context = create_ssl_context(cafile='/home/root-ca.pem')
+                ssl_context.check_hostname = False
+                ssl_context.verify_mode = ssl.CERT_NONE
+                client = Elasticsearch(sysconf['SYSTEM']['elksg'], ssl_context=ssl_context, timeout=60, http_auth=(sysconf['SYSTEM']['elksguser'], sysconf['SYSTEM']['elksgpass']))
+        except:
+                sys.exit()
+
+auth = tweepy.OAuthHandler(config['API']['consumer_key'], config['API']['consumer_secret'])
+auth.set_access_token(config['API']['access_token_key'], config['API']['access_token_secret'])
+api = tweepy.API(auth)
+
+
+if(len(sys.argv) < 3):
+	print("tw-walgetfollowers <index> <screen_name>")
+	sys.exit()
+
+wal = Walrus(host=sysconf['SYSTEM']['redishost'],port=sysconf['SYSTEM']['redisport'], db=0)
+qq = wal.Set(sys.argv[1])
+
+if True:
+	try:
+		for page in tweepy.Cursor(api.followers_ids, screen_name=sys.argv[2]).pages():
+			for acct in page:
+				s = Search(using=client, index=sys.argv[1]).query("match",id_str=str(acct))
+				response = s.execute()
+				if(response):
+					for resp in response:
+						print("located  " + resp['screen_name'])
+				else:
+					print("queueing " + str(acct))
+					qq.add(str(sys.argv[1]))
+
+			zod = api.rate_limit_status()
+			while(zod['resources']['followers']['/followers/ids']['remaining'] < 1):
+				time.sleep(60)
+				zod = api.rate_limit_status()
+	except (RuntimeError, TypeError, NameError):
+		pass
+

@@ -15,17 +15,20 @@ requests.packages.urllib3.disable_warnings()
 
 config = configparser.ConfigParser()
 config.read(os.environ['HOME'] +'/.twitter')
+sysconf = configparser.ConfigParser()
+sysconf.read('/etc/netwar/netwar.conf')
 
-if(config['SYSTEM']['elksg'][:5] == "https"):
+
+if(sysconf['SYSTEM']['elksg'][:5] == "https"):
 	try:
 		ssl_context = create_ssl_context(cafile='/home/root-ca.pem')
 		ssl_context.check_hostname = False
 		ssl_context.verify_mode = ssl.CERT_NONE
-		client = Elasticsearch(config['SYSTEM']['elksg'], ssl_context=ssl_context, timeout=60, http_auth=(config['SYSTEM']['elksguser'], config['SYSTEM']['elksgpass']))
+		client = Elasticsearch(sysconf['SYSTEM']['elksg'], ssl_context=ssl_context, timeout=60, http_auth=(sysconf['SYSTEM']['elksguser'], sysconf['SYSTEM']['elksgpass']))
 	except:
 		sys.exit()
 else:
-	client = Elasticsearch(config['SYSTEM']['elksg'])
+	client = Elasticsearch(sysconf['SYSTEM']['elksg'])
 
 ########################################################################################
 bis = open("/home/nlp/bigrams.nlp", 'r')
@@ -83,17 +86,17 @@ for line in englishnames:
 englishnames.close()
 ########################################################################################
 
-names = open(sys.argv[1],'r')
+names = open(sys.argv[2],'r')
 DG = nx.DiGraph()
 
-wal = Walrus(host=config['SYSTEM']['redishost'],port=config['SYSTEM']['redisport'], db=0)
+wal = Walrus(host=sysconf['SYSTEM']['redishost'],port=sysconf['SYSTEM']['redisport'], db=0)
 seeds = wal.Set("seeds")
 seeds.clear()
 
 for file in names:
 	fname = re.sub(".txt", "",file.rstrip())
 	seeds.add(fname)
-	s = Search(using=client, index="usertest").query("match",screen_name=fname)
+	s = Search(using=client, index=sys.argv[1]).query("match",screen_name=fname)
 	response = s.execute()
 	if(response):
 		for resp in response:
@@ -162,10 +165,10 @@ for file in names:
 for seed in seeds:
 	DG.add_node(seed.decode('utf-8'), seed=16384, iseed=16384, namequal=20.0)
 
-nx.write_gml(DG,"fo" + sys.argv[1] + "-full.gml")
+nx.write_gml(DG,"fo" + sys.argv[2] + "-full.gml")
 
 remove = [node for node,degree in DG.degree().items() if degree < 2]
 DG.remove_nodes_from(remove)
 
-nx.write_gml(DG,"fo" + sys.argv[1] + ".gml")
+nx.write_gml(DG,"fo" + sys.argv[2] + ".gml")
 

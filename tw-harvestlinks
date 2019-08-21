@@ -6,6 +6,14 @@ import configparser
 from elasticsearch import Elasticsearch
 import squish2, requests
 
+#################################################################
+#
+#   Needs some major work so friends/followers are a command line
+#   flag. Maybe score some bonus points by doing both at once?
+#
+#################################################################
+
+
 #urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 requests.packages.urllib3.disable_warnings()
 

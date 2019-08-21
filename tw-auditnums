@@ -3,15 +3,16 @@ import csv, json, os, random, re, sys, time, redis, tweepy, getpass
 import configparser
 from elasticsearch import Elasticsearch
 from elasticsearch_dsl import Search
-import ssl
+import ssl, requests
 from elasticsearch.connection import create_ssl_context
-import squish2, requests
+from urllib3.exceptions import ProtocolError
 
 #urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
 requests.packages.urllib3.disable_warnings()
 
 config = configparser.ConfigParser()
 config.read(os.environ['HOME'] +'/.twitter')
+
 
 if(config['SYSTEM']['elksg'][:5] == "https"):
 	try:
@@ -24,20 +25,17 @@ if(config['SYSTEM']['elksg'][:5] == "https"):
 else:
 	client = Elasticsearch(config['SYSTEM']['elksg'])
 
-f = open(sys.argv[1],'r')
-o = open(sys.argv[1] + "-open.txt", 'w')
-p = open(sys.argv[1] + "-locked.txt", 'w')
-for line in f:
-	s = Search(using=client, index="usertest").query("match",id_str=line.rstrip())
+found = open(sys.argv[2] + "-found.txt", 'w')
+missd = open(sys.argv[2] + "-missed.txt", 'w')
+accts = open(sys.argv[2], 'r')
+for acct in accts:
+	acct = acct.rstrip()
+	s = Search(using=client, index=sys.argv[1]).query("match",id_str=acct)
 	response = s.execute()
 	if(response):
 		for resp in response:
-			if(not resp['protected']):
-				print(resp['screen_name'] + " " + resp['id_str'] + " " + resp['status_at'])
-				o.write(resp['screen_name'] + " " + resp['id_str'] + " " + resp['status_at'] + "\n")
-			if(resp['protected']):
-				print(resp['screen_name'] + " " + resp['id_str'] + " " + resp['status_at'])
-				p.write(resp['screen_name'] + " " + resp['id_str'] + " " + resp['status_at'] + "\n")
-f.close()
-o.close()
-p.close()
+			print(resp['screen_name'])
+			found.write(resp['screen_name'] + "\n")
+	else:
+		print(acct)
+		missd.write(str(acct) + "\n")

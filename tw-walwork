@@ -10,20 +10,6 @@ import ssl
 from elasticsearch.connection import create_ssl_context
 import squish2, requests
 
-def check_resources():
-#this does not work at all, don't think it ever has
-	cnt = 0
-	for p in psutil.process_iter(attrs=['name', 'username', 'cmdline']):
-		if(p.info['username'] == getpass.getuser()):
-			for thing in p.info['cmdline']:
-				if re.search("tw-batch", thing):
-					cnt = cnt + 1
-	if(cnt == 2):
-		print("already running")
-		sys.exit(0)
-
-#check_resources()
-
 
 # start here
 requests.packages.urllib3.disable_warnings()
@@ -37,7 +23,7 @@ wal = Walrus(host=sysconf['SYSTEM']['redishost'],port=sysconf['SYSTEM']['redispo
 tum = wal.Set(sys.argv[1])
 
 if(len(tum) == 0):
-	squish2.perflog(client,sysconf['API']['account'], "efficient as af, nothing left to do.")
+	squish2.perflog(client,sysconf['API']['account'], "efficient af, nothing left to do.")
 	sys.exit()
 
 auth = tweepy.OAuthHandler(config['API']['consumer_key'], config['API']['consumer_secret'])
