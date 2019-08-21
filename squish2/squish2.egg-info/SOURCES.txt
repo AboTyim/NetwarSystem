@@ -1,0 +1,9 @@
+setup.py
+squish2/__init__.py
+squish2/perflog.py
+squish2/squishtweet.py
+squish2.egg-info/PKG-INFO
+squish2.egg-info/SOURCES.txt
+squish2.egg-info/dependency_links.txt
+squish2.egg-info/not-zip-safe
+squish2.egg-info/top_level.txt

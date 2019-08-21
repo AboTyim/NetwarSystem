@@ -108,17 +108,19 @@ def check_resources():
 # main begin
 config = configparser.ConfigParser()
 config.read(os.environ['HOME'] +'/.twitter')
+sysconf = configparser.ConfigParser()
+sysconf.read('/etc/netwar/netwar.conf')
 
-if(config['SYSTEM']['elksg'][:5] == "https"):
+if(sysconf['SYSTEM']['elksg'][:5] == "https"):
 	try:
 		ssl_context = create_ssl_context(cafile='/home/root-ca.pem')
 		ssl_context.check_hostname = False
 		ssl_context.verify_mode = ssl.CERT_NONE
-		client = Elasticsearch(config['SYSTEM']['elksg'], ssl_context=ssl_context, timeout=60, http_auth=(config['SYSTEM']['elksguser'], config['SYSTEM']['elksgpass']))
+		client = Elasticsearch(sysconf['SYSTEM']['elksg'], ssl_context=ssl_context, timeout=60, http_auth=(sysconf['SYSTEM']['elksguser'], sysconf['SYSTEM']['elksgpass']))
 	except:
 		sys.exit()
 else:
-	client = Elasticsearch(config['SYSTEM']['elksg'])
+	client = Elasticsearch(sysconf['SYSTEM']['elksg'])
 
 #ensure prior instance has finished, and CPU/MEM usage < 75%
 check_resources()
@@ -128,32 +130,10 @@ auth = tweepy.OAuthHandler(config['API']['consumer_key'], config['API']['consume
 auth.set_access_token(config['API']['access_token_key'], config['API']['access_token_secret'])
 api = tweepy.API(auth)
 my = api.verify_credentials()
-#listlim = api.rate_limit_status()[u'resources'][u'lists'][u'/lists/members'][u'remaining']
-#tweetlim = api.rate_limit_status()[u'resources'][u'statuses'][u'/statuses/user_timeline'][u'remaining']
-#squish2.perflog(client,"LIMITS"," tweetlim " + str(tweetlim) + " listlim " + str(listlim))
 
-wal = Walrus(host=config['SYSTEM']['redishost'],port=config['SYSTEM']['redisport'], db=0)
+wal = Walrus(host=sysconf['SYSTEM']['redishost'],port=sysconf['SYSTEM']['redisport'], db=0)
 work = wal.Set("work")
 nextacct = work.pop().decode('utf-8')
 print("NEXT NEXT NEXT " + nextacct)
 squish2.perflog(client,nextacct," starting")
 get_all_tweets(nextacct)
-print("got all tweets")
-try:
-	y = api.get_user(nextacct)
-	if y:
-		twbod = "{ \"index\" : { \"_index\" : \"tu" + sys.argv[1] + "\", \"_type\" : \"userid\", \"_id\" : \"" + y.id_str + "\"} }\n"
-		twbod = twbod + json.dumps(y._json)
-		client.bulk(index="tu" + sys.argv[1],doc_type="userid",body=twbod)
-		squish2.perflog(client,nextacct," tulogging")
-
-		twbod = "{ \"index\" : { \"_index\" : \"usertest\", \"_type\" : \"userid\", \"_id\" : \"" + y.id_str + "\" }\n"
-		y = squish2.squishuser(y)
-		twbod = twbod + json.dumps(y._json)
-		client.bulk(index="usertest",doc_type="userid",body=twbod)
-		squish2.perflog(client,nextacct," usertest")
-except (RuntimeError, TypeError, NameError):
-	squish2.perflog(nextacct, " tulogging failed")
-	pass
-
-print("logged " + nextacct)
