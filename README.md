@@ -98,7 +98,7 @@ If you're going to collect a lot of data - 32 million user profiles are about 19
 
 # Collecting Some User IDs
 
-tw-walload <index_name> <file> - put some IDs in a file, load them into a Redis work queue.
+tw-walload <index_name> <file_name> - put some IDs in a file, load them into a Redis work queue.
 
 tw-walwork <index_name> - run from command line, it'll check its queue, then start processing accounts it finds there.
 
