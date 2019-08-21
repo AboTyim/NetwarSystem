@@ -98,13 +98,13 @@ If you're going to collect a lot of data - 32 million user profiles are about 19
 
 # Collecting Some User IDs
 
-tw-walload <index> <file> - put some IDs in a file, load them into a Redis work queue.
+tw-walload <index_name> <file> - put some IDs in a file, load them into a Redis work queue.
 
-tw-walwork <index> - run from command line, it'll check its queue, then start processing accounts it finds there.
+tw-walwork <index_name> - run from command line, it'll check its queue, then start processing accounts it finds there.
 
-tw-1name <index> <screen_name> - will look up a screen name.
+tw-1name <index_name> <screen_name> - will look up a screen name.
   
-tw-1num <index> <id_str> - will look up an ID number.
+tw-1num <index_name> <id_str> - will look up an ID number.
 
 tw-auditnames and tw-auditnums are used to audit big collections of account names or numeric IDs against an index.
 
