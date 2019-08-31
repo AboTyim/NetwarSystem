@@ -55,39 +55,8 @@ myidx = sys.argv[1].lower()
 myidx = re.sub(".txt", "",myidx)
 myidx = re.sub(".csv", "",myidx)
 
-request_body = {
- "settings" : { "number_of_shards" : 3, "number_of_replicas" : 1},
-       'mappings' : {'tweets' : { 'properties' : {
-          'coordinates' : {'properties' : {'coordinates' : {'type' : 'geo_point'},'type' : {'type' : 'text'}}},
-          'created_at' : {'type' : 'date',  'format' : 'EEE MMM dd HH:mm:ss Z YYYY'},
-          'id_str' : {'type' : 'keyword'},
-          'lang' :   {'type' : 'keyword'},
-          'source' : {'type' : 'keyword'},
-          'text' :   {'type' : 'text'},
-          'user' : {'properties' : {'created_at' : {'type' : 'date',  'format' : 'EEE MMM dd HH:mm:ss Z YYYY'},
-                                    'description' : {'type' : 'text'},
-                                    'name' : {'type' : 'text'},
-                                    'screen_name' : {'type' : 'text'}}}}}}}}
-
-client.indices.create(index='tw' + myidx, body = request_body, ignore=400)
-
-request_body = {
-        "settings" : { "number_of_shards" : 3, "number_of_replicas": 1},
-       'mappings' : {'userid' : { 'properties' : {
-          'created_at' : {'type' : 'date',  'format' : 'EEE MMM dd HH:mm:ss Z YYYY'},
-          'status_at' :  {'type' : 'date',  'format' : 'EEE MMM dd HH:mm:ss Z YYYY'},
-          'collected_at' :  {'type' : 'date',  'format' : 'EEE MMM dd HH:mm:ss Z YYYY'},
-          'coordinates' : {'properties' : {'coordinates' : {'type' : 'geo_point'},'type' : {'type' : 'text'}}},
-          'id_str' : {'type' : 'keyword'},
-          'lang' :   {'type' : 'keyword'},
-          'source' : {'type' : 'keyword'},
-          'text' :   {'type' : 'text'},
-          'user' :   {'properties' : {'created_at' : {'type' : 'date',  'format' : 'EEE MMM dd HH:mm:ss Z YYYY'},
-                                      'description' : {'type' : 'text'},
-                                      'name' :        {'type' : 'text'},
-                                      'screen_name' : {'type' : 'text'}}}}}}}
-
-client.indices.create(index='tu' + myidx, body = request_body, ignore=400)
+client.indices.create(index='tw' + myidx, body = squish2.formattweets(), ignore=400)
+client.indices.create(index='tu' + myidx, body = squish2.formatusers(), ignore=400)
 
 squish2.perflog(client, "begin streaming " + myidx, "")
 
