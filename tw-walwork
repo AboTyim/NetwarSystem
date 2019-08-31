@@ -68,7 +68,7 @@ while(cnt2 < 800):
 			squish2.perflog(client,sysconf['API']['account'], "tweepy error " + str(prob.args[0][0]['code']) + " " + str(prob.args[0][0]['message']))
 		pass
 	except(AttributeError):
-		squish2.perflog(client,sysconf['API']['account'], "AttributeError " + str(id))
+		squish2.perflog(client,config['API']['account'], "AttributeError " + str(id))
 		cnt = 800
 	# stash every 200 userids collected.
 	if(cnt > 199):

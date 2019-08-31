@@ -2,7 +2,7 @@
 while [ 1 ]
 do
     clear
-    ps aux | grep "stream" | grep "tw-catchstream" | sort | awk -F " " {'print $1 " " $12 " " $13 " " $14'} | column
+    ps aux | grep "stream" | grep "tw-catchstream" | sort | awk -F " " {'print $1 " " $12 " " $13 " " $14'} | sed 's/\/usr\/local\/bin\///' | column
     echo
 
     tw-walshow $1

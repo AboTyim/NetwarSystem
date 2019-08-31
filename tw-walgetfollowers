@@ -38,6 +38,44 @@ if(len(sys.argv) < 3):
 wal = Walrus(host=sysconf['SYSTEM']['redishost'],port=sysconf['SYSTEM']['redisport'], db=0)
 qq = wal.Set(sys.argv[1])
 
+#https://sarahleejane.github.io/learning/python/2015/10/14/creating-an-elastic-search-index-with-python.html
+#	request_body = {
+#	    "settings" : {
+#	        "number_of_shards": 5,
+#	        "number_of_replicas": 1
+#	    },
+#
+#	    'mappings': {
+#	        'examplecase': {
+#	            'properties': {
+#	                'address': {'index': 'not_analyzed', 'type': 'string'},
+#	                'date_of_birth': {'index': 'not_analyzed', 'format': 'dateOptionalTime', 'type': 'date'},
+#	                'some_PK': {'index': 'not_analyzed', 'type': 'string'},
+#	                'fave_colour': {'index': 'analyzed', 'type': 'string'},
+#	                'email_domain': {'index': 'not_analyzed', 'type': 'string'},
+#	            }}}
+#	}
+
+request_body = {
+        "settings" : { "number_of_shards" : 3, "number_of_replicas": 1},
+       'mappings' : {'userid' : { 'properties' : {
+          'created_at' : {'type' : 'date',  'format' : 'EEE MMM dd HH:mm:ss Z YYYY'},
+          'status_at' :  {'type' : 'date',  'format' : 'EEE MMM dd HH:mm:ss Z YYYY'},
+          'collected_at' :  {'type' : 'date',  'format' : 'EEE MMM dd HH:mm:ss Z YYYY'},
+          'coordinates' : {'properties' : {'coordinates' : {'type' : 'geo_point'},'type' : {'type' : 'text'}}},
+          'id_str' : {'type' : 'keyword'},
+          'lang' :   {'type' : 'keyword'},
+          'source' : {'type' : 'keyword'},
+          'text' :   {'type' : 'text'},
+          'user' :   {'properties' : {'created_at' : {'type' : 'date',  'format' : 'EEE MMM dd HH:mm:ss Z YYYY'},
+                                      'description' : {'type' : 'text'},
+                                      'name' :        {'type' : 'text'},
+                                      'screen_name' : {'type' : 'text'}}}}}}}
+
+client.indices.create(index=sys.argv[1], body = request_body, ignore=400)
+
+
+
 if True:
 	try:
 		for page in tweepy.Cursor(api.followers_ids, screen_name=sys.argv[2]).pages():
@@ -49,7 +87,7 @@ if True:
 						print("located  " + resp['screen_name'])
 				else:
 					print("queueing " + str(acct))
-					qq.add(str(sys.argv[1]))
+					qq.add(str(acct))
 
 			zod = api.rate_limit_status()
 			while(zod['resources']['followers']['/followers/ids']['remaining'] < 1):

@@ -28,7 +28,10 @@ if(sysconf['SYSTEM']['elksg'][:5] == "https"):
 	except:
 		sys.exit()
 else:
-	client = Elasticsearch(sysconf['SYSTEM']['elksg'])
+	try:
+		client = Elasticsearch(sysconf['SYSTEM']['elksg'])
+	except:
+		sys.exit()
 
 ########################################################################################
 bis = open("/home/nlp/bigrams.nlp", 'r')
@@ -111,7 +114,7 @@ for file in names:
 							ln1p5=math.log1p(gmean([resp['favourites_count'],resp['followers_count'],resp['friends_count'], resp['listed_count'], resp['statuses_count']])))
 	accts = open(fname + ".txt", 'r')
 	for line in accts:
-		s = Search(using=client, index="usertest").query("match",id_str=line.rstrip())
+		s = Search(using=client, index=sys.argv[1]).query("match",id_str=line.rstrip())
 		response = s.execute()
 		if(response):
 			for resp in response:
@@ -167,8 +170,8 @@ for seed in seeds:
 
 nx.write_gml(DG,"fo" + sys.argv[2] + "-full.gml")
 
-remove = [node for node,degree in DG.degree().items() if degree < 2]
-DG.remove_nodes_from(remove)
+#remove = [node for node,degree in DG.degree().items() if degree < 2]
+#DG.remove_nodes_from(remove)
 
 nx.write_gml(DG,"fo" + sys.argv[2] + ".gml")
 
