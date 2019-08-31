@@ -67,7 +67,7 @@ request_body = {
           'user' : {'properties' : {'created_at' : {'type' : 'date',  'format' : 'EEE MMM dd HH:mm:ss Z YYYY'},
                                     'description' : {'type' : 'text'},
                                     'name' : {'type' : 'text'},
-                                    'screen_name' : {'type' : 'text'}}}}}}}}
+                                    'screen_name' : {'type' : 'text'}}}}}}}
 
 client.indices.create(index='tw' + myidx, body = request_body, ignore=400)
 
