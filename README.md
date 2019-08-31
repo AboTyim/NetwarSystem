@@ -43,7 +43,7 @@ Our current setup is a pair of machines with these specs:
 * Dual Xeon E5-2680v1 eight core processors - combined cpumark 25,000 on each.
 * 192 gig of ram.
 * 500 gig SSD, half for OS, half for ZFS cache.
-* A mixture of Seagate IronWolf drives.
+* Two pairs of Seagate IronWolf drives in each system.
 
 This configuration has supported sixty four accounts doing simultaneous stream captures while other processes do bulk user looks and tweet captures. Each machine runs three VMs that store the data. This requires a bit of hand waving to explain, but it positions us to grow beyond two physical machines when we need to do so.
 
@@ -52,9 +52,9 @@ Note the qualifier 'successfully' up there. We had a couple of VPS environments 
 # Installation
 
 * Do a git clone of this archive.
-* Try pip install -r REQUIREMENTS.txt
-* Look at pipfreeze.txt to see what was actually running on 13 Apr 2019.
-* Clone [TwitterUtils](https://github.com/NetwarSystem/TwitterUtils, which has some useful bits from our pre-Elastic software.
+* Try pip install -r requirements.txt
+* Look at the pipfreeze file to see what was actually running after an install.
+* Clone [TwitterUtils](https://github.com/NetwarSystem/TwitterUtils), which has some useful bits from our pre-Elastic software.
 * Do a git clone of the [ELKSG](https://github.com/NetwarSystem/ELKSG) archive, which has Elastic setup/tuning stuff in it.
 * Install Elasticsearch 6.8.2.
 * Install Redis.
@@ -94,29 +94,25 @@ If you're going to collect a lot of data - 32 million user profiles are about 19
 
 # Collecting Some Tweets
 
-tw-quser2work <file> - put a few Twitter account names in a file, this loads them to the Redis work queue.
-
-tw-idu3elk - run from the command line, you'll see it fetch an account and store tweets in tw {index}
-
-bonus - it'll also grab userids and put them in tu {index}
+(up on blocks 2019-08-20, need to do a full install and make sure we aren't lying here.)
 
 # Collecting Some User IDs
 
-tw-quser2usertest file.txt - put some Twitter account names in a file, this loads them to the right queue in Redis.
+tw-walload <index_name> <file_name> - put some IDs in a file, load them into a Redis work queue.
 
-tw-queue2usertest - run from command line, it'll check its queue, then start processing accounts it finds there.
+tw-walwork <index_name> - run from command line, it'll check its queue, then start processing accounts it finds there.
 
-tw-1name screen_name will look up an account.
+tw-1name <index_name> <screen_name> - will look up a screen name.
+  
+tw-1num <index_name> <id_str> - will look up an ID number.
 
-tw-tumsearch and tw-tnamesearch are used to audit big collections of account names or numeric IDs.
-
-tw-follow2usertest will grab the numeric IDs of every follower of an account and place them in the Redis queue for processing.
+tw-auditnames and tw-auditnums are used to audit big collections of account names or numeric IDs against an index.
 
 # Explore Your Results With Kibana
 
 Elasticsearch's default graphical front end is Kibana. This app runs on port tcp/5601 but all you need is to point a browser at it. There really aren't any good books on Kibana - we've looked and looked. Search YouTube for videos if you need hints. We've produced a few videos of our own ... but where are they? Link? Anyone? Bueller ... Bueller?
 
-# Explore The Neo4j Data
+# Explore The Neo4j Data (NOT WORKING AS OF 2019-08-20)
 
 You can point a browser at tcp/7474 and you'll find the Neo4j graph database.
 
@@ -142,4 +138,3 @@ We looked at a variety of tools for visualizing graph data, and we are amazed an
 * If it should run but doesn't, post an [issue](https://github.com/NetwarSystem/TwitterRecorder/issues), bonus points awarded for logs, stack traces, etc.
 
 * If you think it should run, but you aren't precisely sure, the #netwarsystem_tool channel on the [OSINT team](http://osint.team) Rocketchat server is our secret lair.
-
