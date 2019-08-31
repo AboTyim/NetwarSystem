@@ -1,2 +1,2 @@
 #!/bin/bash
-ps aux | grep "stream" | grep "tw-[2-9]neo" | sort | awk -F " " {'print $1 "," $13'}
+ps aux | grep "stream" | grep "tw-catchstream" | sort | awk -F " " {'print $1 "," $13'}

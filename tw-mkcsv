@@ -30,9 +30,11 @@ accts = open(fname + ".txt", 'r')
 out = open(fname + ".csv", 'w')
 
 for line in accts:
-	s = Search(using=client, index=sys.argv[1]).query("match",id_str=line)
+	acct = line.strip()
+	s = Search(using=client, index=sys.argv[1]).query("match",id_str=acct)
 	response = s.execute()
 	if(response):
 		for resp in response:
 			print(fname + "," + resp['screen_name'])
 			out.write(fname + "," + resp['screen_name'] + "\n")
+
