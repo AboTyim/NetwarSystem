@@ -8,6 +8,10 @@ sysconf.read('/etc/netwar/netwar.conf')
 
 graphistry.register(key=sysconf['SYSTEM']['graphistry'])
 
+f = open(sys.argv[1], 'r')
+items = f.readline().rstrip().split(",")
+f.close()
+print(items)
 links = pd.read_csv(sys.argv[1])
-plotter = graphistry.bind(source="src", destination="dst")
+plotter = graphistry.bind(source=items[0], destination=items[1])
 plotter.plot(links)
