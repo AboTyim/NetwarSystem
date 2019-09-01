@@ -9,22 +9,24 @@ requests.packages.urllib3.disable_warnings()
 config = configparser.ConfigParser()
 
 if len(sys.argv) == 1:
-    myconf = os.environ['HOME'] +'/.twitter'
+	myconf = os.environ['HOME'] +'/.twitter'
 if len(sys.argv) == 2:
-    myconf = sys.argv[1]
+	myconf = sys.argv[1]
+if(not os.path.exists(myconf)):
+	print(getpass.getuser() + " no file " + myconf)
+	exit(1)
 
-#config.read(os.environ['HOME'] +'/.twitter')
 config.read(myconf)
 
 try:
-    auth = tweepy.OAuthHandler(config['API']['consumer_key'], config['API']['consumer_secret'])
-    auth.set_access_token(config['API']['access_token_key'], config['API']['access_token_secret'])
-    api = tweepy.API(auth)
-    y = api.verify_credentials()
-    print(getpass.getuser() + " " +  y.screen_name + " " + myconf)
+	auth = tweepy.OAuthHandler(config['API']['consumer_key'], config['API']['consumer_secret'])
+	auth.set_access_token(config['API']['access_token_key'], config['API']['access_token_secret'])
+	api = tweepy.API(auth)
+	y = api.verify_credentials()
+	print(getpass.getuser() + " " + y.screen_name + " " + myconf)
 except tweepy.error.TweepError:
-    print(sys.argv[1] + " " + config[API].account)
-    exit(1)
+	print(getpass.getuser() + " bad keys  " + myconf)
+	exit(1)
 
 
 #tweepy.error.TweepError
