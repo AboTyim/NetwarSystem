@@ -6,6 +6,7 @@ import pandas as pd
 sysconf = configparser.ConfigParser()
 sysconf.read('/etc/netwar/netwar.conf')
 
+#must have your API key in the global netwar.conf file on your desktop
 graphistry.register(key=sysconf['SYSTEM']['graphistry'])
 
 f = open(sys.argv[1], 'r')

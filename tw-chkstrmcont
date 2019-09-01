@@ -6,6 +6,6 @@ do
     echo
 
     tw-walshow $1
-    zoot
+    wait15
 done
     

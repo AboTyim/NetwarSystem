@@ -30,7 +30,6 @@ auth = tweepy.OAuthHandler(config['API']['consumer_key'], config['API']['consume
 auth.set_access_token(config['API']['access_token_key'], config['API']['access_token_secret'])
 api = tweepy.API(auth)
 
-
 if(len(sys.argv) < 3):
 	print("tw-walgetfollowers <index> <screen_name>")
 	sys.exit()
@@ -38,48 +37,16 @@ if(len(sys.argv) < 3):
 wal = Walrus(host=sysconf['SYSTEM']['redishost'],port=sysconf['SYSTEM']['redisport'], db=0)
 qq = wal.Set(sys.argv[1])
 
-#https://sarahleejane.github.io/learning/python/2015/10/14/creating-an-elastic-search-index-with-python.html
-#	request_body = {
-#	    "settings" : {
-#	        "number_of_shards": 5,
-#	        "number_of_replicas": 1
-#	    },
-#
-#	    'mappings': {
-#	        'examplecase': {
-#	            'properties': {
-#	                'address': {'index': 'not_analyzed', 'type': 'string'},
-#	                'date_of_birth': {'index': 'not_analyzed', 'format': 'dateOptionalTime', 'type': 'date'},
-#	                'some_PK': {'index': 'not_analyzed', 'type': 'string'},
-#	                'fave_colour': {'index': 'analyzed', 'type': 'string'},
-#	                'email_domain': {'index': 'not_analyzed', 'type': 'string'},
-#	            }}}
-#	}
+doit = client.indices.create(index=sys.argv[1], body = squish2.formatusers(), ignore=400)
+print(doit)
 
-request_body = {
-        "settings" : { "number_of_shards" : 3, "number_of_replicas": 1},
-       'mappings' : {'userid' : { 'properties' : {
-          'created_at' : {'type' : 'date',  'format' : 'EEE MMM dd HH:mm:ss Z YYYY'},
-          'status_at' :  {'type' : 'date',  'format' : 'EEE MMM dd HH:mm:ss Z YYYY'},
-          'collected_at' :  {'type' : 'date',  'format' : 'EEE MMM dd HH:mm:ss Z YYYY'},
-          'coordinates' : {'properties' : {'coordinates' : {'type' : 'geo_point'},'type' : {'type' : 'text'}}},
-          'id_str' : {'type' : 'keyword'},
-          'lang' :   {'type' : 'keyword'},
-          'source' : {'type' : 'keyword'},
-          'text' :   {'type' : 'text'},
-          'user' :   {'properties' : {'created_at' : {'type' : 'date',  'format' : 'EEE MMM dd HH:mm:ss Z YYYY'},
-                                      'description' : {'type' : 'text'},
-                                      'name' :        {'type' : 'text'},
-                                      'screen_name' : {'type' : 'text'}}}}}}}
-
-client.indices.create(index=sys.argv[1], body = request_body, ignore=400)
-
-
-
+o = open(sys.argv[2] + "-follow.csv", 'w')
+print("!" + sys.argv[2] + "!")
 if True:
 	try:
 		for page in tweepy.Cursor(api.followers_ids, screen_name=sys.argv[2]).pages():
 			for acct in page:
+				o.write(acct + "\n")
 				s = Search(using=client, index=sys.argv[1]).query("match",id_str=str(acct))
 				response = s.execute()
 				if(response):
@@ -96,3 +63,4 @@ if True:
 	except (RuntimeError, TypeError, NameError):
 		pass
 
+o.close()

@@ -19,9 +19,9 @@ sysconf.read('/etc/netwar/netwar.conf')
 
 
 # set buffer size
-max = 50
-if(len(sys.argv) > 2):
-	max = int(sys.argv[2])
+# used to be CLI option, now is adaptive
+#if(len(sys.argv) > 2):
+#	max = int(sys.argv[2])
 
 try:
 	auth = tweepy.OAuthHandler(config['API']['consumer_key'], config['API']['consumer_secret'])
@@ -66,7 +66,9 @@ class StreamApi(tweepy.StreamListener):
 		global tubod
 		global myidx
 		global cnt
+		global max
 		global config
+		global lastbulk
 		status._json.pop('coordinates', None)
 		status._json.pop('contributors', None)
 		status._json.pop('is_quote_status', None)
@@ -129,7 +131,19 @@ class StreamApi(tweepy.StreamListener):
 				print(now.strftime("%a %b %d %X +0000 %Y") + " max " + str(max) + " count reached.")
 				client.bulk(index="tw" + myidx,doc_type="tweets",body=twbod)
 				k = client.bulk(index="tu" + myidx,doc_type="userid",body=tubod)
-				squish2.perflog(client, "streaming " + myidx, str(len(twbod)) + " " + str(len(tubod)))
+				squish2.perflog(client, "streaming " + myidx, str(max))
+				#should auto scale to stream rate = one load per minute
+				thisbulk = int(time.time())
+				if((thisbulk - lastbulk) < 60):
+					#should auto scale to stream rate = one load per minute
+					max = max * int(60/(thisbulk - lastbulk))
+				if((thisbulk - lastbulk) > 120):
+					# if more than two minutes, cut bulk size in half
+					max = int(max/2)
+				if(max < 20):
+					# never bulk less than 20 items
+					max = 20
+				lastbulk = thisbulk
 				twbod = ""
 				tubod = ""
 				cnt = 0
@@ -160,6 +174,8 @@ while True:
 	twbod = ""
 	tubod = ""
 	cnt = 0
+	lastbulk = int(time.time())
+	max = 20
 	try:
 		if(text):
 			print("Following " + str(len(terms)) + " terms")

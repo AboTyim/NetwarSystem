@@ -1,4 +1,10 @@
 #!/usr/bin/python
+#
+# This is used to turn a file of numeric IDs representing an account's
+# followers into a csv containing the text name of follower and the
+# target account. Should have a followers/friends option to reverse
+# them, but doesn't exist yet.
+#
 import csv, json, os, random, re, sys, time, redis, tweepy, getpass, re
 import configparser
 from elasticsearch import Elasticsearch
@@ -35,6 +41,6 @@ for line in accts:
 	response = s.execute()
 	if(response):
 		for resp in response:
-			print(fname + "," + resp['screen_name'])
-			out.write(fname + "," + resp['screen_name'] + "\n")
+			print(resp['screen_name'] + "," + fname)
+			out.write(resp['screen_name'] + "," + fname + "\n")
 
