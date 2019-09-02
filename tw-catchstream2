@@ -35,7 +35,7 @@ except tweepy.error.TweepError:
 
 if(sysconf['SYSTEM']['elksg'][:5] == "https"):
 	try:
-		ssl_context = create_ssl_context(cafile='/home/root-ca.pem')
+		ssl_context = create_ssl_context(cafile='/etc/netwar/root-ca.pem')
 		ssl_context.check_hostname = False
 		ssl_context.verify_mode = ssl.CERT_NONE
 		# timeout bumped from 60 to 120 - userid based streams are fine,

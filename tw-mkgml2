@@ -33,61 +33,6 @@ else:
 	except:
 		sys.exit()
 
-########################################################################################
-bis = open("/home/nlp/bigrams.nlp", 'r')
-bimax = 116997844
-bigrams = {}
-
-for line in bis:
-	(two, num) = re.split(" ", line.rstrip())
-	factor = int(num)/bimax
-	if factor < 0.0001:
-		factor = 0
-	bigrams[two.upper()] = factor
-bis.close()
-
-tris = open("/home/nlp/trigrams.nlp", 'r')
-trimax = 77534223
-trigrams = {}
-
-for line in tris:
-	(three, num) = re.split(" ", line.rstrip())
-	#make trigrams worth 2x more than bigrams
-	factor = int(num)/(trimax/2)
-	if factor < 0.0001:
-		factor = 0
-	trigrams[three.upper()] = factor
-tris.close()
-
-quads = open("/home/nlp/quads.nlp", 'r')
-quadmax = 13168375
-quadgrams = {}
-
-for line in quads:
-	(four, num) = re.split(" ", line.rstrip())
-	#make quads worth 4x more than bigrams
-	factor = int(num)/(quadmax/4)
-	if factor < 0.0001:
-		factor = 0
-	quadgrams[four.upper()] = factor
-quads.close()
-
-arabnames = open("/home/nlp/arab5.nlp", 'r')
-arabs = {}
-
-for line in arabnames:
-	name = line[:5].upper()
-	arabs[name] = 2
-arabnames.close()
-
-englishnames = open("/home/nlp/english5.nlp", 'r')
-english = {}
-
-for line in englishnames:
-	name = line[:5].upper()
-	english[name] = 2
-englishnames.close()
-########################################################################################
 
 names = open(sys.argv[2],'r')
 DG = nx.DiGraph()
