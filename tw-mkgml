@@ -170,8 +170,13 @@ for seed in seeds:
 
 nx.write_gml(DG,"fo" + sys.argv[2] + "-full.gml")
 
-#remove = [node for node,degree in DG.degree().items() if degree < 2]
-#DG.remove_nodes_from(remove)
+remove = [node for node,degree in DG.degree().items() if degree < 2]
+DG.remove_nodes_from(remove)
 
-nx.write_gml(DG,"fo" + sys.argv[2] + ".gml")
+nx.write_gml(DG,"fo" + sys.argv[2] + "-two.gml")
+
+remove = [node for node,degree in DG.degree().items() if degree < 3]
+DG.remove_nodes_from(remove)
+
+nx.write_gml(DG,"fo" + sys.argv[2] + "-three.gml")
 

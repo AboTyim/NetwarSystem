@@ -55,8 +55,12 @@ myidx = sys.argv[1].lower()
 myidx = re.sub(".txt", "",myidx)
 myidx = re.sub(".csv", "",myidx)
 
+
 if(sys.argv[1][-4:] == ".txt"):
-	os.system("cp " + sys.argv[1] + " " + getpass.getuser() + myidx + ".txt") 
+	os.system("cp " + sys.argv[1] + " " + getpass.getuser() + myidx + ".txt")
+
+if(sys.argv[1][-4:] == ".csv"):
+	os.system("cp " + sys.argv[1] + " " + getpass.getuser() + myidx + ".csv")
 
 client.indices.create(index='tw' + myidx, body = squish2.formattweets(), ignore=400)
 client.indices.create(index='tu' + myidx, body = squish2.formatusers(), ignore=400)
