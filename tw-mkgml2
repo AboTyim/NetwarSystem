@@ -37,6 +37,12 @@ else:
 names = open(sys.argv[2],'r')
 DG = nx.DiGraph()
 
+#
+# seeds are the accounts that form the basis of the network. We preserve them in Redis
+# so we can later set their attributes as the final step in the process. They get 
+# configured first, but if one account follows another in the set, the data gets
+# stepped on.
+#
 wal = Walrus(host=sysconf['SYSTEM']['redishost'],port=sysconf['SYSTEM']['redisport'], db=0)
 seeds = wal.Set(getpass.getuser() + "seeds")
 seeds.clear()
@@ -71,10 +77,13 @@ for file in names:
 					iseed	 = 16384 - int(2 ** math.log1p(gmean([resp['favourites_count'],resp['followers_count'],resp['friends_count'], resp['listed_count'], resp['statuses_count']]))))
 				DG.add_edge(sn, fname, weight=1)
 
+# making sure the seed accounts have top billing for both seed and inverse seed
+# these are used for sizing names and node sizes in Gephi.
 for seed in seeds:
 	DG.add_node(seed.decode('utf-8'), seed=16384, iseed=16384)
 
-nx.write_gml(DG,"fo" + sys.argv[2] + "-full.gml")
+
+nx.write_gml(DG,"fo" + sys.argv[2] + "-one.gml")
 
 remove = [node for node,degree in DG.degree().items() if degree < 2]
 DG.remove_nodes_from(remove)

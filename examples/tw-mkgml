@@ -1,4 +1,12 @@
 #!/usr/bin/python
+#
+# This used to be the way we created GML files. The name related stuff you see
+# is meant to assign a numeric score to a screen_name - there were a herd of 
+# bots in early 2019 that had regex resistant names, which is what that 
+# algorithm exists. By fall of 2019 they mostly stopped appearing and this
+# code added needless complexity and computation time to the process.
+# It's preserved here as an example of how to add metrics using NetworkX.
+#
 import csv, json, os, random, re, sys, time, redis, tweepy, getpass, re, math
 import configparser
 from elasticsearch import Elasticsearch
