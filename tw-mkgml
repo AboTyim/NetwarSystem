@@ -93,7 +93,7 @@ names = open(sys.argv[2],'r')
 DG = nx.DiGraph()
 
 wal = Walrus(host=sysconf['SYSTEM']['redishost'],port=sysconf['SYSTEM']['redisport'], db=0)
-seeds = wal.Set("seeds")
+seeds = wal.Set(getpass.getuser() + "seeds")
 seeds.clear()
 
 for file in names:
@@ -180,3 +180,4 @@ DG.remove_nodes_from(remove)
 
 nx.write_gml(DG,"fo" + sys.argv[2] + "-three.gml")
 
+seeds.clear()
