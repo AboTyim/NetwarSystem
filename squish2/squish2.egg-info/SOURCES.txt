@@ -1,5 +1,6 @@
 setup.py
 squish2/__init__.py
+squish2/formatindex.py
 squish2/perflog.py
 squish2/squishtweet.py
 squish2.egg-info/PKG-INFO
