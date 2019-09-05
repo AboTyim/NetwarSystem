@@ -20,7 +20,7 @@ def squishtweet(y):
 	y._json.pop('timestamp_ms')
 	y._json['user'].pop('translator_type')
 	y._json['user'].pop('contributors_enabled')
-#	y._json['user'].pop('time_zone')
+	y._json['user'].pop('time_zone')
 	y._json['user'].pop('utc_offset')
 	y._json['user'].pop('geo_enabled')
 	y._json['user'].pop('profile_background_color', None)

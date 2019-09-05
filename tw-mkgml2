@@ -1,0 +1,98 @@
+#!/usr/bin/python
+import csv, json, os, random, re, sys, time, redis, tweepy, getpass, re, math
+import configparser
+from elasticsearch import Elasticsearch
+from elasticsearch_dsl import Search
+import ssl, requests
+from elasticsearch.connection import create_ssl_context
+import networkx as nx
+from walrus import *
+from scipy.stats.mstats import gmean
+
+#urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+requests.packages.urllib3.disable_warnings()
+
+
+config = configparser.ConfigParser()
+config.read(os.environ['HOME'] +'/.twitter')
+sysconf = configparser.ConfigParser()
+sysconf.read('/etc/netwar/netwar.conf')
+
+
+if(sysconf['SYSTEM']['elksg'][:5] == "https"):
+	try:
+		ssl_context = create_ssl_context(cafile='/etc/netwar/root-ca.pem')
+		ssl_context.check_hostname = False
+		ssl_context.verify_mode = ssl.CERT_NONE
+		client = Elasticsearch(sysconf['SYSTEM']['elksg'], ssl_context=ssl_context, timeout=60, http_auth=(sysconf['SYSTEM']['elksguser'], sysconf['SYSTEM']['elksgpass']))
+	except:
+		sys.exit()
+else:
+	try:
+		client = Elasticsearch(sysconf['SYSTEM']['elksg'])
+	except:
+		sys.exit()
+
+
+names = open(sys.argv[2],'r')
+DG = nx.DiGraph()
+
+#
+# seeds are the accounts that form the basis of the network. We preserve them in Redis
+# so we can later set their attributes as the final step in the process. They get 
+# configured first, but if one account follows another in the set, the data gets
+# stepped on.
+#
+wal = Walrus(host=sysconf['SYSTEM']['redishost'],port=sysconf['SYSTEM']['redisport'], db=0)
+seeds = wal.Set(getpass.getuser() + "seeds")
+seeds.clear()
+
+for file in names:
+	fname = re.sub(".txt", "",file.rstrip())
+	seeds.add(fname)
+	s = Search(using=client, index=sys.argv[1]).query("match",screen_name=fname)
+	response = s.execute()
+	if(response):
+		for resp in response:
+				DG.add_node(fname, faves = resp['favourites_count'], 
+							followers = resp['followers_count'],
+							friends   = resp['friends_count'], 
+							listed    = resp['listed_count'], 
+							statuses  = resp['statuses_count'])
+	accts = open(fname + ".txt", 'r')
+	for line in accts:
+		s = Search(using=client, index=sys.argv[1]).query("match",id_str=line.rstrip())
+		response = s.execute()
+		if(response):
+			for resp in response:
+				print(resp['screen_name'] + "," + fname)
+				sn = resp['screen_name']
+
+				DG.add_node(sn, faves = resp['favourites_count'], 
+					followers     = resp['followers_count'],
+					friends       = resp['friends_count'], 
+					listed	      = resp['listed_count'], 
+					statuses      = resp['statuses_count'],
+					seed	  = int(2 ** math.log1p(gmean([resp['favourites_count'],resp['followers_count'],resp['friends_count'], resp['listed_count'], resp['statuses_count']]))),
+					iseed	 = 16384 - int(2 ** math.log1p(gmean([resp['favourites_count'],resp['followers_count'],resp['friends_count'], resp['listed_count'], resp['statuses_count']]))))
+				DG.add_edge(sn, fname, weight=1)
+
+# making sure the seed accounts have top billing for both seed and inverse seed
+# these are used for sizing names and node sizes in Gephi.
+for seed in seeds:
+	DG.add_node(seed.decode('utf-8'), seed=16384, iseed=16384)
+
+
+nx.write_gml(DG,"fo" + sys.argv[2] + "-one.gml")
+
+remove = [node for node,degree in DG.degree().items() if degree < 2]
+DG.remove_nodes_from(remove)
+
+nx.write_gml(DG,"fo" + sys.argv[2] + "-two.gml")
+
+remove = [node for node,degree in DG.degree().items() if degree < 3]
+DG.remove_nodes_from(remove)
+
+nx.write_gml(DG,"fo" + sys.argv[2] + "-three.gml")
+
+seeds.clear()

@@ -1,4 +1,12 @@
 #!/usr/bin/python
+#
+# This used to be the way we created GML files. The name related stuff you see
+# is meant to assign a numeric score to a screen_name - there were a herd of 
+# bots in early 2019 that had regex resistant names, which is what that 
+# algorithm exists. By fall of 2019 they mostly stopped appearing and this
+# code added needless complexity and computation time to the process.
+# It's preserved here as an example of how to add metrics using NetworkX.
+#
 import csv, json, os, random, re, sys, time, redis, tweepy, getpass, re, math
 import configparser
 from elasticsearch import Elasticsearch
@@ -21,7 +29,7 @@ sysconf.read('/etc/netwar/netwar.conf')
 
 if(sysconf['SYSTEM']['elksg'][:5] == "https"):
 	try:
-		ssl_context = create_ssl_context(cafile='/home/root-ca.pem')
+		ssl_context = create_ssl_context(cafile='/etc/netwar/root-ca.pem')
 		ssl_context.check_hostname = False
 		ssl_context.verify_mode = ssl.CERT_NONE
 		client = Elasticsearch(sysconf['SYSTEM']['elksg'], ssl_context=ssl_context, timeout=60, http_auth=(sysconf['SYSTEM']['elksguser'], sysconf['SYSTEM']['elksgpass']))
@@ -93,7 +101,7 @@ names = open(sys.argv[2],'r')
 DG = nx.DiGraph()
 
 wal = Walrus(host=sysconf['SYSTEM']['redishost'],port=sysconf['SYSTEM']['redisport'], db=0)
-seeds = wal.Set("seeds")
+seeds = wal.Set(getpass.getuser() + "seeds")
 seeds.clear()
 
 for file in names:
@@ -170,8 +178,14 @@ for seed in seeds:
 
 nx.write_gml(DG,"fo" + sys.argv[2] + "-full.gml")
 
-#remove = [node for node,degree in DG.degree().items() if degree < 2]
-#DG.remove_nodes_from(remove)
+remove = [node for node,degree in DG.degree().items() if degree < 2]
+DG.remove_nodes_from(remove)
 
-nx.write_gml(DG,"fo" + sys.argv[2] + ".gml")
+nx.write_gml(DG,"fo" + sys.argv[2] + "-two.gml")
 
+remove = [node for node,degree in DG.degree().items() if degree < 3]
+DG.remove_nodes_from(remove)
+
+nx.write_gml(DG,"fo" + sys.argv[2] + "-three.gml")
+
+seeds.clear()
