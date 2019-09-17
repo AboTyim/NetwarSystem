@@ -165,7 +165,7 @@ def on_error(self, status):
 		return True
 
 	
-streamer = tweepy.Stream(auth=auth, listener=StreamApi(), timeout=30)
+streamer = tweepy.Stream(auth=auth, listener=StreamApi(), tweet_mode='extended', timeout=30)
 
 tfile = open(sys.argv[1], 'r')
 terms = []
