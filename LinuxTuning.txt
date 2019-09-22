@@ -1,12 +1,12 @@
 
 # Must add the following to /etc/security/limits.conf
 # Elasticsearch needs the file handles, Neo4j needs the processes
-
+# bumped processes from 10k to 65k - OSS says it wants this
 *               hard    nofile          300000
 *               soft    nofile          300000
 
-*               hard    nproc           10000
-*               soft    nproc           10000
+*               hard    nproc           65000
+*               soft    nproc           65000
 
 
 # And the following to /etc/sysctl.conf, which will prevent
