@@ -20,17 +20,3 @@ w = Dict()
 w.bool.should = items
 w.bool.minimum_should_match = 1
 print(w.to_dict())
-
-
-#pre = '        { "match_phrase": { "' + sys.argv[1] + '": "'
-#post = '"}}'
-#tail = '      ], "minimum_should_match": 1}}}'
-#
-#
-#ff = open(sys.argv[2],'r')
-#print(head)
-#nuts = ff.readlines()
-#for line in nuts[:-1]:
-#    print(pre + line.rstrip() + post + ",")
-#print(pre + nuts[-1].rstrip() + post)
-#print(tail)
