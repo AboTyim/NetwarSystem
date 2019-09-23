@@ -27,9 +27,9 @@ if(sysconf['SYSTEM']['elksg'][:5] == "https"):
 else:
 	client = Elasticsearch(sysconf['SYSTEM']['elksg'])
 
-q = Q({ "bool": { "should": [{ "match_phrase": { "user.screen_name": "AlbertOwenMP"}}], "minimum_should_match": 1}})
+q = Q(squish2.mkfilter("user.screen_name", sys.argv[2]))
 
-s = Search(using=client, index=sys.argv[1]).filter('range', created_at={"gte": "now-3d", "lt": "now"}).query(q)
+s = Search(using=client, index=sys.argv[1]).filter('range', created_at={"gte": "now-1d", "lt": "now"}).query(q)
 
 
 for response in s.scan():
