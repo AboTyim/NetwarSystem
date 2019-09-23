@@ -49,3 +49,4 @@ from .squishtweet import squishtweet
 from .perflog import perflog
 from .formatindex import formattweets
 from .formatindex import formatusers
+from .mkfilter import mkfilter
