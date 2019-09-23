@@ -8,3 +8,4 @@ setproctitle>=1.1.10
 psutil>=5.6.1
 configparser>=3.7.4
 urllib3==1.24.2
+addict>==2.2.1

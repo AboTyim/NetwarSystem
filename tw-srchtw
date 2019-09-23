@@ -29,7 +29,7 @@ else:
 
 q = Q({ "bool": { "should": [{ "match_phrase": { "user.screen_name": "AlbertOwenMP"}}], "minimum_should_match": 1}})
 
-s = Search(using=client, index="twukwales").filter('range', created_at={"gte": "now-3d", "lt": "now"}).query(q)
+s = Search(using=client, index=sys.argv[1]).filter('range', created_at={"gte": "now-3d", "lt": "now"}).query(q)
 
 
 for response in s.scan():

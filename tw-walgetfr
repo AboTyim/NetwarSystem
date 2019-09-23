@@ -31,7 +31,7 @@ auth.set_access_token(config['API']['access_token_key'], config['API']['access_t
 api = tweepy.API(auth)
 
 if(len(sys.argv) < 3):
-	print("tw-walgetfollowers <index> <screen_name>")
+	print("tw-walgetfriends <index> <screen_name>")
 	sys.exit()
 
 wal = Walrus(host=sysconf['SYSTEM']['redishost'],port=sysconf['SYSTEM']['redisport'], db=0)
@@ -44,7 +44,7 @@ o = open(sys.argv[2] + "-follow.csv", 'w')
 print("!" + sys.argv[2] + "!")
 if True:
 	try:
-		for page in tweepy.Cursor(api.followers_ids, screen_name=sys.argv[2]).pages():
+		for page in tweepy.Cursor(api.friends_ids, screen_name=sys.argv[2]).pages():
 			for acct in page:
 				o.write(acct + "\n")
 				s = Search(using=client, index=sys.argv[1]).query("match",id_str=str(acct))
@@ -57,7 +57,7 @@ if True:
 					qq.add(str(acct))
 
 			zod = api.rate_limit_status()
-			while(zod['resources']['followers']['/followers/ids']['remaining'] < 1):
+			while(zod['resources']['friends']['/friends/ids']['remaining'] < 1):
 				time.sleep(60)
 				zod = api.rate_limit_status()
 	except (RuntimeError, TypeError, NameError):
