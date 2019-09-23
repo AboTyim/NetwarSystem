@@ -1,5 +1,5 @@
 
-def mkfilter(filtstr,filtfile)
+def mkfilter(filtstr,filtfile):
 
 	f = open(filtfile,'r')	
 	items = []
