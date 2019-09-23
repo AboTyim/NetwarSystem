@@ -1,6 +1,6 @@
 def squishtweet(y):
 	print("SQUISHING")
-	y._json.pop('coordinates', None)
+#	y._json.pop('coordinates', None)
 	y._json.pop('contributors', None)
 	y._json.pop('is_quote_status', None)
 	y._json.pop('in_reply_to_status_id', None)
@@ -30,7 +30,7 @@ def squishtweet(y):
 	y._json['user'].pop('profile_banner_url', None)
 	y._json['user'].pop('profile_image_url_https', None)
 	y._json['user'].pop('profile_link_color', None)
-	y._json['user'].pop('profile_location', None)
+#	y._json['user'].pop('profile_location', None)
 	y._json['user'].pop('profile_sidebar_border_color', None)
 	y._json['user'].pop('profile_sidebar_fill_color', None)
 	y._json['user'].pop('profile_text_color', None)

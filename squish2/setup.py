@@ -1,7 +1,7 @@
 from setuptools import setup
 
 setup(name='squish2',
-      version='0.1j',
+      version='0.1.2',
       description='Tools for Squishing Twitter Data',
       url='https://github.com/NetwarSystem/squish2',
       author='NetwarSystem',
