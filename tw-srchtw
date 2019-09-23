@@ -1,0 +1,36 @@
+#!/usr/bin/python
+import csv, json, os, random, re, sys, time, redis, tweepy, getpass, datetime
+import configparser
+from elasticsearch import Elasticsearch
+from elasticsearch_dsl import Search
+from elasticsearch_dsl import Q
+import ssl
+from elasticsearch.connection import create_ssl_context
+import squish2, requests
+
+#urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+requests.packages.urllib3.disable_warnings()
+sysconf = configparser.ConfigParser()
+sysconf.read('/etc/netwar/netwar.conf')
+
+config = configparser.ConfigParser()
+config.read(os.environ['HOME'] +'/.twitter')
+
+if(sysconf['SYSTEM']['elksg'][:5] == "https"):
+	try:
+		ssl_context = create_ssl_context(cafile='/etc/netwar/root-ca.pem')
+		ssl_context.check_hostname = False
+		ssl_context.verify_mode = ssl.CERT_NONE
+		client = Elasticsearch(sysconf['SYSTEM']['elksg'], ssl_context=ssl_context, timeout=60, http_auth=(sysconf['SYSTEM']['elksguser'], sysconf['SYSTEM']['elksgpass']))
+	except:
+		sys.exit()
+else:
+	client = Elasticsearch(sysconf['SYSTEM']['elksg'])
+
+q = Q({ "bool": { "should": [{ "match_phrase": { "user.screen_name": "AlbertOwenMP"}}], "minimum_should_match": 1}})
+
+s = Search(using=client, index="twukwales").filter('range', created_at={"gte": "now-3d", "lt": "now"}).query(q)
+
+
+for response in s.scan():
+	print(response['user']['screen_name'] + "," + response['id_str'] + "," + str(response['reply_count']))
