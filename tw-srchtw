@@ -15,6 +15,9 @@ sysconf.read('/etc/netwar/netwar.conf')
 
 config = configparser.ConfigParser()
 config.read(os.environ['HOME'] +'/.twitter')
+auth = tweepy.OAuthHandler(config['API']['consumer_key'], config['API']['consumer_secret'])
+auth.set_access_token(config['API']['access_token_key'], config['API']['access_token_secret'])
+api = tweepy.API(auth)
 
 if(sysconf['SYSTEM']['elksg'][:5] == "https"):
 	try:
@@ -31,6 +34,15 @@ q = Q(squish2.mkfilter("user.screen_name", sys.argv[2]))
 
 s = Search(using=client, index=sys.argv[1]).filter('range', created_at={"gte": "now-1d", "lt": "now"}).query(q)
 
-
+ids = []
+cnt = 0
 for response in s.scan():
-	print(response['user']['screen_name'] + "," + response['id_str'] + "," + str(response['reply_count']))
+	ids.append(response['id'])
+
+		
+res = api.statuses_lookup(ids)
+for thing in res:
+		print(thing.user.screen_name + ",http://twitter.com/" + thing.user.screen_name + "/status/" + thing.id_str + "," + str(thing.retweet_count + thing.favorite_count))
+		#print(thing['retweet_count'])
+		#print(thing['favorite_count'])
+	
