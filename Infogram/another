@@ -1,0 +1,142 @@
+#!/usr/bin/python
+import csv, json, os, random, re, sys, time, redis, tweepy, getpass, datetime
+import configparser
+from elasticsearch import Elasticsearch
+from elasticsearch_dsl import Search
+from elasticsearch_dsl import A
+from elasticsearch_dsl import Q
+import ssl
+from elasticsearch.connection import create_ssl_context
+import squish2, requests
+
+#urllib3.disable_warnings(urllib3.exceptions.InsecureRequestWarning)
+requests.packages.urllib3.disable_warnings()
+sysconf = configparser.ConfigParser()
+sysconf.read('/etc/netwar/netwar.conf')
+
+config = configparser.ConfigParser()
+config.read(os.environ['HOME'] +'/.twitter')
+auth = tweepy.OAuthHandler(config['API']['consumer_key'], config['API']['consumer_secret'])
+auth.set_access_token(config['API']['access_token_key'], config['API']['access_token_secret'])
+api = tweepy.API(auth)
+
+if(sysconf['SYSTEM']['elksg'][:5] == "https"):
+	try:
+		ssl_context = create_ssl_context(cafile='/etc/netwar/root-ca.pem')
+		ssl_context.check_hostname = False
+		ssl_context.verify_mode = ssl.CERT_NONE
+		client = Elasticsearch(sysconf['SYSTEM']['elksg'], ssl_context=ssl_context, timeout=60, http_auth=(sysconf['SYSTEM']['elksguser'], sysconf['SYSTEM']['elksgpass']))
+	except:
+		sys.exit()
+else:
+	client = Elasticsearch(sysconf['SYSTEM']['elksg'])
+
+response = client.search(
+    index="twxreb",
+    body={
+  "aggs": {
+    "2": {
+      "terms": {
+        "field": "text.keyword",
+        "size": 10,
+        "order": {
+          "_count": "desc"
+        }
+      },
+      "aggs": {
+        "3": {
+          "terms": {
+            "field": "retweeted_status.id_str.keyword",
+            "size": 1,
+            "order": {
+              "_count": "desc"
+            }
+          },
+          "aggs": {
+            "4": {
+              "terms": {
+                "field": "retweeted_status.user.screen_name.keyword",
+                "size": 1,
+                "order": {
+                  "_count": "desc"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "size": 0,
+  "_source": {
+    "excludes": []
+  },
+  "stored_fields": [
+    "*"
+  ],
+  "script_fields": {},
+  "docvalue_fields": [
+    {
+      "field": "created_at",
+      "format": "date_time"
+    },
+    {
+      "field": "user.created_at",
+      "format": "date_time"
+    }
+  ],
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "match_all": {}
+        },
+        {
+          "match_all": {}
+        },
+        {
+          "range": {
+            "created_at": {
+              "gte": "now-1d",
+              "lte": "now"
+            }
+          }
+        }
+      ],
+      "filter": [],
+      "should": [],
+      "must_not": []
+    }
+  }
+})
+
+#print(response)
+
+ids = []
+for thing in response['aggregations']['2']['buckets']:
+	#print(thing['key'])
+	for other in thing['3']['buckets']:
+		#print(other['key'])
+		ids.append(other['key'])
+
+
+name = "another"
+res = api.statuses_lookup(ids)
+o = open(name + ".csv", 'w')
+for thing in res:
+		print(str(thing.retweet_count + thing.favorite_count) + "," + thing.user.screen_name + ",http://twitter.com/" + thing.user.screen_name + "/status/" + thing.id_str )
+		o.write(str(thing.retweet_count + thing.favorite_count) + "," + thing.user.screen_name + ",http://twitter.com/" + thing.user.screen_name + "/status/" + thing.id_str + "\n")
+
+o.close()
+os.system("cat " + name + ".csv | sort -nr > " + name + ".tmp")
+os.system("head -10 " + name + ".tmp > " + name + ".csv")
+os.system("rm " + name + ".tmp")
+
+o = open(name + ".csv", 'r')
+w = open("/home/socintru/" + name + ".json", 'w')
+w.write('[[["Score", "MP", "URL"]')
+for line in o:
+	(score,mp,url) = re.split(",",line.rstrip())
+	w.write(',["' + str(score) + '","' + mp + '","' + url + '"]')
+w.write(']]')
+w.close()
