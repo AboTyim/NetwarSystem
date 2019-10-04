@@ -34,17 +34,7 @@ else:
 response = client.search(
     index=sys.argv[1],
     body={
-  "aggs": {
-    "2": {
-      "terms": {
-        "field": "text.keyword",
-        "size": 10,
-        "order": {
-          "_count": "desc"
-        }
-      }
-    }
-  },
+  "aggs": {},
   "size": 0,
   "_source": {
     "excludes": []
@@ -88,16 +78,21 @@ response = client.search(
   }
 })
 
-#print(response)
+print(response)
 
-ids = []
-for thing in response['aggregations']['2']['buckets']:
-	print()
-	for t in thing.keys():
-		print(thing[t])
 
+
+
+
+#ids = []
+#for thing in response['aggregations']['2']['buckets']:
+#	#print(thing['key'])
+#	for other in thing['3']['buckets']:
+#		#print(other['key'])
+#		ids.append(other['key'])
 #
-#name = "another"
+#
+#name = sys.argv[1]
 #res = api.statuses_lookup(ids)
 #o = open(name + ".csv", 'w')
 #for thing in res:
@@ -110,7 +105,8 @@ for thing in response['aggregations']['2']['buckets']:
 #os.system("rm " + name + ".tmp")
 #
 #o = open(name + ".csv", 'r')
-#w = open("/home/socintru/" + name + ".json", 'w')
+##w = open("/home/socintru/" + name + ".json", 'w')
+#w = open(name + ".json", 'w')
 #w.write('[[["Score", "MP", "URL"]')
 #for line in o:
 #	(score,mp,url) = re.split(",",line.rstrip())

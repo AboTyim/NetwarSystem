@@ -37,32 +37,10 @@ response = client.search(
   "aggs": {
     "2": {
       "terms": {
-        "field": "text.keyword",
-        "size": 10,
+        "field": "retweeted_status.user.screen_name.keyword",
+        "size": 30,
         "order": {
           "_count": "desc"
-        }
-      },
-      "aggs": {
-        "3": {
-          "terms": {
-            "field": "retweeted_status.id_str.keyword",
-            "size": 1,
-            "order": {
-              "_count": "desc"
-            }
-          },
-          "aggs": {
-            "4": {
-              "terms": {
-                "field": "retweeted_status.user.screen_name.keyword",
-                "size": 1,
-                "order": {
-                  "_count": "desc"
-                }
-              }
-            }
-          }
         }
       }
     }
@@ -105,48 +83,43 @@ response = client.search(
       ],
       "filter": [],
       "should": [],
-      "must_not": [
-        {
-          "range": {
-            "retweeted_status.favorite_count": {
-              "gte": 0,
-              "lt": 20
-            }
-          }
-        }
-      ]
+      "must_not": []
     }
   }
 })
 
-#print(response)
-
-ids = []
-for thing in response['aggregations']['2']['buckets']:
-	#print(thing['key'])
-	for other in thing['3']['buckets']:
-		#print(other['key'])
-		ids.append(other['key'])
+print(response)
 
 
-name = sys.argv[1]
-res = api.statuses_lookup(ids)
-o = open(name + ".csv", 'w')
-for thing in res:
-		print(str(thing.retweet_count + thing.favorite_count) + "," + thing.user.screen_name + ",http://twitter.com/" + thing.user.screen_name + "/status/" + thing.id_str )
-		o.write(str(thing.retweet_count + thing.favorite_count) + "," + thing.user.screen_name + ",http://twitter.com/" + thing.user.screen_name + "/status/" + thing.id_str + "\n")
 
-o.close()
-os.system("cat " + name + ".csv | sort -nr > " + name + ".tmp")
-os.system("head -10 " + name + ".tmp > " + name + ".csv")
-os.system("rm " + name + ".tmp")
 
-o = open(name + ".csv", 'r')
-#w = open("/home/socintru/" + name + ".json", 'w')
-w = open(name + ".json", 'w')
-w.write('[[["Score", "MP", "URL"]')
-for line in o:
-	(score,mp,url) = re.split(",",line.rstrip())
-	w.write(',["' + str(score) + '","' + mp + '","' + url + '"]')
-w.write(']]')
-w.close()
+
+#ids = []
+#for thing in response['aggregations']['2']['buckets']:
+#	#print(thing['key'])
+#	for other in thing['3']['buckets']:
+#		#print(other['key'])
+#		ids.append(other['key'])
+#
+#
+#name = sys.argv[1]
+#res = api.statuses_lookup(ids)
+#o = open(name + ".csv", 'w')
+#for thing in res:
+#		print(str(thing.retweet_count + thing.favorite_count) + "," + thing.user.screen_name + ",http://twitter.com/" + thing.user.screen_name + "/status/" + thing.id_str )
+#		o.write(str(thing.retweet_count + thing.favorite_count) + "," + thing.user.screen_name + ",http://twitter.com/" + thing.user.screen_name + "/status/" + thing.id_str + "\n")
+#
+#o.close()
+#os.system("cat " + name + ".csv | sort -nr > " + name + ".tmp")
+#os.system("head -10 " + name + ".tmp > " + name + ".csv")
+#os.system("rm " + name + ".tmp")
+#
+#o = open(name + ".csv", 'r')
+##w = open("/home/socintru/" + name + ".json", 'w')
+#w = open(name + ".json", 'w')
+#w.write('[[["Score", "MP", "URL"]')
+#for line in o:
+#	(score,mp,url) = re.split(",",line.rstrip())
+#	w.write(',["' + str(score) + '","' + mp + '","' + url + '"]')
+#w.write(']]')
+#w.close()

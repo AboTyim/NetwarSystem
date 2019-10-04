@@ -1,0 +1,54 @@
+{
+  "aggs": {
+    "2": {
+      "terms": {
+        "field": "source",
+        "size": 30,
+        "order": {
+          "_count": "desc"
+        }
+      }
+    }
+  },
+  "size": 0,
+  "_source": {
+    "excludes": []
+  },
+  "stored_fields": [
+    "*"
+  ],
+  "script_fields": {},
+  "docvalue_fields": [
+    {
+      "field": "created_at",
+      "format": "date_time"
+    },
+    {
+      "field": "user.created_at",
+      "format": "date_time"
+    }
+  ],
+  "query": {
+    "bool": {
+      "must": [
+        {
+          "match_all": {}
+        },
+        {
+          "match_all": {}
+        },
+        {
+          "range": {
+            "created_at": {
+              "gte": "now-1d",
+              "lte": "now"
+            }
+          }
+        }
+      ],
+      "filter": [],
+      "should": [],
+      "must_not": []
+    }
+  }
+}
