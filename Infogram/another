@@ -32,7 +32,7 @@ else:
 	client = Elasticsearch(sysconf['SYSTEM']['elksg'])
 
 response = client.search(
-    index="twxreb",
+    index=sys.argv[1],
     body={
   "aggs": {
     "2": {
@@ -120,7 +120,7 @@ for thing in response['aggregations']['2']['buckets']:
 		ids.append(other['key'])
 
 
-name = "another"
+name = sys.argv[1]
 res = api.statuses_lookup(ids)
 o = open(name + ".csv", 'w')
 for thing in res:
